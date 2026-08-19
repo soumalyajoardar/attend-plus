@@ -65,7 +65,7 @@ const Signup = () => {
     // If all validations pass!
     try {
       console.log('Sending data:', { fullName, registrationNo, department, semester, email, parentEmail, password });
-      const response = await fetch('http://192.168.1.5:5000/api/auth/signup', {
+      const response = await fetch('https://attend-plus-server.onrender.com/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

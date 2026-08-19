@@ -49,7 +49,7 @@ const QRScanner = ({ onClose, onSuccess }) => {
     try {
       const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
       
-      const response = await fetch('http://localhost:5000/api/attendance/check-in', {
+      const response = await fetch('https://attend-plus-server.onrender.com/api/attendance/check-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

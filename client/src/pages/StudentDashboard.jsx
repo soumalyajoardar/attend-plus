@@ -41,7 +41,7 @@ const StudentDashboard = () => {
       const dept = department || 'CST';
       const sem = semester || '1st';
 
-      const response = await fetch(`http://localhost:5000/api/notifications/${dept}/${sem}`);
+      const response = await fetch(`https://attend-plus-server.onrender.com/api/notifications/${dept}/${sem}`);
       const data = await response.json();
 
       if (data.success) {

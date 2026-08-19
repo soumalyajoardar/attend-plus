@@ -70,7 +70,7 @@ const TeacherDashboard = () => {
   // Start attendance session
   const startSession = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/session/create', {
+      const response = await fetch('https://attend-plus-server.onrender.com/api/session/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -138,7 +138,7 @@ const TeacherDashboard = () => {
   }
 
   try {
-    const response = await fetch('http://localhost:5000/api/notifications/create', {
+    const response = await fetch('https://attend-plus-server.onrender.com/api/notifications/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
