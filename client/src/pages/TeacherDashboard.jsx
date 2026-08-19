@@ -1,3 +1,4 @@
+import speakeasy from 'speakeasy';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -40,11 +41,16 @@ const TeacherDashboard = () => {
 
   // Generate token based on current time (changes every 5 seconds)
   const generateToken = (secret) => {
-    if (!secret) return;
-    const currentTime = Math.floor(Date.now() / 5000);
-    const token = Math.floor(currentTime % 1000000).toString().padStart(6, '0');
-    setCurrentToken(token);
-  };
+  if (!secret) return;
+  
+  const token = speakeasy.totp({
+    secret: secret,
+    encoding: 'base32',
+    step: 5, // Must match backend (5 seconds)
+  });
+  
+  setCurrentToken(token);
+};
 
   // Rotate token every 5 seconds
   useEffect(() => {
