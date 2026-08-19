@@ -7,62 +7,54 @@ const QRScanner = ({ onClose, onSuccess }) => {
   const [success, setSuccess] = useState(false);
   const scannerRef = useRef(null);
   const hasScannedRef = useRef(false);
-  const [scanResult, setScanResult] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    let scanner = null;
-
-    const startScanner = async () => {
-      try {
-        scanner = new Html5Qrcode('qr-reader');
-        scannerRef.current = scanner;
-        
-        await scanner.start(
-          { facingMode: 'environment' },
-          { fps: 5, qrbox: { width: 200, height: 200 } },
-          (decodedText) => {
-            // Only process once
-            if (!hasScannedRef.current) {
-              hasScannedRef.current = true;
-              setScanResult(decodedText);
-              
-              // Immediately stop the scanner
-              if (scannerRef.current) {
-                scannerRef.current.stop().then(() => {
-                  scannerRef.current.clear();
-                  console.log('Scanner stopped after scan');
-                }).catch((err) => {
-                  console.log('Stop error:', err);
-                });
-              }
-              
-              // Process the scan
-              processScan(decodedText);
-            }
-          },
-          () => {
-            // Normal scanning errors - ignore
-          }
-        );
-      } catch (err) {
-        setError('Cannot access camera. Please allow camera permission.');
-        console.error('Scanner error:', err);
-      }
-    };
-
     startScanner();
-
+    
     return () => {
-      if (scanner) {
-        scanner.stop().catch(() => {});
-        scanner.clear();
-      }
+      stopScanner();
     };
   }, []);
 
-  const processScan = async (decodedText) => {
-    setSuccess(true);
+  const startScanner = async () => {
+    try {
+      const scanner = new Html5Qrcode('qr-reader');
+      scannerRef.current = scanner;
+      
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 5, qrbox: { width: 200, height: 200 } },
+        (decodedText) => {
+          if (!hasScannedRef.current) {
+            hasScannedRef.current = true;
+            handleScan(decodedText);
+          }
+        },
+        () => {
+          // Silent error
+        }
+      );
+    } catch (err) {
+      setError('Cannot access camera. Please allow camera permission.');
+    }
+  };
+
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.stop().then(() => {
+        scannerRef.current.clear();
+      }).catch(() => {});
+      scannerRef.current = null;
+    }
+  };
+
+  const handleScan = async (decodedText) => {
+    setIsProcessing(true);
+    stopScanner(); // Stop immediately after scan
     
+    console.log('QR Data:', decodedText);
+
     try {
       const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
       
@@ -79,31 +71,33 @@ const QRScanner = ({ onClose, onSuccess }) => {
       const result = await response.json();
       
       if (result.success) {
+        setSuccess(true);
         setError('');
-        onSuccess(result.message || 'Attendance marked successfully!');
+        // Auto close after success
+        setTimeout(() => {
+          onSuccess(result.message || 'Attendance marked successfully!');
+        }, 500);
       } else {
         setError(result.message || 'Failed to mark attendance.');
-        setSuccess(false);
-        // Allow retry after 2 seconds
+        setIsProcessing(false);
+        hasScannedRef.current = false;
+        // Restart scanner after 2 seconds
         setTimeout(() => {
-          hasScannedRef.current = false;
+          startScanner();
         }, 2000);
       }
     } catch (err) {
       setError('Cannot connect to server.');
-      setSuccess(false);
+      setIsProcessing(false);
+      hasScannedRef.current = false;
       setTimeout(() => {
-        hasScannedRef.current = false;
+        startScanner();
       }, 2000);
     }
   };
 
   const handleClose = () => {
-    // Silently stop scanner
-    if (scannerRef.current) {
-      scannerRef.current.stop().catch(() => {});
-      scannerRef.current.clear();
-    }
+    stopScanner();
     onClose();
   };
 
@@ -119,6 +113,12 @@ const QRScanner = ({ onClose, onSuccess }) => {
           {success ? (
             <div className="scan-success">
               <span className="success-icon">✅</span>
+              <h3>Attendance Marked!</h3>
+              <p>Closing scanner...</p>
+            </div>
+          ) : isProcessing ? (
+            <div className="scan-success">
+              <span className="success-icon">⏳</span>
               <h3>Processing...</h3>
               <p>Please wait...</p>
             </div>

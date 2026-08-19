@@ -224,15 +224,10 @@ const StudentDashboard = () => {
         <QRScanner 
   onClose={() => {
     setShowScanner(false);
-    fetchNotifications();
   }} 
   onSuccess={(message) => {
-    // Show success and close after 1.5 seconds
-    setTimeout(() => {
-      alert(message);
-      setShowScanner(false);
-      fetchNotifications();
-    }, 500);
+    setShowScanner(false);
+    alert(message);
   }}
 />
       )}

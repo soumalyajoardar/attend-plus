@@ -402,7 +402,7 @@ app.post('/api/attendance/check-in', async (req, res) => {
       encoding: 'base32',
       token: scannedToken,
       step: 5,
-      window: 1, // Allows 1 step before/after (total 15 seconds tolerance)
+      window: 2, // Allows 1 step before/after (total 15 seconds tolerance)
     });
 
     if (!isValid) {
