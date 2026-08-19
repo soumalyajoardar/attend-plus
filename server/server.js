@@ -397,13 +397,15 @@ app.post('/api/attendance/check-in', async (req, res) => {
     }
 
     // Verify the TOTP token (with a window of 1 step to allow slight time drift)
-    const isValid = speakeasy.totp.verify({
-      secret: global.activeSession.secret,
-      encoding: 'base32',
-      token: scannedToken,
-      step: 5,
-      window: 3, // Allows 1 step before/after (total 15 seconds tolerance)
-    });
+    // Simple time-based token verification
+const currentTime = Math.floor(Date.now() / 5000);
+const expectedToken = Math.floor(currentTime % 1000000).toString().padStart(6, '0');
+const previousToken = Math.floor((currentTime - 1) % 1000000).toString().padStart(6, '0');
+const nextToken = Math.floor((currentTime + 1) % 1000000).toString().padStart(6, '0');
+
+const isValid = (scannedToken === expectedToken || 
+                 scannedToken === previousToken || 
+                 scannedToken === nextToken);
 
     if (!isValid) {
       return res.status(400).json({ success: false, message: 'QR code expired. Please scan again.' });
