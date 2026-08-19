@@ -131,6 +131,32 @@ const TeacherDashboard = () => {
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 
+  const fetchLiveAttendance = async () => {
+  if (!sessionId) return;
+  
+  try {
+    const response = await fetch(`https://attend-plus-server.onrender.com/api/attendance/session/${sessionId}`);
+    const data = await response.json();
+    
+    if (data.success) {
+      setAttendanceList(data.records);
+    }
+  } catch (err) {
+    console.error('Fetch attendance error:', err);
+  }
+};
+
+useEffect(() => {
+  if (sessionActive && sessionId) {
+    fetchLiveAttendance();
+    const interval = setInterval(() => {
+      fetchLiveAttendance();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }
+}, [sessionActive, sessionId]);
+
   const sendNotification = async () => {
   if (!notifTitle.trim() || !notifMessage.trim()) {
     alert('Please fill in both title and message.');
@@ -457,15 +483,15 @@ const TeacherDashboard = () => {
                 ) : (
                   <ul className="attendance-list">
                     {attendanceList.map((student) => (
-                      <li key={student.id} className="attendance-item">
-                        <div className="student-avatar">👤</div>
-                        <div className="student-info">
-                          <strong>{student.name}</strong>
-                          <p>{student.time}</p>
-                        </div>
-                        <span className="present-badge">Present</span>
-                      </li>
-                    ))}
+  <li key={student._id || student.registrationNo} className="attendance-item">
+    <div className="student-avatar">👤</div>
+    <div className="student-info">
+      <strong>{student.studentName}</strong>
+      <p>{student.time}</p>
+    </div>
+    <span className="present-badge">Present</span>
+  </li>
+))}
                   </ul>
                 )}
                 {sessionActive && (

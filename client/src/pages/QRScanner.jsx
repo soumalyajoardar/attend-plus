@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import './QRScanner.css';
 
@@ -6,6 +6,7 @@ const QRScanner = ({ onClose, onSuccess }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [scanner, setScanner] = useState(null);
+  const isProcessingRef = useRef(false); // Prevent multiple scans
 
   useEffect(() => {
     let html5QrCode = null;
@@ -18,7 +19,10 @@ const QRScanner = ({ onClose, onSuccess }) => {
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 200, height: 200 } },
           (decodedText) => {
-            handleScanSuccess(decodedText);
+            // Only process if not already processing
+            if (!isProcessingRef.current) {
+              handleScanSuccess(decodedText);
+            }
           },
           () => {
             // Ignore scanning errors
@@ -34,7 +38,6 @@ const QRScanner = ({ onClose, onSuccess }) => {
 
     startScanner();
 
-    // Cleanup on unmount
     return () => {
       if (html5QrCode) {
         html5QrCode.stop().catch(() => {});
@@ -43,8 +46,17 @@ const QRScanner = ({ onClose, onSuccess }) => {
   }, []);
 
   const handleScanSuccess = async (decodedText) => {
+    // Prevent multiple triggers
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+    
     setSuccess(true);
     console.log('Scanned:', decodedText);
+
+    // Stop the scanner immediately to prevent re-scans
+    if (scanner) {
+      scanner.stop().catch(() => {});
+    }
 
     try {
       const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
@@ -66,16 +78,16 @@ const QRScanner = ({ onClose, onSuccess }) => {
       } else {
         setError(result.message || 'Failed.');
         setSuccess(false);
+        isProcessingRef.current = false; // Allow retry
       }
     } catch (err) {
       setError('Cannot connect to server.');
       setSuccess(false);
+      isProcessingRef.current = false; // Allow retry
     }
   };
 
   const handleClose = () => {
-    // Simply call onClose - the parent will unmount this component
-    // and the cleanup will handle the camera
     onClose();
   };
 
