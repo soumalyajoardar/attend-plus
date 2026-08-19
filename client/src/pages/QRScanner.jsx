@@ -5,31 +5,45 @@ import './QRScanner.css';
 const QRScanner = ({ onClose, onSuccess }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [scanner, setScanner] = useState(null);
-  const isProcessingRef = useRef(false); // Prevent multiple scans
+  const scannerRef = useRef(null);
+  const hasScannedRef = useRef(false);
+  const [scanResult, setScanResult] = useState('');
 
   useEffect(() => {
-    let html5QrCode = null;
+    let scanner = null;
 
     const startScanner = async () => {
       try {
-        html5QrCode = new Html5Qrcode('qr-reader');
+        scanner = new Html5Qrcode('qr-reader');
+        scannerRef.current = scanner;
         
-        await html5QrCode.start(
+        await scanner.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 200, height: 200 } },
+          { fps: 5, qrbox: { width: 200, height: 200 } },
           (decodedText) => {
-            // Only process if not already processing
-            if (!isProcessingRef.current) {
-              handleScanSuccess(decodedText);
+            // Only process once
+            if (!hasScannedRef.current) {
+              hasScannedRef.current = true;
+              setScanResult(decodedText);
+              
+              // Immediately stop the scanner
+              if (scannerRef.current) {
+                scannerRef.current.stop().then(() => {
+                  scannerRef.current.clear();
+                  console.log('Scanner stopped after scan');
+                }).catch((err) => {
+                  console.log('Stop error:', err);
+                });
+              }
+              
+              // Process the scan
+              processScan(decodedText);
             }
           },
           () => {
-            // Ignore scanning errors
+            // Normal scanning errors - ignore
           }
         );
-
-        setScanner(html5QrCode);
       } catch (err) {
         setError('Cannot access camera. Please allow camera permission.');
         console.error('Scanner error:', err);
@@ -39,25 +53,16 @@ const QRScanner = ({ onClose, onSuccess }) => {
     startScanner();
 
     return () => {
-      if (html5QrCode) {
-        html5QrCode.stop().catch(() => {});
+      if (scanner) {
+        scanner.stop().catch(() => {});
+        scanner.clear();
       }
     };
   }, []);
 
-  const handleScanSuccess = async (decodedText) => {
-    // Prevent multiple triggers
-    if (isProcessingRef.current) return;
-    isProcessingRef.current = true;
-    
+  const processScan = async (decodedText) => {
     setSuccess(true);
-    console.log('Scanned:', decodedText);
-
-    // Stop the scanner immediately to prevent re-scans
-    if (scanner) {
-      scanner.stop().catch(() => {});
-    }
-
+    
     try {
       const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
       
@@ -74,20 +79,31 @@ const QRScanner = ({ onClose, onSuccess }) => {
       const result = await response.json();
       
       if (result.success) {
+        setError('');
         onSuccess(result.message || 'Attendance marked successfully!');
       } else {
-        setError(result.message || 'Failed.');
+        setError(result.message || 'Failed to mark attendance.');
         setSuccess(false);
-        isProcessingRef.current = false; // Allow retry
+        // Allow retry after 2 seconds
+        setTimeout(() => {
+          hasScannedRef.current = false;
+        }, 2000);
       }
     } catch (err) {
       setError('Cannot connect to server.');
       setSuccess(false);
-      isProcessingRef.current = false; // Allow retry
+      setTimeout(() => {
+        hasScannedRef.current = false;
+      }, 2000);
     }
   };
 
   const handleClose = () => {
+    // Silently stop scanner
+    if (scannerRef.current) {
+      scannerRef.current.stop().catch(() => {});
+      scannerRef.current.clear();
+    }
     onClose();
   };
 
@@ -103,9 +119,8 @@ const QRScanner = ({ onClose, onSuccess }) => {
           {success ? (
             <div className="scan-success">
               <span className="success-icon">✅</span>
-              <h3>Attendance Marked!</h3>
-              <p>You are marked present for this class.</p>
-              <button className="btn-primary" onClick={handleClose}>Done</button>
+              <h3>Processing...</h3>
+              <p>Please wait...</p>
             </div>
           ) : (
             <>
