@@ -1,0 +1,158 @@
+/* ---------- GLOBAL ANIMATION KEYFRAMES ---------- */
+
+/* Fade In Up (For cards and elements appearing on load) */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In (Simple opacity fade) */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Scale In (For pop-ups and logos) */
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Floating (For the phone mockup and floating cards) */
+@keyframes floatAnimation {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Shimmer effect for buttons if needed */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+/* Global Reset for Attend+ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #F8FAFC;
+  color: #0F172A;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  color: #0F172A;
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 15px 20px;
+  }
+
+  .hero {
+    flex-direction: column; /* Stacks text on top of phone mockup */
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .hero-text h1 {
+    font-size: 32px; /* Smaller fonts for phones */
+    letter-spacing: -1px;
+  }
+
+  .hero-text p {
+    font-size: 16px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .stats {
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .stats h3 {
+    font-size: 22px;
+  }
+
+  .phone-mockup {
+    width: 240px;
+    height: 440px;
+  }
+
+  .float-card {
+    display: none; /* Hide floating cards on very small screens to prevent overlap */
+  }
+
+  .footer {
+    font-size: 12px;
+  }
+
+  .login-card, .signup-card {
+    padding: 25px 20px;
+    margin-top: 60px;
+  }
+
+  .back-btn {
+    top: 15px;
+    left: 15px;
+  }
+
+  .row-fields {
+    flex-direction: column; /* Stacks Dept and Semester vertically on phones */
+    gap: 0;
+  }
+}
+
+/* Small devices (tablets, 600px to 900px) */
+@media (min-width: 601px) and (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 30px;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .stats {
+    justify-content: center;
+  }
+
+  .phone-mockup {
+    width: 280px;
+    height: 500px;
+  }
+
+  .float-card {
+    display: none; /* Hide on tablets too to keep it clean */
+  }
+}
