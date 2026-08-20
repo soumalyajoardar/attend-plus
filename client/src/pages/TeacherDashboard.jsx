@@ -9,13 +9,11 @@ const TeacherDashboard = () => {
   const [teacherName] = useState('Admin Teacher');
   const [activePage, setActivePage] = useState('dashboard');
   
-  // Class selection state
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [classStarted, setClassStarted] = useState(false);
   
-  // Session state
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [sessionSecret, setSessionSecret] = useState('');
@@ -23,12 +21,13 @@ const TeacherDashboard = () => {
   const [manualCode, setManualCode] = useState('');
   const [attendanceList, setAttendanceList] = useState([]);
   const [showManualCode, setShowManualCode] = useState(false);
+
+  // Notification state
   const [notifTitle, setNotifTitle] = useState('');
   const [notifMessage, setNotifMessage] = useState('');
   const [notifDepartment, setNotifDepartment] = useState('ALL');
   const [notifSemester, setNotifSemester] = useState('ALL');
 
-  // Generate a random 6-digit alphanumeric code for manual entry
   const generateManualCode = () => {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     let code = '';
@@ -40,16 +39,22 @@ const TeacherDashboard = () => {
 
   // Generate token based on current time (changes every 5 seconds)
   const generateToken = (secret) => {
-  if (!secret) return;
-  
-  // Simple time-based token (matches backend logic)
-  const currentTime = Math.floor(Date.now() / 5000);
-  const token = Math.floor(currentTime % 1000000).toString().padStart(6, '0');
-  
-  setCurrentToken(token);
-};
+    if (!secret) return;
+    const currentStep = Math.floor(Date.now() / 5000);
+    const token = Math.floor(((currentStep % 1000000) + 1000000) % 1000000).toString().padStart(6, '0');
+    setCurrentToken(token);
+  };
 
-  // Enter class after selecting department, semester, subject
+  useEffect(() => {
+    if (sessionActive && sessionSecret) {
+      generateToken(sessionSecret);
+      const interval = setInterval(() => {
+        generateToken(sessionSecret);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [sessionActive, sessionSecret]);
+
   const enterClass = () => {
     if (!selectedDepartment || !selectedSemester || !selectedSubject) {
       alert('Please select Department, Semester, and Subject.');
@@ -59,7 +64,6 @@ const TeacherDashboard = () => {
     setActivePage('attendance');
   };
 
-  // Start attendance session
   const startSession = async () => {
     try {
       const response = await fetch('https://attend-plus-server.onrender.com/api/session/create', {
@@ -88,11 +92,10 @@ const TeacherDashboard = () => {
       }
     } catch (err) {
       console.error('Session start error:', err);
-      alert('Cannot connect to backend. Make sure server is running.');
+      alert('Cannot connect to backend.');
     }
   };
 
-  // End attendance session
   const endSession = () => {
     setSessionActive(false);
     setSessionId('');
@@ -103,16 +106,39 @@ const TeacherDashboard = () => {
     setShowManualCode(false);
   };
 
-  // Simulate a student check-in (temporary)
-  const simulateCheckIn = () => {
-    const names = ['Rohan Sharma', 'Priya Patel', 'Amit Kumar', 'Sneha Roy', 'Vikram Singh'];
-    const randomName = names[Math.floor(Math.random() * names.length)];
-    const randomTime = new Date().toLocaleTimeString();
-    setAttendanceList((prev) => [...prev, { id: Date.now(), name: randomName, time: randomTime }]);
-  };
-
-  // QR Code value (changes every 5 seconds)
   const qrValue = sessionActive ? `${sessionId}.${currentToken}` : '';
+
+  const sendNotification = async () => {
+    if (!notifTitle.trim() || !notifMessage.trim()) {
+      alert('Please fill in both title and message.');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://attend-plus-server.onrender.com/api/notifications/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: notifTitle,
+          message: notifMessage,
+          department: notifDepartment,
+          semester: notifSemester,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Notification sent successfully!');
+        setNotifTitle('');
+        setNotifMessage('');
+        setNotifDepartment('ALL');
+        setNotifSemester('ALL');
+      }
+    } catch (err) {
+      alert('Cannot connect to backend.');
+    }
+  };
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -123,70 +149,8 @@ const TeacherDashboard = () => {
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 
-  const fetchLiveAttendance = async () => {
-  if (!sessionId) return;
-  
-  try {
-    const response = await fetch(`https://attend-plus-server.onrender.com/api/attendance/session/${sessionId}`);
-    const data = await response.json();
-    
-    if (data.success) {
-      setAttendanceList(data.records);
-    }
-  } catch (err) {
-    console.error('Fetch attendance error:', err);
-  }
-};
-
-useEffect(() => {
-  if (sessionActive && sessionId) {
-    fetchLiveAttendance();
-    const interval = setInterval(() => {
-      fetchLiveAttendance();
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }
-}, [sessionActive, sessionId]);
-
-  const sendNotification = async () => {
-  if (!notifTitle.trim() || !notifMessage.trim()) {
-    alert('Please fill in both title and message.');
-    return;
-  }
-
-  try {
-    const response = await fetch('https://attend-plus-server.onrender.com/api/notifications/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: notifTitle,
-        message: notifMessage,
-        department: notifDepartment,
-        semester: notifSemester,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      alert('Notification sent successfully!');
-      setNotifTitle('');
-      setNotifMessage('');
-      setNotifDepartment('ALL');
-      setNotifSemester('ALL');
-    } else {
-      alert('Failed to send notification.');
-    }
-  } catch (err) {
-    console.error('Notification error:', err);
-    alert('Cannot connect to backend.');
-  }
-};
-
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <span className="logo-icon">+</span>
@@ -212,18 +176,12 @@ useEffect(() => {
               <p>Teacher</p>
             </div>
           </div>
-          <button className="logout-btn" onClick={() => {
-            localStorage.removeItem('attendplus_token');
-            localStorage.removeItem('attendplus_role');
-            localStorage.removeItem('attendplus_user');
-            navigate('/');
-          }}>
+          <button className="logout-btn" onClick={() => { localStorage.clear(); navigate('/'); }}>
             ⏻ Logout
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="main-content">
         <header className="topbar">
           <h1>
@@ -241,7 +199,6 @@ useEffect(() => {
           </div>
         </header>
 
-        {/* ============ DASHBOARD PAGE ============ */}
         {activePage === 'dashboard' && (
           <div className="dashboard-overview">
             <div className="welcome-banner">
@@ -249,108 +206,40 @@ useEffect(() => {
               <p>Here's what's happening in your classes today.</p>
             </div>
 
-            {/* Quick Actions */}
             <div className="section-card">
               <h3>⚡ Quick Actions</h3>
               <div className="quick-actions">
                 <button className="quick-action-btn" onClick={() => setActivePage('attendance')}>
-                  <span>✅</span>
-                  <strong>Start Attendance</strong>
+                  <span>✅</span><strong>Start Attendance</strong>
                 </button>
                 <button className="quick-action-btn" onClick={() => setActivePage('notifications')}>
-                  <span>📢</span>
-                  <strong>Post Notification</strong>
+                  <span>📢</span><strong>Post Notification</strong>
                 </button>
                 <button className="quick-action-btn" onClick={() => setActivePage('reports')}>
-                  <span>📈</span>
-                  <strong>View Reports</strong>
+                  <span>📈</span><strong>View Reports</strong>
                 </button>
                 <button className="quick-action-btn" onClick={() => setActivePage('history')}>
-                  <span>📅</span>
-                  <strong>History</strong>
+                  <span>📅</span><strong>History</strong>
                 </button>
               </div>
             </div>
 
-            {/* Stats Grid */}
             <div className="dashboard-grid">
-              <div className="stat-card">
-                <span className="stat-icon">🎓</span>
-                <div>
-                  <h3>248</h3>
-                  <p>Total Students</p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <span className="stat-icon">✅</span>
-                <div>
-                  <h3>4</h3>
-                  <p>Classes Today</p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <span className="stat-icon">📊</span>
-                <div>
-                  <h3>92%</h3>
-                  <p>Avg Attendance</p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <span className="stat-icon">🚨</span>
-                <div>
-                  <h3>14</h3>
-                  <p>Absentees This Week</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Today's Classes */}
-            <div className="section-card">
-              <h3>📅 Today's Classes</h3>
-              <div className="class-list">
-                <div className="class-item">
-                  <div className="class-time">
-                    <strong>09:00</strong>
-                    <small>AM</small>
-                  </div>
-                  <div className="class-details">
-                    <strong>Data Structures</strong>
-                    <p>CST • Semester 3rd • Room 204</p>
-                  </div>
-                </div>
-                <div className="class-item">
-                  <div className="class-time">
-                    <strong>11:00</strong>
-                    <small>AM</small>
-                  </div>
-                  <div className="class-details">
-                    <strong>Algorithms</strong>
-                    <p>CST • Semester 5th • Room 302</p>
-                  </div>
-                </div>
-                <div className="class-item">
-                  <div className="class-time">
-                    <strong>02:00</strong>
-                    <small>PM</small>
-                  </div>
-                  <div className="class-details">
-                    <strong>Mathematics</strong>
-                    <p>ETCE • Semester 1st • Room 108</p>
-                  </div>
-                </div>
-              </div>
+              <div className="stat-card"><span className="stat-icon">🎓</span><div><h3>248</h3><p>Total Students</p></div></div>
+              <div className="stat-card"><span className="stat-icon">✅</span><div><h3>4</h3><p>Classes Today</p></div></div>
+              <div className="stat-card"><span className="stat-icon">📊</span><div><h3>92%</h3><p>Avg Attendance</p></div></div>
+              <div className="stat-card"><span className="stat-icon">🚨</span><div><h3>14</h3><p>Absentees</p></div></div>
             </div>
           </div>
         )}
 
-        {/* ============ CLASS SELECTION SCREEN ============ */}
         {!classStarted && activePage === 'attendance' && (
           <div className="class-selection-screen">
             <div className="class-selection-card">
               <div className="selection-header">
                 <span className="selection-icon">🏫</span>
                 <h2>Select Your Class</h2>
-                <p>Choose the class details to enter the classroom</p>
+                <p>Choose the class details</p>
               </div>
               
               <div className="input-group">
@@ -391,14 +280,11 @@ useEffect(() => {
                 </select>
               </div>
 
-              <button className="btn-primary btn-block" onClick={enterClass}>
-                Enter Class →
-              </button>
+              <button className="btn-primary btn-block" onClick={enterClass}>Enter Class →</button>
             </div>
           </div>
         )}
 
-        {/* ============ CLASS ROOM ============ */}
         {classStarted && activePage === 'attendance' && (
           <div className="attendance-page">
             <div className="class-header-banner">
@@ -411,16 +297,10 @@ useEffect(() => {
 
             <div className="control-panel">
               <h2>Session Controls</h2>
-              <p className="subtitle">Manage attendance for this class</p>
-
               {!sessionActive ? (
-                <button className="btn-primary btn-block" onClick={startSession}>
-                  ▶ Start Attendance
-                </button>
+                <button className="btn-primary btn-block" onClick={startSession}>▶ Start Attendance</button>
               ) : (
-                <button className="btn-danger btn-block" onClick={endSession}>
-                  ⏹ End Session
-                </button>
+                <button className="btn-danger btn-block" onClick={endSession}>⏹ End Session</button>
               )}
 
               {sessionActive && (
@@ -431,7 +311,7 @@ useEffect(() => {
 
               {sessionActive && showManualCode && (
                 <div className="manual-code-box">
-                  <p className="manual-label">Manual Code (Valid 60s)</p>
+                  <p className="manual-label">Manual Code</p>
                   <h3 className="manual-code">{manualCode}</h3>
                 </div>
               )}
@@ -453,7 +333,7 @@ useEffect(() => {
                 {sessionActive ? (
                   <>
                     <h3>Scan to Attend</h3>
-                    <p className="qr-subtitle">{selectedDepartment} - {selectedSemester} | {selectedSubject}</p>
+                    <p className="qr-subtitle">{selectedDepartment} - {selectedSemester}</p>
                     <div className="qr-code-wrapper">
                       <QRCodeCanvas value={qrValue} size={250} level="H" />
                     </div>
@@ -461,9 +341,7 @@ useEffect(() => {
                   </>
                 ) : (
                   <div className="qr-placeholder-empty">
-                    <div className="qr-dashed-border">
-                      <span>QR Code will appear here</span>
-                    </div>
+                    <div className="qr-dashed-border"><span>QR Code will appear here</span></div>
                   </div>
                 )}
               </div>
@@ -474,118 +352,73 @@ useEffect(() => {
                   <p className="no-students">No students checked in yet...</p>
                 ) : (
                   <ul className="attendance-list">
-                    {attendanceList.map((student) => (
-  <li key={student._id || student.registrationNo} className="attendance-item">
-    <div className="student-avatar">👤</div>
-    <div className="student-info">
-      <strong>{student.studentName}</strong>
-      <p>{student.time}</p>
-    </div>
-    <span className="present-badge">Present</span>
-  </li>
-))}
+                    {attendanceList.map((student, index) => (
+                      <li key={index} className="attendance-item">
+                        <div className="student-avatar">👤</div>
+                        <div className="student-info">
+                          <strong>{student.studentName || student.name}</strong>
+                          <p>{student.time}</p>
+                        </div>
+                        <span className="present-badge">Present</span>
+                      </li>
+                    ))}
                   </ul>
-                )}
-                {sessionActive && (
-                  <button className="btn-secondary btn-block" onClick={simulateCheckIn}>
-                    + Simulate Student Check-In
-                  </button>
                 )}
               </div>
             </div>
           </div>
         )}
 
-        {/* ============ PLACEHOLDER PAGES ============ */}
-        {activePage === 'history' && (
-          <div className="placeholder-page">
-            <h2>📅 Attendance History</h2>
-            <p>This feature is coming soon!</p>
-          </div>
-        )}
-        {activePage === 'reports' && (
-          <div className="placeholder-page">
-            <h2>📈 Reports</h2>
-            <p>This feature is coming soon!</p>
-          </div>
-        )}
-        {activePage === 'settings' && (
-          <div className="placeholder-page">
-            <h2>⚙️ Settings</h2>
-            <p>This feature is coming soon!</p>
-          </div>
-        )}
         {activePage === 'notifications' && (
-  <div className="notifications-page">
-    <div className="notification-form-card">
-      <h2>📢 Post Notification</h2>
-      <p className="subtitle">Send an announcement to your students</p>
-      
-      <div className="input-group">
-        <label>Title</label>
-        <input 
-          type="text" 
-          placeholder="e.g. Class Update" 
-          className="text-input"
-          value={notifTitle}
-          onChange={(e) => setNotifTitle(e.target.value)}
-        />
-      </div>
+          <div className="notifications-page">
+            <div className="notification-form-card">
+              <h2>📢 Post Notification</h2>
+              <div className="input-group">
+                <label>Title</label>
+                <input type="text" className="text-input" value={notifTitle} onChange={(e) => setNotifTitle(e.target.value)} />
+              </div>
+              <div className="input-group">
+                <label>Message</label>
+                <textarea className="text-area" rows="4" value={notifMessage} onChange={(e) => setNotifMessage(e.target.value)} />
+              </div>
+              <div className="row-fields">
+                <div className="input-group">
+                  <label>Department</label>
+                  <select value={notifDepartment} onChange={(e) => setNotifDepartment(e.target.value)}>
+                    <option value="ALL">All</option>
+                    <option value="CST">CST</option>
+                    <option value="ETCE">ETCE</option>
+                    <option value="EIE">EIE</option>
+                    <option value="CIVIL">CIVIL</option>
+                    <option value="MECHANICAL">MECHANICAL</option>
+                    <option value="EE">EE</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>Semester</label>
+                  <select value={notifSemester} onChange={(e) => setNotifSemester(e.target.value)}>
+                    <option value="ALL">All</option>
+                    <option value="1st">1st</option>
+                    <option value="2nd">2nd</option>
+                    <option value="3rd">3rd</option>
+                    <option value="4th">4th</option>
+                    <option value="5th">5th</option>
+                    <option value="6th">6th</option>
+                  </select>
+                </div>
+              </div>
+              <button className="btn-primary btn-block" onClick={sendNotification}>📨 Send</button>
+            </div>
+          </div>
+        )}
 
-      <div className="input-group">
-        <label>Message</label>
-        <textarea 
-          placeholder="e.g. Class will start in 5 minutes." 
-          className="text-area" 
-          rows="4"
-          value={notifMessage}
-          onChange={(e) => setNotifMessage(e.target.value)}
-        />
-      </div>
-
-      <div className="row-fields">
-        <div className="input-group">
-          <label>Department</label>
-          <select value={notifDepartment} onChange={(e) => setNotifDepartment(e.target.value)}>
-            <option value="ALL">All Departments</option>
-            <option value="CST">CST</option>
-            <option value="ETCE">ETCE</option>
-            <option value="EIE">EIE</option>
-            <option value="CIVIL">CIVIL</option>
-            <option value="MECHANICAL">MECHANICAL</option>
-            <option value="EE">EE</option>
-          </select>
-        </div>
-        <div className="input-group">
-          <label>Semester</label>
-          <select value={notifSemester} onChange={(e) => setNotifSemester(e.target.value)}>
-            <option value="ALL">All Semesters</option>
-            <option value="1st">1st</option>
-            <option value="2nd">2nd</option>
-            <option value="3rd">3rd</option>
-            <option value="4th">4th</option>
-            <option value="5th">5th</option>
-            <option value="6th">6th</option>
-          </select>
-        </div>
-      </div>
-
-      <button className="btn-primary btn-block" onClick={sendNotification}>
-        📨 Send Notification
-      </button>
-    </div>
-  </div>
-)}
+        {activePage === 'history' && <div className="placeholder-page"><h2>📅 History</h2><p>Coming soon!</p></div>}
+        {activePage === 'reports' && <div className="placeholder-page"><h2>📈 Reports</h2><p>Coming soon!</p></div>}
+        {activePage === 'settings' && <div className="placeholder-page"><h2>⚙️ Settings</h2><p>Coming soon!</p></div>}
       </main>
-
-      {/* Bottom Navigation for Mobile */}
       <nav className="bottom-nav-teacher">
         {sidebarItems.map((item) => (
-          <button
-            key={item.id}
-            className={activePage === item.id ? 'active' : ''}
-            onClick={() => setActivePage(item.id)}
-          >
+          <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => setActivePage(item.id)}>
             <span>{item.icon}</span>
             <small>{item.label.split(' ')[0]}</small>
           </button>

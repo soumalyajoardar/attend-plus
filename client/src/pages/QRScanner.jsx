@@ -5,13 +5,12 @@ import './QRScanner.css';
 const QRScanner = ({ onClose, onSuccess }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const scannerRef = useRef(null);
   const hasScannedRef = useRef(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     startScanner();
-    
     return () => {
       stopScanner();
     };
@@ -32,11 +31,12 @@ const QRScanner = ({ onClose, onSuccess }) => {
           }
         },
         () => {
-          // Silent error
+          // Silent errors during scanning
         }
       );
     } catch (err) {
       setError('Cannot access camera. Please allow camera permission.');
+      console.error('Scanner error:', err);
     }
   };
 
@@ -51,9 +51,9 @@ const QRScanner = ({ onClose, onSuccess }) => {
 
   const handleScan = async (decodedText) => {
     setIsProcessing(true);
-    stopScanner(); // Stop immediately after scan
+    stopScanner();
     
-    console.log('QR Data:', decodedText);
+    console.log('Scanned QR Data:', decodedText);
 
     try {
       const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
@@ -69,11 +69,11 @@ const QRScanner = ({ onClose, onSuccess }) => {
       });
 
       const result = await response.json();
+      console.log('Backend response:', result);
       
       if (result.success) {
         setSuccess(true);
         setError('');
-        // Auto close after success
         setTimeout(() => {
           onSuccess(result.message || 'Attendance marked successfully!');
         }, 500);
@@ -81,13 +81,12 @@ const QRScanner = ({ onClose, onSuccess }) => {
         setError(result.message || 'Failed to mark attendance.');
         setIsProcessing(false);
         hasScannedRef.current = false;
-        // Restart scanner after 2 seconds
         setTimeout(() => {
           startScanner();
         }, 2000);
       }
     } catch (err) {
-      setError('Cannot connect to server.');
+      setError('Cannot connect to server. Please try again.');
       setIsProcessing(false);
       hasScannedRef.current = false;
       setTimeout(() => {
