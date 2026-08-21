@@ -4,6 +4,7 @@ import QRScanner from './QRScanner';
 import './StudentDashboard.css';
 import { API_BASE } from '../utils/api';
 import { clearSession, getUser } from '../utils/auth';
+import { getTheme, setTheme as setGlobalTheme } from '../utils/theme';
 import { useToast, ToastStack } from '../components/Toast';
 import {
   IconHome, IconBell, IconQr, IconCalendar, IconUser, IconSettings, IconLogout,
@@ -38,14 +39,22 @@ const StudentDashboard = () => {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const [theme, setTheme] = useState(localStorage.getItem('attendplus_theme') || 'light');
+  // Dark mode is shared app-wide (utils/theme.js); local state here just
+  // mirrors it so this Settings toggle stays in sync with the toggle on
+  // Landing/Login/Signup and the Teacher Dashboard.
+  const [theme, setThemeState] = useState(getTheme());
+  const setTheme = (next) => {
+    setGlobalTheme(next);
+    setThemeState(next);
+  };
   const [prefSound, setPrefSound] = useState(localStorage.getItem('attendplus_pref_sound') !== '0');
   const [prefCompact, setPrefCompact] = useState(localStorage.getItem('attendplus_pref_compact') === '1');
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('attendplus_theme', theme);
-  }, [theme]);
+    const onChange = (e) => setThemeState(e.detail);
+    window.addEventListener('attendplus-theme-change', onChange);
+    return () => window.removeEventListener('attendplus-theme-change', onChange);
+  }, []);
 
   // ---------- Notifications: global feed, no department/semester filter ----------
   const fetchNotifications = useCallback(async () => {

@@ -4,6 +4,7 @@ import './Login.css';
 import { API_BASE } from '../utils/api';
 import { saveSession } from '../utils/auth';
 import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle } from '../components/Icons';
+import ThemeToggle from '../components/ThemeToggle';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const Login = () => {
         body: JSON.stringify({
           email: identifier, // Backend will check if it's ADMIN-2026 or a student email
           password,
+          portal: userType, // 'student' or 'teacher' — server rejects if the account's real role doesn't match
         }),
       });
 
@@ -62,6 +64,7 @@ const Login = () => {
       <button className="back-btn" onClick={() => navigate('/')}>
         <IconArrowLeft size={16} /> Back to Home
       </button>
+      <ThemeToggle className="auth-theme-toggle" />
 
       <div className="login-card">
         {/* Logo */}

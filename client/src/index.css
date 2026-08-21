@@ -55,16 +55,17 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: var(--ap-bg, #F8FAFC);
+  color: var(--ap-text, #0F172A);
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', sans-serif;
-  color: #0F172A;
+  color: var(--ap-text, #0F172A);
 }
 
 @media (max-width: 600px) {
@@ -294,3 +295,29 @@ button {
 .ap-toast.success { border-left: 4px solid var(--ap-success); }
 .ap-toast.error { border-left: 4px solid var(--ap-danger); }
 .ap-toast svg { flex-shrink: 0; }
+
+/* Shared dark-mode toggle button (Landing, Login, Signup, dashboards) */
+.ap-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition: var(--ap-transition);
+  flex-shrink: 0;
+}
+
+.ap-theme-toggle:hover {
+  color: var(--ap-primary);
+  border-color: var(--ap-primary);
+  transform: translateY(-2px);
+}
+
+.ap-theme-toggle:active {
+  transform: translateY(0);
+}

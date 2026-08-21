@@ -4,6 +4,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import './TeacherDashboard.css';
 import { API_BASE } from '../utils/api';
 import { clearSession, getUser } from '../utils/auth';
+import { getTheme, setTheme as setGlobalTheme } from '../utils/theme';
 import { useToast, ToastStack } from '../components/Toast';
 import {
   IconChart, IconCheck, IconBell, IconCalendar, IconTrendingUp, IconSettings,
@@ -52,12 +53,20 @@ const TeacherDashboard = () => {
   const [allHistory, setAllHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const [theme, setTheme] = useState(localStorage.getItem('attendplus_theme') || 'light');
+  // Dark mode is shared app-wide (utils/theme.js); this just mirrors it into
+  // local state so the Settings toggle here reflects/updates the same value
+  // used on Landing, Login, Signup, and the Student Dashboard.
+  const [theme, setThemeState] = useState(getTheme());
+  const setTheme = (next) => {
+    setGlobalTheme(next);
+    setThemeState(next);
+  };
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('attendplus_theme', theme);
-  }, [theme]);
+    const onChange = (e) => setThemeState(e.detail);
+    window.addEventListener('attendplus-theme-change', onChange);
+    return () => window.removeEventListener('attendplus-theme-change', onChange);
+  }, []);
 
   const generateManualCode = () => {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';

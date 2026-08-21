@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css'; // We will reuse the same styles as the login page!
 import { API_BASE } from '../utils/api';
 import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle } from '../components/Icons';
+import ThemeToggle from '../components/ThemeToggle';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ const Signup = () => {
       <button className="back-btn" onClick={() => navigate('/login')}>
         <IconArrowLeft size={16} /> Back to Login
       </button>
+      <ThemeToggle className="auth-theme-toggle" />
 
       <div className="login-card signup-card">
         {/* Logo */}

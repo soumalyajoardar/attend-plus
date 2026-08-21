@@ -62,13 +62,33 @@ app.post('/api/auth/signup', async (req, res) => {
 
 // ---------- LOGIN ROUTE (Unified) ----------
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, portal } = req.body;
+
+  // `portal` is which tab the person picked on the login screen
+  // ('student' or 'teacher'). When provided, the account's actual role
+  // must match it — otherwise a student's valid credentials could log
+  // someone into the teacher portal (and vice versa) just because the
+  // password happened to be correct.
+  const portalMismatch = (actualRole) => {
+    if (portal && portal !== actualRole) {
+      return res.status(400).json({
+        success: false,
+        message:
+          actualRole === 'teacher'
+            ? 'This ID belongs to a teacher account. Please use the Teacher tab to sign in.'
+            : 'This ID belongs to a student account. Please use the Student tab to sign in.',
+      });
+    }
+    return null;
+  };
 
   // Hardcoded Teacher Login (Admin)
   const HARDCODED_TEACHER_ID = 'ADMIN-2026';
   const HARDCODED_TEACHER_PASSWORD = 'admin@2026';
 
   if (email === HARDCODED_TEACHER_ID && password === HARDCODED_TEACHER_PASSWORD) {
+    if (portalMismatch('teacher')) return;
+
     const token = jwt.sign(
       { id: 'admin', email: 'admin@attendplus.com', role: 'teacher' },
       process.env.JWT_SECRET,
@@ -94,6 +114,8 @@ app.post('/api/auth/login', async (req, res) => {
   const HARDCODED_STUDENT_PASSWORD = 'student@123';
 
   if (email === HARDCODED_STUDENT_EMAIL && password === HARDCODED_STUDENT_PASSWORD) {
+    if (portalMismatch('student')) return;
+
     const token = jwt.sign(
       { id: 'student123', email: 'student@test.com', role: 'student' },
       process.env.JWT_SECRET,
@@ -145,6 +167,8 @@ app.post('/api/auth/login', async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ success: false, message: 'Incorrect password.' });
     }
+
+    if (portalMismatch(role)) return;
 
     const token = jwt.sign(
       { id: user._id, email: user.email, role: role },

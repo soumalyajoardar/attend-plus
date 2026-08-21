@@ -123,6 +123,7 @@
 }
 [data-theme='dark'] .logout-btn { color: #FCA5A5; }
 .logout-btn:hover { background: #FEE2E2; transform: translateY(-1px); }
+[data-theme='dark'] .logout-btn:hover { background: #3A1414; }
 
 /* ---------- Main ---------- */
 .student-main {
@@ -354,6 +355,8 @@
   width: fit-content;
 }
 .method-pill.manual, .method-pill.teacher_override { background: #FEF3C7; color: #92400E; }
+[data-theme='dark'] .method-pill.manual,
+[data-theme='dark'] .method-pill.teacher_override { background: #3A2E0A; color: #FBBF24; }
 
 /* ---------- Profile ---------- */
 .profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }

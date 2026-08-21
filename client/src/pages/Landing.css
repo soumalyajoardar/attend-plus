@@ -2,9 +2,9 @@
 
 .landing-container {
   font-family: 'Inter', sans-serif;
-  background-color: #F8FAFC;
+  background-color: var(--ap-bg);
   min-height: 100vh;
-  color: #0F172A;
+  color: var(--ap-text);
   margin: 0;
   overflow-x: hidden;
 }
@@ -27,8 +27,8 @@
 }
 
 .logo-icon {
-  background-color: #4F46E5;
-  color: white;
+  background-color: var(--ap-primary);
+  color: var(--ap-surface);
   font-weight: 900;
   font-size: 24px;
   width: 35px;
@@ -47,7 +47,7 @@
 }
 
 .logo h2 span {
-  color: #4F46E5;
+  color: var(--ap-primary);
 }
 
 .nav-links {
@@ -57,8 +57,8 @@
 
 /* ---------- BUTTONS ---------- */
 .btn-primary {
-  background-color: #4F46E5;
-  color: white;
+  background-color: var(--ap-primary);
+  color: var(--ap-surface);
   border: none;
   padding: 12px 24px;
   border-radius: 12px;
@@ -69,7 +69,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #4338CA;
+  background-color: var(--ap-primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4);
 }
@@ -77,16 +77,16 @@
 .btn-ghost {
   background: transparent;
   border: none;
-  color: #475569;
+  color: var(--ap-text-muted);
   font-weight: 600;
   cursor: pointer;
   padding: 12px 16px;
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid #E2E8F0;
-  color: #0F172A;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  color: var(--ap-text);
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
@@ -95,7 +95,7 @@
 }
 
 .btn-secondary:hover {
-  background: #F1F5F9;
+  background: var(--ap-primary-light);
 }
 
 .btn-lg {
@@ -120,8 +120,8 @@
 }
 
 .badge {
-  background: #E0E7FF;
-  color: #4338CA;
+  background: var(--ap-primary-light);
+  color: var(--ap-primary-dark);
   padding: 10px 18px;
   border-radius: 50px;
   font-size: 11px;
@@ -144,12 +144,12 @@
 }
 
 .highlight {
-  color: #4F46E5;
+  color: var(--ap-primary);
 }
 
 .hero-text p {
   font-size: 18px;
-  color: #64748B;
+  color: var(--ap-text-muted);
   line-height: 1.6;
   margin-bottom: 30px;
 }
@@ -172,19 +172,19 @@
   font-size: 28px;
   font-weight: 900;
   margin: 0;
-  color: #0F172A;
+  color: var(--ap-text);
 }
 
 .stats p {
   font-size: 13px;
-  color: #64748B;
+  color: var(--ap-text-muted);
   margin: 5px 0 0;
 }
 
 .divider {
   width: 1px;
   height: 40px;
-  background: #CBD5E1;
+  background: var(--ap-border);
 }
 
 /* ---------- PHONE MOCKUP ---------- */
@@ -198,9 +198,9 @@
 .phone-mockup {
   width: 300px;
   height: 550px;
-  background: #FFFFFF;
+  background: var(--ap-surface);
   border-radius: 40px;
-  border: 8px solid #1E293B;
+  border: 8px solid var(--ap-text);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   position: relative;
@@ -210,7 +210,7 @@
 }
 
 .phone-header {
-  background: #1E293B;
+  background: var(--ap-text);
   height: 25px;
   display: flex;
   justify-content: center;
@@ -220,7 +220,7 @@
 .camera-dot {
   width: 10px;
   height: 10px;
-  background: #334155;
+  background: var(--ap-text-muted);
   border-radius: 50%;
 }
 
@@ -230,7 +230,7 @@
 }
 
 .qr-placeholder {
-  background: #F8FAFC;
+  background: var(--ap-bg);
   padding: 20px;
   border-radius: 20px;
   margin: 20px 0;
@@ -239,7 +239,7 @@
 .fake-qr {
   width: 120px;
   height: 120px;
-  background: white;
+  background: var(--ap-surface);
   margin: 0 auto;
   padding: 15px;
   border-radius: 15px;
@@ -255,12 +255,12 @@
 .qr-row span {
   width: 20px;
   height: 20px;
-  background: #0F172A;
+  background: var(--ap-text);
   border-radius: 4px;
 }
 
 .qr-row span.white {
-  background: white;
+  background: var(--ap-surface);
 }
 
 .mock-title {
@@ -269,14 +269,14 @@
 }
 
 .mock-sub {
-  color: #64748B;
+  color: var(--ap-text-muted);
   font-size: 13px;
   margin: 0 0 15px;
 }
 
 .mock-success {
-  background: #ECFDF5;
-  color: #047857;
+  background: var(--ap-success-light);
+  color: var(--ap-success);
   padding: 12px;
   border-radius: 10px;
   font-weight: 600;
@@ -290,13 +290,13 @@
 .green-dot {
   width: 8px;
   height: 8px;
-  background: #10B981;
+  background: var(--ap-success);
   border-radius: 50%;
 }
 
 /* ---------- FLOATING CARDS ---------- */
 .float-card {
-  background: white;
+  background: var(--ap-surface);
   border-radius: 15px;
   padding: 15px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
@@ -318,7 +318,7 @@
 
 .float-card p {
   font-size: 12px;
-  color: #64748B;
+  color: var(--ap-text-muted);
   margin: 0;
 }
 
@@ -344,9 +344,9 @@
 .footer {
   text-align: center;
   padding: 30px;
-  color: #94A3B8;
+  color: var(--ap-text-muted);
   font-size: 14px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid var(--ap-border);
   margin-top: 40px;
 }
 

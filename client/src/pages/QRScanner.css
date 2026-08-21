@@ -13,7 +13,7 @@
 }
 
 .scanner-modal {
-  background: white;
+  background: var(--ap-surface);
   border-radius: 20px;
   width: 90%;
   max-width: 400px;
@@ -26,7 +26,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ap-primary-light);
 }
 
 .scanner-header h2 {
@@ -39,7 +39,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #64748B;
+  color: var(--ap-text-muted);
   padding: 6px;
   border-radius: 8px;
   transition: 0.2s ease;
@@ -47,7 +47,7 @@
 }
 
 .close-btn:hover {
-  background: #F1F5F9;
+  background: var(--ap-primary-light);
 }
 
 .scanner-body {
@@ -68,15 +68,15 @@
 }
 
 .scanner-hint {
-  color: #64748B;
+  color: var(--ap-text-muted);
   font-size: 13px;
   margin-top: 15px;
 }
 
 .error-box {
-  background: #FEF2F2;
+  background: var(--ap-danger-light);
   border: 1px solid #FCA5A5;
-  color: #B91C1C;
+  color: var(--ap-danger);
   padding: 15px;
   border-radius: 10px;
   margin-top: 15px;
@@ -88,8 +88,8 @@
 }
 
 .retry-btn {
-  background: #4F46E5;
-  color: white;
+  background: var(--ap-primary);
+  color: var(--ap-surface);
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -107,7 +107,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #16A34A;
+  color: var(--ap-success);
   margin-bottom: 15px;
 }
 
@@ -118,7 +118,7 @@
 }
 
 .scan-success p {
-  color: #64748B;
+  color: var(--ap-text-muted);
   margin-bottom: 20px;
 }
 

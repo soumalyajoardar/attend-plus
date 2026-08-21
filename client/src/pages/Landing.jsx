@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Landing.css';
 import { isRemembered, getRole } from '../utils/auth';
 import { IconBell, IconCheckCircle, IconArrowRight, IconPlay } from '../components/Icons';
+import ThemeToggle from '../components/ThemeToggle';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const Landing = () => {
           <h2>Attend<span>+</span></h2>
         </div>
         <div className="nav-links">
+          <ThemeToggle />
           <button className="btn-ghost" onClick={() => navigate('/login')}>Sign In</button>
           <button className="btn-primary" onClick={() => navigate('/signup')}>Get Started</button>
         </div>
