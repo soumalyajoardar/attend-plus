@@ -55,6 +55,30 @@ const TeacherDashboard = () => {
     }
   }, [sessionActive, sessionSecret]);
 
+  // Poll the backend for live attendance while a session is running, so
+  // students appear on screen as soon as their QR scan is verified.
+  const fetchSessionAttendance = async (id) => {
+    try {
+      const response = await fetch(`https://attend-plus-server.onrender.com/api/attendance/session/${id}`);
+      const data = await response.json();
+      if (data.success) {
+        setAttendanceList(data.records);
+      }
+    } catch (err) {
+      console.error('Fetch attendance error:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (sessionActive && sessionId) {
+      fetchSessionAttendance(sessionId);
+      const interval = setInterval(() => {
+        fetchSessionAttendance(sessionId);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [sessionActive, sessionId]);
+
   const enterClass = () => {
     if (!selectedDepartment || !selectedSemester || !selectedSubject) {
       alert('Please select Department, Semester, and Subject.');
@@ -97,6 +121,7 @@ const TeacherDashboard = () => {
   };
 
   const endSession = () => {
+    fetch('https://attend-plus-server.onrender.com/api/session/end', { method: 'POST' }).catch(() => {});
     setSessionActive(false);
     setSessionId('');
     setSessionSecret('');

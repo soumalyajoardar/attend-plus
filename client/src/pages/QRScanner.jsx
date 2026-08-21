@@ -57,7 +57,14 @@ const QRScanner = ({ onClose, onSuccess }) => {
 
     try {
       const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
-      
+
+      if (!studentData.registrationNo) {
+        setError('Your session has expired. Please log in again.');
+        setIsProcessing(false);
+        hasScannedRef.current = false;
+        return;
+      }
+
       const response = await fetch('https://attend-plus-server.onrender.com/api/attendance/check-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

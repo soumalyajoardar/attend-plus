@@ -284,3 +284,21 @@
 .eye-icon:hover {
   transform: translateY(-50%) scale(1.2);
 }
+/* ---------- MOBILE RESPONSIVENESS ---------- */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  .back-btn {
+    top: 16px;
+    left: 16px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .row-fields {
+    flex-direction: column;
+    gap: 0;
+  }
+}
