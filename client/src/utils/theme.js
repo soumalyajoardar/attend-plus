@@ -10,10 +10,9 @@ const THEME_KEY = 'attendplus_theme';
 export function getTheme() {
   const saved = window.localStorage.getItem(THEME_KEY);
   if (saved === 'dark' || saved === 'light') return saved;
-  // Fall back to the OS/browser preference the first time a person visits.
-  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
+  // Default to light regardless of OS/browser preference — the site should
+  // always open in light mode unless the person explicitly switches it.
+  return 'light';
 }
 
 export function applyTheme(theme) {
