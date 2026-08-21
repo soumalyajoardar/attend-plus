@@ -156,3 +156,141 @@ h1, h2, h3, h4, h5, h6 {
     display: none; /* Hide on tablets too to keep it clean */
   }
 }
+/* ---------------------------------------------------------------------- */
+/* Attend+ Design System — shared tokens, icon + button rules, animations  */
+/* ---------------------------------------------------------------------- */
+
+:root {
+  --ap-primary: #4F46E5;
+  --ap-primary-dark: #4338CA;
+  --ap-primary-light: #EEF2FF;
+  --ap-accent: #7C3AED;
+  --ap-success: #16A34A;
+  --ap-success-light: #ECFDF5;
+  --ap-danger: #DC2626;
+  --ap-danger-light: #FEF2F2;
+  --ap-warning: #D97706;
+  --ap-bg: #F8FAFC;
+  --ap-surface: #FFFFFF;
+  --ap-border: #E2E8F0;
+  --ap-text: #0F172A;
+  --ap-text-muted: #64748B;
+  --ap-radius: 16px;
+  --ap-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --ap-shadow-lg: 0 25px 50px rgba(15, 23, 42, 0.08);
+  --ap-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark theme, toggled by adding data-theme="dark" to <html> or <body> */
+[data-theme='dark'] {
+  --ap-primary: #818CF8;
+  --ap-primary-dark: #6366F1;
+  --ap-primary-light: #1E1B3A;
+  --ap-accent: #A78BFA;
+  --ap-success-light: #052e1c;
+  --ap-danger-light: #2c0f0f;
+  --ap-bg: #0B1120;
+  --ap-surface: #131B2E;
+  --ap-border: #223047;
+  --ap-text: #E2E8F0;
+  --ap-text-muted: #94A3B8;
+  --ap-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --ap-shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='dark'] body {
+  background-color: var(--ap-bg);
+  color: var(--ap-text);
+}
+
+/* Linear/stroke icon defaults */
+svg.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* Give every button/icon-pill a consistent flex layout so icon + label
+   line up nicely no matter which page it's used on. */
+button {
+  font-family: inherit;
+}
+
+.btn-primary, .btn-secondary, .btn-ghost, .btn-danger,
+.quick-action-btn, .scan-btn, .nav-icon-btn, .sidebar-link,
+.logout-btn, .logout-btn-student, .view-all-btn, .back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary, .btn-secondary, .btn-danger { justify-content: center; }
+
+.btn-danger {
+  background-color: var(--ap-danger);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--ap-transition);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25);
+}
+
+.btn-danger:hover {
+  background-color: #B91C1C;
+  transform: translateY(-2px);
+}
+
+.btn-block { width: 100%; }
+
+/* Fade/slide entrance used by dashboard sections */
+.ap-fade-in { animation: fadeIn 0.35s ease both; }
+.ap-fade-up { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.ap-scale-in { animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.ap-stagger > * { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.ap-stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.ap-stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.ap-stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.ap-stagger > *:nth-child(4) { animation-delay: 0.17s; }
+.ap-stagger > *:nth-child(5) { animation-delay: 0.22s; }
+.ap-stagger > *:nth-child(6) { animation-delay: 0.27s; }
+
+/* Skeleton loading shimmer, reused by list placeholders */
+.ap-skeleton {
+  background: linear-gradient(90deg, var(--ap-border) 25%, #f4f6f9 37%, var(--ap-border) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 10px;
+}
+
+/* Toast notifications (used instead of window.alert where possible) */
+.ap-toast-stack {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ap-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  color: var(--ap-text);
+  padding: 14px 18px;
+  border-radius: 12px;
+  box-shadow: var(--ap-shadow-lg);
+  min-width: 260px;
+  animation: fadeInUp 0.3s ease both;
+}
+
+.ap-toast.success { border-left: 4px solid var(--ap-success); }
+.ap-toast.error { border-left: 4px solid var(--ap-danger); }
+.ap-toast svg { flex-shrink: 0; }

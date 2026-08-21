@@ -610,7 +610,11 @@
 
 /* Notification Page */
 .notifications-page {
-  max-width: 600px;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
 .notification-form-card {
@@ -940,4 +944,154 @@
     padding: 15px;
     padding-bottom: 80px; /* Space for bottom nav */
   }
+}
+/* ---------- Sent-notifications feed (teacher view) ---------- */
+.sent-notifications-card, .full-width {
+  background: var(--ap-surface, white);
+  border-radius: 18px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.04);
+  padding: 24px;
+}
+
+.sent-notifications-card .section-header,
+.dashboard-overview .section-header,
+.placeholder-page.full-width .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sent-notifications-card h3,
+.dashboard-overview .section-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  margin: 0;
+}
+
+.sent-notif-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.sent-notif-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  animation: fadeInUp 0.3s ease both;
+}
+
+.sent-notif-item .notification-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4F46E5;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.sent-notif-item strong { display: block; font-size: 13.5px; margin-bottom: 2px; }
+.sent-notif-item p { font-size: 13px; color: #64748B; margin: 0 0 4px; }
+.sent-notif-item small { font-size: 11px; color: #94A3B8; }
+
+.sent-notif-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.sent-notif-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.sent-notif-list li strong { font-weight: 700; }
+.sent-notif-list li span { color: #94A3B8; font-size: 11px; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #4F46E5;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.view-all-btn {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.view-all-btn:hover { color: #4F46E5; border-color: #4F46E5; }
+
+.muted-note { color: #64748B; font-size: 13px; margin: 4px 0 18px; }
+
+/* ---------- Full-width placeholder pages (History / Settings) ---------- */
+.placeholder-page.full-width {
+  text-align: left;
+  max-width: 900px;
+}
+.placeholder-page.full-width h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.attendance-list.wide { max-height: none; }
+
+/* ---------- Settings page ---------- */
+.settings-page .settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+}
+.settings-row-label { display: flex; align-items: center; gap: 12px; color: #4F46E5; }
+.settings-row-label div { color: #0F172A; }
+.settings-row-label strong { font-size: 14px; display: block; }
+.settings-row-label p { font-size: 12px; color: #64748B; margin: 2px 0 0; }
+.settings-row.static { cursor: default; }
+
+.switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background-color: #E2E8F0;
+  transition: 0.2s ease;
+  border-radius: 24px;
+}
+.switch .slider::before {
+  position: absolute; content: "";
+  height: 18px; width: 18px; left: 3px; bottom: 3px;
+  background-color: white;
+  transition: 0.2s ease;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.switch input:checked + .slider { background-color: #4F46E5; }
+.switch input:checked + .slider::before { transform: translateX(18px); }
+
+@media (max-width: 900px) {
+  .notifications-page { grid-template-columns: 1fr; }
 }

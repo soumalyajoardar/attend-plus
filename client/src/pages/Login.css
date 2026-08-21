@@ -252,6 +252,43 @@
   font-weight: 600;
   margin-bottom: 15px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.remember-me-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 20px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.remember-me-row input[type='checkbox'] {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: #4F46E5;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.remember-me-row span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F172A;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.remember-me-row small {
+  font-weight: 500;
+  color: #94A3B8;
+  font-size: 12px;
 }
 
 .login-card:hover {

@@ -344,44 +344,69 @@ app.get('/api/attendance/session/:sessionId', async (req, res) => {
   }
 });
 
-// ---------- CREATE NOTIFICATION ----------
+// ---------- CREATE NOTIFICATION (always global — every student sees it) ----------
 app.post('/api/notifications/create', async (req, res) => {
-  const { title, message, department, semester } = req.body;
+  const { title, message, createdBy } = req.body;
+
+  if (!title || !title.trim() || !message || !message.trim()) {
+    return res.status(400).json({ success: false, message: 'Title and message are required.' });
+  }
 
   try {
     const newNotification = new Notification({
-      title,
-      message,
-      department: department || 'ALL',
-      semester: semester || 'ALL',
-      createdBy: 'Teacher',
+      title: title.trim(),
+      message: message.trim(),
+      createdBy: createdBy || 'Teacher',
     });
 
     await newNotification.save();
-    res.status(201).json({ success: true, message: 'Notification posted successfully!' });
+    res.status(201).json({ success: true, notification: newNotification, message: 'Notification posted successfully!' });
   } catch (error) {
     console.error('Notification creation error:', error.message);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
 
-// ---------- GET NOTIFICATIONS FOR STUDENT ----------
-app.get('/api/notifications/:department/:semester', async (req, res) => {
-  const { department, semester } = req.params;
-
+// ---------- GET ALL NOTIFICATIONS (used by both student + teacher views) ----------
+app.get('/api/notifications', async (req, res) => {
   try {
-    const notifications = await Notification.find({
-      $or: [
-        { department: 'ALL', semester: 'ALL' },
-        { department: 'ALL', semester: semester },
-        { department: department, semester: 'ALL' },
-        { department: department, semester: semester },
-      ],
-    }).sort({ createdAt: -1 });
-
+    const notifications = await Notification.find({}).sort({ createdAt: -1 });
     res.status(200).json({ success: true, notifications });
   } catch (error) {
     console.error('Fetch notifications error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// ---------- MARK A NOTIFICATION AS READ (per student) ----------
+app.post('/api/notifications/:id/read', async (req, res) => {
+  const { id } = req.params;
+  const { registrationNo } = req.body;
+
+  try {
+    if (!registrationNo) {
+      return res.status(400).json({ success: false, message: 'registrationNo is required.' });
+    }
+    await Notification.findByIdAndUpdate(id, { $addToSet: { readBy: registrationNo } });
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Mark read error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// ---------- GET STUDENT PROFILE ----------
+app.get('/api/student/:registrationNo', async (req, res) => {
+  const { registrationNo } = req.params;
+
+  try {
+    const student = await Student.findOne({ registrationNo }).select('-password');
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found.' });
+    }
+    res.status(200).json({ success: true, student });
+  } catch (error) {
+    console.error('Fetch profile error:', error.message);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });

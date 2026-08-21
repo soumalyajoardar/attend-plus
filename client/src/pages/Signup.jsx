@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css'; // We will reuse the same styles as the login page!
+import { API_BASE } from '../utils/api';
+import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle } from '../components/Icons';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -65,7 +67,7 @@ const Signup = () => {
     // If all validations pass!
     try {
       console.log('Sending data:', { fullName, registrationNo, department, semester, email, parentEmail, password });
-      const response = await fetch('https://attend-plus-server.onrender.com/api/auth/signup', {
+      const response = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +100,7 @@ const Signup = () => {
     <div className="login-container">
       {/* Back button */}
       <button className="back-btn" onClick={() => navigate('/login')}>
-        ← Back to Login
+        <IconArrowLeft size={16} /> Back to Login
       </button>
 
       <div className="login-card signup-card">
@@ -113,7 +115,7 @@ const Signup = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="login-form">
-        {error && <div className="error-box">{error}</div>}
+        {error && <div className="error-box"><IconAlertCircle size={16} /> {error}</div>}
           <div className="input-group">
             <label>Full Name</label>
             <input 
@@ -210,13 +212,13 @@ const Signup = () => {
       onClick={() => setShowPassword(!showPassword)}
       title={showPassword ? 'Hide password' : 'Show password'}
     >
-      {showPassword ? 'Hide' : 'Show'}
+      {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
     </span>
   </div>
 </div>
 
           <button type="submit" className="btn-primary btn-block">
-            Create Account →
+            Create Account <IconArrowRight size={16} />
           </button>
         </form>
 

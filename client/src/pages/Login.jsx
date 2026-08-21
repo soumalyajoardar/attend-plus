@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
+import { API_BASE } from '../utils/api';
+import { saveSession } from '../utils/auth';
+import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle } from '../components/Icons';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -8,54 +11,56 @@ const Login = () => {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  // Use the entered ID (which can be ADMIN-2026 or student email)
-  const identifier = id.trim();
+    // Use the entered ID (which can be ADMIN-2026 or student email)
+    const identifier = id.trim();
 
-  try {
-    const response = await fetch('https://attend-plus-server.onrender.com/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        email: identifier,  // Backend will check if it's ADMIN-2026 or a student email
-        password 
-      }),
-    });
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: identifier, // Backend will check if it's ADMIN-2026 or a student email
+          password,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    console.log('Backend response:', data);
-    console.log('Role received:', data.role);
-    if (data.success) {
-      // Save token and role to localStorage (Remember Me)
-      localStorage.setItem('attendplus_token', data.token);
-      localStorage.setItem('attendplus_role', data.role);
-      localStorage.setItem('attendplus_user', JSON.stringify(data.user));
+      if (data.success) {
+        // Save token + role, honoring the Remember Me choice: checked =
+        // localStorage (persists across browser restarts), unchecked =
+        // sessionStorage (cleared once the tab/browser closes).
+        saveSession({ token: data.token, role: data.role, user: data.user }, rememberMe);
 
-      // Redirect based on role
-      if (data.role === 'teacher') {
-  window.location.href = '/teacher-dashboard';
-} else {
-  window.location.href = '/student-dashboard';
-}
-    } else {
-      setError(data.message || 'Login failed.');
+        if (data.role === 'teacher') {
+          window.location.href = '/teacher-dashboard';
+        } else {
+          window.location.href = '/student-dashboard';
+        }
+      } else {
+        setError(data.message || 'Login failed.');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Cannot connect to server.');
+      setLoading(false);
     }
-  } catch (err) {
-    setError('Cannot connect to server.');
-  }
-};
+  };
 
   return (
     <div className="login-container">
       {/* Back button */}
       <button className="back-btn" onClick={() => navigate('/')}>
-        ← Back to Home
+        <IconArrowLeft size={16} /> Back to Home
       </button>
 
       <div className="login-card">
@@ -70,14 +75,16 @@ const Login = () => {
 
         {/* Toggle Teacher / Student */}
         <div className="role-toggle">
-          <button 
-            className={userType === 'student' ? 'active' : ''} 
+          <button
+            type="button"
+            className={userType === 'student' ? 'active' : ''}
             onClick={() => setUserType('student')}
           >
             Student
           </button>
-          <button 
-            className={userType === 'teacher' ? 'active' : ''} 
+          <button
+            type="button"
+            className={userType === 'teacher' ? 'active' : ''}
             onClick={() => setUserType('teacher')}
           >
             Teacher
@@ -86,49 +93,61 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="error-box">{error}</div>}
+          {error && <div className="error-box"><IconAlertCircle size={16} /> {error}</div>}
           <div className="input-group">
             <label>{userType === 'student' ? 'Registration Number' : 'Teacher ID'}</label>
-            <input 
-              type="text" 
-              placeholder={userType === 'student' ? 'e.g. D232423001' : 'Teacher ID here'} 
+            <input
+              type="text"
+              placeholder={userType === 'student' ? 'e.g. D232423001' : 'Teacher ID here'}
               value={id}
               onChange={(e) => setId(e.target.value)}
-              required 
+              required
             />
           </div>
 
           <div className="input-group">
-  <label>Password</label>
-  <div className="password-wrapper">
-    <input 
-      type={showPassword ? 'text' : 'password'} 
-      placeholder="Enter your password" 
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      required 
-    />
-    <span 
-      className="eye-icon" 
-      onClick={() => setShowPassword(!showPassword)}
-      title={showPassword ? 'Hide password' : 'Show password'}
-    >
-      {showPassword ? 'Hide' : 'Show'}
-    </span>
-  </div>
-</div>
+            <label>Password</label>
+            <div className="password-wrapper">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <span
+                className="eye-icon"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+              </span>
+            </div>
+          </div>
 
-          <button type="submit" className="btn-primary btn-block">
-            Sign In →
+          <label className="remember-me-row">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <span>
+              Remember me
+              <small>Skip the login screen next time — "Launch Dashboard" will take you straight in.</small>
+            </span>
+          </label>
+
+          <button type="submit" className="btn-primary btn-block" disabled={loading}>
+            {loading ? 'Signing in…' : <>Sign In <IconArrowRight size={16} /></>}
           </button>
         </form>
 
         <p className="login-footer">
-  New Student? 
-  <span className="link-text" onClick={() => navigate('/signup')}> Create an account</span>
-  <br /><br />
-  Trouble signing in? Contact Developer.
-</p>
+          New Student?
+          <span className="link-text" onClick={() => navigate('/signup')}> Create an account</span>
+          <br /><br />
+          Trouble signing in? Contact Developer.
+        </p>
       </div>
     </div>
   );

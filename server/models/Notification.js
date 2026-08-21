@@ -12,18 +12,8 @@ const NotificationSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    department: {
-      type: String,
-      required: true,
-      enum: ['ALL', 'CST', 'ETCE', 'EIE', 'CIVIL', 'MECHANICAL', 'EE'],
-      default: 'ALL',
-    },
-    semester: {
-      type: String,
-      required: true,
-      enum: ['ALL', '1st', '2nd', '3rd', '4th', '5th', '6th'],
-      default: 'ALL',
-    },
+    // Notifications now always go out globally to every student, so the old
+    // per-department / per-semester targeting fields have been removed.
     createdBy: {
       type: String,
       default: 'Teacher',

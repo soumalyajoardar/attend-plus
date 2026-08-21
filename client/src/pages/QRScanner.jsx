@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import './QRScanner.css';
+import { API_BASE } from '../utils/api';
+import { IconClose, IconCheckCircle, IconClock, IconAlertCircle } from '../components/Icons';
 
 const QRScanner = ({ onClose, onSuccess }) => {
   const [error, setError] = useState('');
@@ -65,7 +67,7 @@ const QRScanner = ({ onClose, onSuccess }) => {
         return;
       }
 
-      const response = await fetch('https://attend-plus-server.onrender.com/api/attendance/check-in', {
+      const response = await fetch(`${API_BASE}/api/attendance/check-in`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,19 +114,19 @@ const QRScanner = ({ onClose, onSuccess }) => {
       <div className="scanner-modal">
         <div className="scanner-header">
           <h2>Scan QR Code</h2>
-          <button className="close-btn" onClick={handleClose}>✕</button>
+          <button className="close-btn" onClick={handleClose}><IconClose size={18} /></button>
         </div>
 
         <div className="scanner-body">
           {success ? (
             <div className="scan-success">
-              <span className="success-icon">✅</span>
+              <span className="success-icon"><IconCheckCircle size={40} /></span>
               <h3>Attendance Marked!</h3>
               <p>Closing scanner...</p>
             </div>
           ) : isProcessing ? (
             <div className="scan-success">
-              <span className="success-icon">⏳</span>
+              <span className="success-icon"><IconClock size={40} /></span>
               <h3>Processing...</h3>
               <p>Please wait...</p>
             </div>
@@ -135,7 +137,7 @@ const QRScanner = ({ onClose, onSuccess }) => {
               
               {error && (
                 <div className="error-box">
-                  {error}
+                  <IconAlertCircle size={16} /> {error}
                 </div>
               )}
             </>

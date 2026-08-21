@@ -38,12 +38,12 @@
 .close-btn {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: #64748B;
-  padding: 5px 10px;
+  padding: 6px;
   border-radius: 8px;
   transition: 0.2s ease;
+  display: flex;
 }
 
 .close-btn:hover {
@@ -81,6 +81,10 @@
   border-radius: 10px;
   margin-top: 15px;
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .retry-btn {
@@ -100,8 +104,10 @@
 }
 
 .success-icon {
-  font-size: 60px;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #16A34A;
   margin-bottom: 15px;
 }
 

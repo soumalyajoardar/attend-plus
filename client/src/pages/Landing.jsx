@@ -1,9 +1,22 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Landing.css'; 
+import './Landing.css';
+import { isRemembered, getRole } from '../utils/auth';
+import { IconBell, IconCheckCircle, IconArrowRight, IconPlay } from '../components/Icons';
 
 const Landing = () => {
   const navigate = useNavigate();
+
+  // "Remember Me" flow: if the user previously logged in and asked to be
+  // remembered, jump straight into their dashboard instead of the login page.
+  const handleLaunchDashboard = () => {
+    if (isRemembered()) {
+      const role = getRole();
+      navigate(role === 'teacher' ? '/teacher-dashboard' : '/student-dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="landing-container">
@@ -29,11 +42,11 @@ const Landing = () => {
             No more shouting names, no more paper sheets, and no more proxy attendance.
           </p>
           <div className="hero-actions">
-            <button className="btn-primary btn-lg" onClick={() => navigate('/signup')}>
-              Launch Dashboard →
+            <button className="btn-primary btn-lg" onClick={handleLaunchDashboard}>
+              Launch Dashboard <IconArrowRight size={18} />
             </button>
             <button className="btn-secondary btn-lg">
-              ▶ Watch Demo
+              <IconPlay size={18} /> Watch Demo
             </button>
           </div>
           <div className="stats">
@@ -79,14 +92,14 @@ const Landing = () => {
           
           {/* Floating elements for design */}
           <div className="float-card float-top">
-            <span className="icon">🔔</span> 
+            <span className="icon"><IconBell size={18} /></span>
             <div>
               <strong>Class Started</strong>
               <p>CS-4A • 32 Students Present</p>
             </div>
           </div>
           <div className="float-card float-bottom">
-            <span className="icon">✅</span> 
+            <span className="icon"><IconCheckCircle size={18} /></span>
             <div>
               <strong>Rohan Sharma</strong>
               <p>Checked in 2 mins ago</p>
