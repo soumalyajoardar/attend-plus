@@ -8,6 +8,17 @@ import ThemeToggle from '../components/ThemeToggle';
 const Landing = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [wordIndex, setWordIndex] = useState(0);
+
+  const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.'];
+
+  // Cycle the highlighted word every 3s, looping forever.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIndex((i) => (i + 1) % dynamicWords.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Lock body scroll while the mobile slide-in menu is open.
   useEffect(() => {
@@ -93,7 +104,7 @@ const Landing = () => {
       <main className="hero">
         <div className="hero-text">
           <span className="badge">Simplified Attendance for Modern Institutes</span>
-          <h1>Stop Wasting Time on Roll Calls. <br /> Start <span className="highlight">Teaching.</span></h1>
+          <h1>Stop Wasting Time on Roll Calls. <br /> Start <span className="highlight flip-word-wrap"><span key={wordIndex} className="flip-word">{dynamicWords[wordIndex]}</span></span></h1>
           <p>
             Attend+ uses secure, dynamic QR codes to take attendance in seconds. 
             No more shouting names, no more paper sheets, and no more proxy attendance.
