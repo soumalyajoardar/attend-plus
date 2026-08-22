@@ -27,7 +27,7 @@ const Landing = () => {
       }, 90);
     } else if (!isDeleting && displayText.length === currentWord.length) {
       // pause at full word before deleting
-      timeout = setTimeout(() => setIsDeleting(true), 1200);
+      timeout = setTimeout(() => setIsDeleting(true), 3000);
     } else if (isDeleting && displayText.length > 0) {
       // deleting
       timeout = setTimeout(() => {
