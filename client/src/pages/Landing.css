@@ -486,6 +486,7 @@
 .phone-mockup:hover {
   transform: translateY(-10px);
 }
+
 /* ---------- MOBILE / SMALL-SCREEN NAVIGATION ---------- */
 /*
   Keep the landing-page controls inside the viewport on phones.
