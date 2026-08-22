@@ -10,7 +10,7 @@ const Landing = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
 
-  const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.'];
+  const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.', 'Creating.', 'Innovating.', 'Succeeding.', 'Growing.', 'Leading.', 'Inspiring.', 'Transforming.'];
 
   // Cycle the highlighted word every 3s, looping forever.
   useEffect(() => {
