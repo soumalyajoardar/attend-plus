@@ -56,9 +56,15 @@
   gap: 15px;
 }
 
-/* ---------- MOBILE MENU TRIGGER (hidden on desktop) ---------- */
-.nav-menu-trigger {
+/* ---------- MOBILE ACTIONS: theme toggle + menu trigger (hidden on desktop) ---------- */
+.nav-mobile-actions {
   display: none;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-menu-trigger {
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 42px;
@@ -478,7 +484,7 @@
     display: none;
   }
 
-  .nav-menu-trigger {
+  .nav-mobile-actions {
     display: flex;
   }
 

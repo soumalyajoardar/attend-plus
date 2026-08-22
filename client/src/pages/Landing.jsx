@@ -41,16 +41,19 @@ const Landing = () => {
           <button className="btn-primary" onClick={() => navigate('/signup')}>Get Started</button>
         </div>
 
-        {/* Mobile trigger: opens a slide-in panel with the same actions */}
-        <button
-          type="button"
-          className="nav-menu-trigger"
-          onClick={() => setMenuOpen(true)}
-          aria-label="Open menu"
-          aria-expanded={menuOpen}
-        >
-          <IconMenu size={22} />
-        </button>
+        {/* Mobile actions: theme toggle stays visible, next to the menu trigger */}
+        <div className="nav-mobile-actions">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="nav-menu-trigger"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+          >
+            <IconMenu size={22} />
+          </button>
+        </div>
       </nav>
 
       {/* Mobile slide-in menu */}
@@ -71,10 +74,6 @@ const Landing = () => {
           </button>
         </div>
         <div className="nav-drawer-body">
-          <div className="nav-drawer-row">
-            <span>Theme</span>
-            <ThemeToggle />
-          </div>
           <button
             className="btn-ghost nav-drawer-btn"
             onClick={() => { setMenuOpen(false); navigate('/login'); }}
