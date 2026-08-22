@@ -128,7 +128,7 @@ const Landing = () => {
           <span className="badge">Simplified Attendance for Modern Institutes</span>
           <h1>Stop Wasting Time on Roll Calls. <br /> Start <span className="highlight typewriter-wrap">
             <span className="typewriter-text">{displayText}</span>
-            <span className="typewriter-cursor">|</span>
+            <span className="typewriter-cursor"> </span>
           </span></h1>
           <p>
             Attend+ uses secure, dynamic QR codes to take attendance in seconds. 
