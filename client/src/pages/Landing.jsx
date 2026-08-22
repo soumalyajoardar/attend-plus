@@ -16,7 +16,7 @@ const Landing = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % dynamicWords.length);
-    }, 3000);
+    }, 1500);
     return () => clearInterval(interval);
   }, []);
 
