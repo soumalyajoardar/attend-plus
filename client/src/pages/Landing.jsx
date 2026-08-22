@@ -9,16 +9,18 @@ const Landing = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
+  const [prevWordIndex, setPrevWordIndex] = useState(null);
 
-  const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.', 'Growing.', 'Succeeding.', 'Innovating.', 'Leading.', 'Inspiring.', 'Creating.', 'Collaborating.', 'Exploring.', 'Discovering.', 'Building.', 'Transforming.', 'Empowering.'];
+  const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.', 'Growing.', 'Succeeding.', 'Innovating.', 'Leading.', 'Inspiring.', 'Collaborating.', 'Creating.', 'Exploring.', 'Discovering.', 'Transforming.', 'Empowering.', 'Engaging.', 'Motivating.', 'Challenging.', 'Excelling.', 'Thriving.', 'Flourishing.'];
 
   // Cycle the highlighted word every 3s, looping forever.
   useEffect(() => {
     const interval = setInterval(() => {
+      setPrevWordIndex(wordIndex);
       setWordIndex((i) => (i + 1) % dynamicWords.length);
-    }, 2000);
+    }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [wordIndex]);
 
   // Lock body scroll while the mobile slide-in menu is open.
   useEffect(() => {
@@ -104,7 +106,20 @@ const Landing = () => {
       <main className="hero">
         <div className="hero-text">
           <span className="badge">Simplified Attendance for Modern Institutes</span>
-          <h1>Stop Wasting Time on Roll Calls. <br /> Start <span className="highlight flip-word-wrap"><span key={wordIndex} className="flip-word">{dynamicWords[wordIndex]}</span></span></h1>
+          <h1>Stop Wasting Time on Roll Calls. <br /> Start <span className="highlight flip-word-wrap">
+            {prevWordIndex !== null && (
+              <span
+                key={`prev-${prevWordIndex}`}
+                className="flip-word flip-word-out"
+                onAnimationEnd={() => setPrevWordIndex(null)}
+              >
+                {dynamicWords[prevWordIndex]}
+              </span>
+            )}
+            <span key={`cur-${wordIndex}`} className="flip-word flip-word-in">
+              {dynamicWords[wordIndex]}
+            </span>
+          </span></h1>
           <p>
             Attend+ uses secure, dynamic QR codes to take attendance in seconds. 
             No more shouting names, no more paper sheets, and no more proxy attendance.
