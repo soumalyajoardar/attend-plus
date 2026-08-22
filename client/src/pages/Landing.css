@@ -258,52 +258,25 @@
   color: var(--ap-primary);
 }
 
-/* ---------- DYNAMIC FLIP WORD (vertical cube flip) ---------- */
-.flip-word-wrap {
-  position: relative;
+/* ---------- DYNAMIC TYPEWRITER WORD ---------- */
+.typewriter-wrap {
   display: inline-block;
-  height: 1.2em;
-  overflow: visible;
-  perspective: 700px;
-  vertical-align: top;
-}
-
-.flip-word {
-  position: absolute;
-  left: 0;
-  top: 0;
   white-space: nowrap;
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
 }
 
-/* Old word: rotates up and away, like the top face of a cube swinging back */
-.flip-word-out {
-  transform-origin: 50% 100%;
-  animation: cubeFlipOut 0.6s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+.typewriter-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--ap-primary);
+  animation: caretBlink 0.8s step-end infinite;
 }
 
-/* New word: rotates down and in, like the next face of a cube swinging forward */
-.flip-word-in {
-  transform-origin: 50% 0%;
-  animation: cubeFlipIn 0.6s cubic-bezier(0, 0.55, 0.45, 1) forwards;
-}
-
-@keyframes cubeFlipOut {
-  0% {
-    transform: rotateX(0deg);
+@keyframes caretBlink {
+  0%, 100% {
+    opacity: 1;
   }
-  100% {
-    transform: rotateX(90deg);
-  }
-}
-
-@keyframes cubeFlipIn {
-  0% {
-    transform: rotateX(-90deg);
-  }
-  100% {
-    transform: rotateX(0deg);
+  50% {
+    opacity: 0;
   }
 }
 
