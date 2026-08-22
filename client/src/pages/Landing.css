@@ -56,6 +56,110 @@
   gap: 15px;
 }
 
+/* ---------- MOBILE MENU TRIGGER (hidden on desktop) ---------- */
+.nav-menu-trigger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.nav-menu-trigger:hover {
+  background: var(--ap-primary-light);
+}
+
+/* ---------- SLIDE-IN NAV DRAWER ---------- */
+.nav-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 40;
+}
+
+.nav-drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 78%;
+  max-width: 320px;
+  background: var(--ap-surface);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-drawer.is-open {
+  transform: translateX(0);
+}
+
+.nav-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.nav-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--ap-text);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.nav-drawer-close:hover {
+  background: var(--ap-primary-light);
+}
+
+.nav-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.nav-drawer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+  border-bottom: 1px solid var(--ap-border);
+  padding-bottom: 16px;
+}
+
+.nav-drawer-btn {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+
 /* ---------- BUTTONS ---------- */
 .btn-primary {
   background-color: var(--ap-primary);
@@ -368,32 +472,14 @@
     gap: 12px;
   }
 
+  /* Replace the inline theme/sign-in/get-started row with a single
+     hamburger trigger that opens the slide-in menu. */
   .nav-links {
-    width: 100%;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: 42px minmax(0, 1fr) minmax(0, 1fr);
-    gap: 8px;
-    align-items: stretch;
+    display: none;
   }
 
-  .nav-links > * {
-    min-width: 0;
-  }
-
-  .ap-theme-toggle {
-    width: 42px;
-    height: 42px;
-  }
-
-  .nav-links .btn-primary,
-  .nav-links .btn-ghost {
-    width: 100%;
-    min-width: 0;
-    justify-content: center;
-    padding: 10px 8px;
-    font-size: 12px;
-    white-space: nowrap;
+  .nav-menu-trigger {
+    display: flex;
   }
 
   .hero {
@@ -476,21 +562,8 @@
     padding-right: 12px;
   }
 
-  .nav-links {
-    grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr);
-    gap: 6px;
-  }
-
-  .ap-theme-toggle {
-    width: 40px;
-    height: 40px;
-  }
-
-  .nav-links .btn-primary,
-  .nav-links .btn-ghost {
-    font-size: 11px;
-    padding-left: 5px;
-    padding-right: 5px;
+  .nav-drawer {
+    width: 85%;
   }
 
   .hero {

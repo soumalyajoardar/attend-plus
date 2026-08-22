@@ -136,7 +136,6 @@ const Login = () => {
             />
             <span>
               Remember me
-              <small>Skip the login screen next time — "Launch Dashboard" will take you straight in.</small>
             </span>
           </label>
 

@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Landing.css';
 import { isRemembered, getRole } from '../utils/auth';
-import { IconBell, IconCheckCircle, IconArrowRight, IconPlay } from '../components/Icons';
+import { IconBell, IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Lock body scroll while the mobile slide-in menu is open.
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
 
   // "Remember Me" flow: if the user previously logged in and asked to be
   // remembered, jump straight into their dashboard instead of the login page.
@@ -27,12 +34,61 @@ const Landing = () => {
           <span className="logo-icon">+</span> 
           <h2>Attend<span>+</span></h2>
         </div>
+        {/* Full nav actions: shown inline on desktop/tablet */}
         <div className="nav-links">
           <ThemeToggle />
           <button className="btn-ghost" onClick={() => navigate('/login')}>Sign In</button>
           <button className="btn-primary" onClick={() => navigate('/signup')}>Get Started</button>
         </div>
+
+        {/* Mobile trigger: opens a slide-in panel with the same actions */}
+        <button
+          type="button"
+          className="nav-menu-trigger"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={menuOpen}
+        >
+          <IconMenu size={22} />
+        </button>
       </nav>
+
+      {/* Mobile slide-in menu */}
+      <div className={`nav-drawer-overlay ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} />
+      <aside className={`nav-drawer ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
+        <div className="nav-drawer-header">
+          <div className="logo">
+            <span className="logo-icon">+</span>
+            <h2>Attend<span>+</span></h2>
+          </div>
+          <button
+            type="button"
+            className="nav-drawer-close"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <IconClose size={20} />
+          </button>
+        </div>
+        <div className="nav-drawer-body">
+          <div className="nav-drawer-row">
+            <span>Theme</span>
+            <ThemeToggle />
+          </div>
+          <button
+            className="btn-ghost nav-drawer-btn"
+            onClick={() => { setMenuOpen(false); navigate('/login'); }}
+          >
+            Sign In
+          </button>
+          <button
+            className="btn-primary nav-drawer-btn"
+            onClick={() => { setMenuOpen(false); navigate('/signup'); }}
+          >
+            Get Started
+          </button>
+        </div>
+      </aside>
 
       {/* Hero Section */}
       <main className="hero">

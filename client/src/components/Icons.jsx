@@ -31,6 +31,10 @@ const Icon = ({ size = 20, children, className = '', ...rest }) => (
   </svg>
 );
 
+export const IconMenu = (p) => (
+  <Icon {...p}><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></Icon>
+);
+
 export const IconHome = (p) => (
   <Icon {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /><path d="M9.5 21v-6h5v6" /></Icon>
 );
