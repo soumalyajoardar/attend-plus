@@ -167,6 +167,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ---------------------------------------------------------------------- */
 
 :root {
+  color-scheme: light;
   --ap-primary: #4F46E5;
   --ap-primary-dark: #4338CA;
   --ap-primary-light: #EEF2FF;
@@ -189,6 +190,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Dark theme, toggled by adding data-theme="dark" to <html> or <body> */
 [data-theme='dark'] {
+  /* Tells the browser to draw its own widgets (scroll bars, dropdown lists,
+     checkboxes, autofill) in dark colours instead of light ones. */
+  color-scheme: dark;
   --ap-primary: #818CF8;
   --ap-primary-dark: #6366F1;
   --ap-primary-light: #1E1B3A;
@@ -207,6 +211,13 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme='dark'] body {
   background-color: var(--ap-bg);
   color: var(--ap-text);
+}
+
+/* Form controls inherit the theme text colour by default. Browsers otherwise
+   fall back to their own black, which disappears on a dark background — this
+   is the safety net so a new field can't reintroduce that bug. */
+input, select, textarea, button {
+  color: inherit;
 }
 
 /* Linear/stroke icon defaults */

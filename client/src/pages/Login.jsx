@@ -134,10 +134,7 @@ const Login = () => {
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
             />
-            <span>
-              Remember me
-              <small>Skip the login screen next time — "Launch Dashboard" will take you straight in.</small>
-            </span>
+            <span>Remember me</span>
           </label>
 
           <button type="submit" className="btn-primary btn-block" disabled={loading}>

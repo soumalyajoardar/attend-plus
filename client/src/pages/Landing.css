@@ -167,10 +167,13 @@
 }
 
 /* ---------- BUTTONS ---------- */
+/* NOTE: .btn-primary keeps a 1px *transparent* border so its total height
+   matches .btn-secondary (which has a real 1px border). Without this the
+   two buttons differ by 2px and never line up when sat side by side. */
 .btn-primary {
   background-color: var(--ap-primary);
   color: var(--ap-surface);
-  border: none;
+  border: 1px solid transparent;
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
@@ -290,9 +293,27 @@
 .hero-actions {
   display: flex;
   gap: 20px;
-  align-items: center;
+  align-items: stretch; /* both buttons share one row height — no 1px drift */
   margin-bottom: 40px;
 }
+
+/* Belt-and-braces: force identical geometry on the two hero buttons so their
+   top and bottom edges line up exactly, whatever each base class declares.
+   (.btn-primary is re-declared in several page stylesheets, so pin it here.) */
+.hero-actions .btn-lg {
+  height: 56px;
+  padding: 0 32px;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.hero-actions .btn-primary { border: 1px solid transparent; }
+.hero-actions .btn-secondary { border: 1px solid var(--ap-border); }
 
 /* ---------- STATS ---------- */
 .stats {
@@ -544,7 +565,8 @@
 
   .hero-actions .btn-lg {
     width: 100%;
-    padding: 14px;
+    height: 50px;
+    padding: 0 14px;
     font-size: 14px;
     justify-content: center;
   }

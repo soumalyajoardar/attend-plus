@@ -146,7 +146,28 @@
   outline: none;
   transition: 0.2s ease;
   background: var(--ap-bg);
+  color: var(--ap-text); /* without this the browser default (black) is used — invisible in dark mode */
   box-sizing: border-box;
+}
+
+.input-group input::placeholder {
+  color: var(--ap-text-muted);
+  opacity: 1; /* Firefox dims placeholders by default */
+}
+
+/* Chrome's autofill repaints the field with its own light background + black
+   text, which breaks dark mode all over again. Painting the background via a
+   huge inset shadow is the only reliable way to override it. */
+.input-group input:-webkit-autofill,
+.input-group input:-webkit-autofill:hover,
+.input-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ap-text);
+  -webkit-box-shadow: 0 0 0 100px var(--ap-bg) inset;
+  caret-color: var(--ap-text);
+}
+
+.input-group input:focus:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px var(--ap-surface) inset;
 }
 
 .input-group input:focus {
@@ -204,12 +225,19 @@
   outline: none;
   transition: 0.2s ease;
   background: var(--ap-bg);
+  color: var(--ap-text); /* same fix as inputs: don't fall back to black */
   box-sizing: border-box;
   cursor: pointer;
   appearance: none; /* Removes default arrow */
   background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2364748B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 15px center;
+}
+
+/* The native dropdown list is drawn by the OS, so it needs its own colours. */
+.input-group select option {
+  background: var(--ap-surface);
+  color: var(--ap-text);
 }
 
 .input-group select:focus {
@@ -260,7 +288,7 @@
 
 .remember-me-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   margin: 4px 0 20px;
   cursor: pointer;
@@ -268,7 +296,6 @@
 }
 
 .remember-me-row input[type='checkbox'] {
-  margin-top: 3px;
   width: 16px;
   height: 16px;
   accent-color: var(--ap-primary);
@@ -280,15 +307,7 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--ap-text);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.remember-me-row small {
-  font-weight: 500;
-  color: var(--ap-text-muted);
-  font-size: 12px;
+  line-height: 1;
 }
 
 .login-card:hover {

@@ -253,9 +253,15 @@
   font-size: 14px;
   font-family: 'Inter', sans-serif;
   background: var(--ap-bg);
+  color: var(--ap-text); /* browser default is black — unreadable in dark mode */
   outline: none;
   transition: 0.2s ease;
   cursor: pointer;
+}
+
+.input-group select option {
+  background: var(--ap-surface);
+  color: var(--ap-text);
 }
 
 .input-group select:focus {
@@ -639,8 +645,15 @@
   font-size: 14px;
   font-family: 'Inter', sans-serif;
   background: var(--ap-bg);
+  color: var(--ap-text); /* browser default is black — unreadable in dark mode */
   outline: none;
   transition: 0.2s ease;
+}
+
+.text-input::placeholder,
+.text-area::placeholder {
+  color: var(--ap-text-muted);
+  opacity: 1;
 }
 
 .text-input:focus,
