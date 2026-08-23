@@ -3,12 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const Student = require('./models/Student');
 const Teacher = require('./models/Teacher');
 const Attendance = require('./models/Attendance');
 const Notification = require('./models/Notification');
+const Session = require('./models/Session');
 
 const app = express();
 
@@ -36,7 +38,8 @@ app.post('/api/auth/signup', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Create the new student in the database
+    // 3. Create the new student in the database, held as 'pending' until a
+    //    teacher approves the registration. A pending account cannot log in.
     const newStudent = new Student({
       fullName,
       registrationNo,
@@ -45,6 +48,7 @@ app.post('/api/auth/signup', async (req, res) => {
       email: email.toLowerCase(),
       parentEmail: parentEmail.toLowerCase(),
       password: hashedPassword,
+      status: 'pending',
     });
 
     await newStudent.save();
@@ -52,7 +56,10 @@ app.post('/api/auth/signup', async (req, res) => {
     // 4. Send success response
     res.status(201).json({
       success: true,
-      message: 'Account created successfully! You can now log in.',
+      pending: true,
+      message:
+        'Registration submitted! Your account is waiting for teacher approval. ' +
+        "You'll be able to log in once a teacher approves it.",
     });
   } catch (error) {
     console.error('Signup error:', error.message);
@@ -170,6 +177,25 @@ app.post('/api/auth/login', async (req, res) => {
 
     if (portalMismatch(role)) return;
 
+    // Approval gate: a student must be approved by a teacher before they can log
+    // in. `undefined` covers legacy accounts created before the approval feature
+    // existed — those are treated as already approved so the upgrade locks
+    // nobody out. Only explicit 'pending' / 'rejected' are blocked.
+    if (role === 'student') {
+      if (user.status === 'pending') {
+        return res.status(403).json({
+          success: false,
+          message: 'Your account is waiting for teacher approval. Please try again once it has been approved.',
+        });
+      }
+      if (user.status === 'rejected') {
+        return res.status(403).json({
+          success: false,
+          message: 'Your registration was not approved. Please contact your teacher or register again.',
+        });
+      }
+    }
+
     const token = jwt.sign(
       { id: user._id, email: user.email, role: role },
       process.env.JWT_SECRET,
@@ -203,26 +229,36 @@ app.post('/api/session/create', async (req, res) => {
   const { department, semester, subject, teacherId } = req.body;
 
   try {
-    // Create a unique session ID
-    const sessionId = 'SES-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    if (!department || !semester || !subject) {
+      return res.status(400).json({ success: false, message: 'Department, semester and subject are required.' });
+    }
 
-    // Secret kept only for reference / future TOTP use — the live check-in
-    // verification below uses a shared, time-stepped 6-digit token so both
-    // the QR generator (TeacherDashboard) and the verifier (this server)
-    // derive the exact same code from the current time, without needing to
-    // pass any per-session secret over the wire.
-    const secret = Math.random().toString(36).substring(2, 12);
+    // Unique session id shown on the teacher's screen.
+    const sessionId = 'SES-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 
-    global.activeSession = {
+    // Per-session HMAC key. Both the rotating QR token and the rotating manual
+    // code are derived from this via deriveCode(). It is cryptographically
+    // random (not Math.random) and is sent ONLY to the teacher's browser, never
+    // to students — that is what stops a student computing a valid code on their
+    // own phone from outside the classroom.
+    const secret = crypto.randomBytes(20).toString('hex');
+
+    // Persist the session so Reports and History have a real record of every
+    // class that was held, and so verification survives a server restart.
+    await Session.create({
       sessionId,
       secret,
       department,
       semester,
       subject,
-      teacherId,
+      teacherId: teacherId || 'ADMIN-2026',
+      active: true,
       startedAt: new Date(),
-      attendees: [],
-    };
+    });
+
+    // In-memory pointer to the most recent session, kept only as a convenience.
+    // All verification below reads from the database, so this is not load-bearing.
+    global.activeSession = { sessionId, secret, department, semester, subject, teacherId };
 
     res.status(201).json({
       success: true,
@@ -237,24 +273,106 @@ app.post('/api/session/create', async (req, res) => {
 });
 
 // ---------- END ATTENDANCE SESSION ----------
-app.post('/api/session/end', (req, res) => {
-  global.activeSession = null;
-  res.status(200).json({ success: true, message: 'Session ended.' });
+app.post('/api/session/end', async (req, res) => {
+  const { sessionId } = req.body;
+  try {
+    // End the specific session if given, otherwise end whatever is still active
+    // (covers the older frontend that ended without passing an id).
+    const filter = sessionId ? { sessionId } : { active: true };
+    await Session.updateMany(filter, { $set: { active: false, endedAt: new Date() } });
+    global.activeSession = null;
+    res.status(200).json({ success: true, message: 'Session ended.' });
+  } catch (error) {
+    console.error('Session end error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
 });
 
-// Helper: generate the list of tokens considered valid right now.
-// Uses the same 5-second time-step formula as the frontend's generateToken()
-// in TeacherDashboard.jsx, with a small window on either side to absorb
-// clock drift and network/scan latency between the QR being displayed and
-// the scan being verified here.
-function getValidTokens() {
-  const currentStep = Math.floor(Date.now() / 5000);
-  const validTokens = [];
-  for (let i = -2; i <= 2; i++) {
-    const step = ((currentStep + i) % 1000000 + 1000000) % 1000000;
-    validTokens.push(step.toString().padStart(6, '0'));
+// ---------------------------------------------------------------------------
+// Shared rotating-code derivation (HMAC-based, TOTP-style).
+// ---------------------------------------------------------------------------
+// deriveCode(secret, step, kind) returns a 6-digit code. The EXACT same
+// function is reimplemented in the teacher's browser with the Web Crypto API
+// (see TeacherDashboard.jsx -> deriveCode); both must produce identical output,
+// which is checked by a parity test. `kind` namespaces the two code streams so
+// the QR token and the manual code are always different values even if their
+// time-steps ever coincide:
+//   - QR token:    kind 'q', 5-second steps  (matches the QR refresh cadence)
+//   - Manual code: kind 'm', 30-second steps (long enough to read and type)
+function deriveCode(secret, step, kind) {
+  const msg = `${kind}.${step}`;
+  const h = crypto.createHmac('sha256', String(secret)).update(msg).digest();
+  const offset = h[h.length - 1] & 0x0f;
+  const bin =
+    ((h[offset] & 0x7f) << 24) |
+    ((h[offset + 1] & 0xff) << 16) |
+    ((h[offset + 2] & 0xff) << 8) |
+    (h[offset + 3] & 0xff);
+  return (bin % 1000000).toString().padStart(6, '0');
+}
+
+// The set of codes accepted right now, for a given session secret and kind.
+// A small window on either side absorbs clock drift between the teacher's
+// browser and this server plus scan/typing latency. QR gets ±2 five-second
+// steps (~10s); the manual code gets ±1 thirty-second step.
+function getValidCodes(secret, kind) {
+  const stepMs = kind === 'q' ? 5000 : 30000;
+  const window = kind === 'q' ? 2 : 1;
+  const currentStep = Math.floor(Date.now() / stepMs);
+  const codes = [];
+  for (let i = -window; i <= window; i++) {
+    codes.push(deriveCode(secret, currentStep + i, kind));
   }
-  return validTokens;
+  return codes;
+}
+
+// Shared attendance writer used by both the QR and manual flows. Enforces the
+// two anti-proxy rules — the student must belong to the session's class, and
+// each student can only be recorded once per session — then saves the record.
+async function markAttendance({ session, registrationNo, studentId, method }, res) {
+  const student = await Student.findOne({ registrationNo });
+  if (!student) {
+    return res.status(400).json({ success: false, message: 'Student not found. Please log in again.' });
+  }
+
+  // Class binding: a check-in only counts for the class the session is for.
+  // Without this, a student from another department/semester could mark
+  // themselves present in a class they aren't part of — another form of proxy.
+  if (student.department !== session.department || student.semester !== session.semester) {
+    return res.status(403).json({
+      success: false,
+      message: `This session is for ${session.department} · Sem ${session.semester}. Your account is ${student.department} · Sem ${student.semester}, so you can't check in here.`,
+    });
+  }
+
+  // One record per student per session (checked in the database so it holds
+  // even across a server restart, unlike the old in-memory list).
+  const existing = await Attendance.findOne({ sessionId: session.sessionId, registrationNo });
+  if (existing) {
+    return res.status(200).json({ success: true, message: 'Already marked present.', duplicate: true });
+  }
+
+  await Attendance.create({
+    sessionId: session.sessionId,
+    studentId: (studentId || student._id).toString(),
+    registrationNo,
+    studentName: student.fullName,
+    department: session.department,
+    semester: session.semester,
+    subject: session.subject,
+    teacherId: session.teacherId,
+    method,
+  });
+
+  const total = await Attendance.countDocuments({ sessionId: session.sessionId });
+  console.log(`✅ Attendance (${method}) saved for ${student.fullName} — session ${session.sessionId} now has ${total}`);
+
+  return res.status(200).json({
+    success: true,
+    message: 'Attendance marked successfully!',
+    studentName: student.fullName,
+    totalAttendees: total,
+  });
 }
 
 // ---------- ATTENDANCE CHECK-IN (QR Scan) ----------
@@ -266,78 +384,69 @@ app.post('/api/attendance/check-in', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing scan or student data. Please log in again.' });
     }
 
-    console.log('📥 Check-in request received:');
-    console.log('   Registration:', registrationNo);
-    console.log('   QR Data:', qrData);
-
-    // Parse QR data: "SESSION_ID.TOKEN"
-    const parts = qrData.split('.');
+    // QR payload is "SESSION_ID.TOKEN"
+    const parts = String(qrData).split('.');
     if (parts.length !== 2) {
       return res.status(400).json({ success: false, message: 'Invalid QR code format.' });
     }
-
     const [scannedSessionId, scannedToken] = parts;
 
-    // Check if there's an active session
-    if (!global.activeSession) {
-      return res.status(400).json({ success: false, message: 'No active attendance session.' });
+    // Look the session up in the database (must still be active).
+    const session = await Session.findOne({ sessionId: scannedSessionId, active: true });
+    if (!session) {
+      return res.status(400).json({ success: false, message: 'No active session for this QR. It may have ended.' });
     }
 
-    // Check if session ID matches
-    if (scannedSessionId !== global.activeSession.sessionId) {
-      return res.status(400).json({ success: false, message: 'Invalid session.' });
-    }
-
-    // Time-based token verification (matches QR refresh window on the teacher's screen)
-    const validTokens = getValidTokens();
-    console.log('   Expected tokens:', validTokens);
-    console.log('   Scanned token:', scannedToken);
-
-    if (!validTokens.includes(scannedToken)) {
+    // Verify the token was derived from THIS session's secret within the
+    // current time window. A student who doesn't have the secret can't produce
+    // a valid token, so a screenshot from a friend goes stale within seconds.
+    if (!getValidCodes(session.secret, 'q').includes(scannedToken)) {
       return res.status(400).json({ success: false, message: 'QR code expired. Please scan again.' });
     }
 
-    // Check if student already checked in
-    if (global.activeSession.attendees.includes(registrationNo)) {
-      return res.status(200).json({ success: true, message: 'Already marked present.' });
-    }
-
-    // Find student in database
-    const student = await Student.findOne({ registrationNo: registrationNo });
-
-    if (!student) {
-      return res.status(400).json({ success: false, message: 'Student not found. Please log in again.' });
-    }
-
-    // Save attendance record to MongoDB
-    const newAttendance = new Attendance({
-      sessionId: scannedSessionId,
-      studentId: (studentId || student._id).toString(),
-      registrationNo: registrationNo,
-      studentName: student.fullName,
-      department: global.activeSession.department,
-      semester: global.activeSession.semester,
-      subject: global.activeSession.subject,
-      teacherId: global.activeSession.teacherId,
-      method: 'qr',
-    });
-
-    await newAttendance.save();
-
-    // Add to in-memory attendees list for this session (prevents duplicate scans)
-    global.activeSession.attendees.push(registrationNo);
-
-    console.log('✅ Attendance saved for:', student.fullName);
-    console.log('Total attendees:', global.activeSession.attendees.length);
-
-    res.status(200).json({
-      success: true,
-      message: 'Attendance marked successfully!',
-      studentName: student.fullName,
-      totalAttendees: global.activeSession.attendees.length,
-    });
+    return await markAttendance({ session, registrationNo, studentId, method: 'qr' }, res);
   } catch (error) {
     console.error('Check-in error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// ---------- ATTENDANCE CHECK-IN (Manual code fallback) ----------
+// The student types only the 6-digit code — no session id. We match the code
+// against every currently-active session's manual-code window and, if exactly
+// one matches, record attendance there. This keeps the student's job to
+// "type the code on the board" while still being tied to a real session.
+app.post('/api/attendance/manual', async (req, res) => {
+  const { studentId, registrationNo, code } = req.body;
+
+  try {
+    if (!registrationNo || !code) {
+      return res.status(400).json({ success: false, message: 'Enter the code shown by your teacher.' });
+    }
+    const cleaned = String(code).replace(/\s+/g, '');
+    if (!/^\d{6}$/.test(cleaned)) {
+      return res.status(400).json({ success: false, message: 'The code should be 6 digits.' });
+    }
+
+    const activeSessions = await Session.find({ active: true });
+    if (activeSessions.length === 0) {
+      return res.status(400).json({ success: false, message: 'No active attendance session right now.' });
+    }
+
+    const matches = activeSessions.filter((s) => getValidCodes(s.secret, 'm').includes(cleaned));
+
+    if (matches.length === 0) {
+      return res.status(400).json({ success: false, message: 'That code is wrong or has expired. Check the latest code and try again.' });
+    }
+    if (matches.length > 1) {
+      // Astronomically unlikely with random secrets, but handled rather than
+      // silently marking the wrong class.
+      return res.status(409).json({ success: false, message: 'Code matched more than one class. Please scan the QR instead.' });
+    }
+
+    return await markAttendance({ session: matches[0], registrationNo, studentId, method: 'manual' }, res);
+  } catch (error) {
+    console.error('Manual check-in error:', error.message);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -364,6 +473,185 @@ app.get('/api/attendance/session/:sessionId', async (req, res) => {
     res.status(200).json({ success: true, records });
   } catch (error) {
     console.error('Fetch session attendance error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// ---------- GET ALL ATTENDANCE (Teacher History, newest first) ----------
+// Optional query filters: department, semester, subject, date. Powers the
+// teacher's Attendance History page so it shows every past session, not just
+// whatever happens to be live right now.
+app.get('/api/attendance/all', async (req, res) => {
+  const { department, semester, subject, date } = req.query;
+  try {
+    const filter = {};
+    if (department) filter.department = department;
+    if (semester) filter.semester = semester;
+    if (subject) filter.subject = subject;
+    if (date) filter.date = date;
+    const records = await Attendance.find(filter).sort({ timestamp: -1 }).limit(1000);
+    res.status(200).json({ success: true, records });
+  } catch (error) {
+    console.error('Fetch all attendance error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// STUDENT APPROVAL WORKFLOW
+// ---------------------------------------------------------------------------
+
+// List registrations awaiting review (default) or by a given status.
+app.get('/api/students/pending', async (req, res) => {
+  const { status = 'pending' } = req.query;
+  try {
+    const students = await Student.find({ status }).select('-password').sort({ createdAt: -1 });
+    res.status(200).json({ success: true, students });
+  } catch (error) {
+    console.error('Fetch pending students error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Counts for the sidebar badge / dashboard tiles.
+app.get('/api/students/counts', async (req, res) => {
+  try {
+    const [pending, approved, rejected] = await Promise.all([
+      Student.countDocuments({ status: 'pending' }),
+      Student.countDocuments({ status: 'approved' }),
+      Student.countDocuments({ status: 'rejected' }),
+    ]);
+    res.status(200).json({ success: true, counts: { pending, approved, rejected } });
+  } catch (error) {
+    console.error('Counts error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Approve or reject a registration. `action` is 'approve' or 'reject'.
+app.post('/api/students/:id/review', async (req, res) => {
+  const { id } = req.params;
+  const { action, reviewedBy } = req.body;
+  try {
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'action must be approve or reject.' });
+    }
+    const status = action === 'approve' ? 'approved' : 'rejected';
+    const student = await Student.findByIdAndUpdate(
+      id,
+      { $set: { status, reviewedBy: reviewedBy || 'Teacher', reviewedAt: new Date() } },
+      { new: true }
+    ).select('-password');
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found.' });
+    }
+    res.status(200).json({ success: true, student, message: `Registration ${status}.` });
+  } catch (error) {
+    console.error('Review error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// REPORTS
+// ---------------------------------------------------------------------------
+// Attendance % is computed against classes actually HELD, taken from the
+// Session collection. "Held for a student" = sessions run for that student's
+// department + semester (optionally a single subject). "Attended" = distinct
+// sessions the student has an Attendance record in. This is the standard way
+// colleges compute the percentage, and it's only possible because sessions are
+// now persisted.
+app.get('/api/reports/summary', async (req, res) => {
+  const { department, semester, subject } = req.query;
+  try {
+    // "Held" counts every session for the class (both finished and currently
+    // live), so a running class is reflected in the percentage too.
+    const heldFilter = {};
+    if (department) heldFilter.department = department;
+    if (semester) heldFilter.semester = semester;
+    if (subject) heldFilter.subject = subject;
+    const heldSessions = await Session.find(heldFilter);
+    const totalHeld = heldSessions.length;
+    const heldSessionIds = heldSessions.map((s) => s.sessionId);
+
+    // Which students are in scope: approved students matching the filters.
+    const studentFilter = { status: { $ne: 'rejected' } };
+    if (department) studentFilter.department = department;
+    if (semester) studentFilter.semester = semester;
+    const students = await Student.find(studentFilter).select('-password');
+
+    // All attendance rows for the held sessions, grouped by student.
+    const rows = await Attendance.find({ sessionId: { $in: heldSessionIds } });
+    const attendedByReg = {};
+    for (const r of rows) {
+      attendedByReg[r.registrationNo] = attendedByReg[r.registrationNo] || new Set();
+      attendedByReg[r.registrationNo].add(r.sessionId);
+    }
+
+    const report = students.map((s) => {
+      const attended = attendedByReg[s.registrationNo] ? attendedByReg[s.registrationNo].size : 0;
+      const percentage = totalHeld > 0 ? Math.round((attended / totalHeld) * 1000) / 10 : 0;
+      return {
+        registrationNo: s.registrationNo,
+        fullName: s.fullName,
+        department: s.department,
+        semester: s.semester,
+        attended,
+        held: totalHeld,
+        percentage,
+      };
+    });
+
+    report.sort((a, b) => a.percentage - b.percentage);
+
+    res.status(200).json({
+      success: true,
+      totalHeld,
+      totalStudents: report.length,
+      report,
+    });
+  } catch (error) {
+    console.error('Reports summary error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// One row per session held (the class register): counts + who was present.
+app.get('/api/reports/sessions', async (req, res) => {
+  const { department, semester, subject } = req.query;
+  try {
+    const filter = {};
+    if (department) filter.department = department;
+    if (semester) filter.semester = semester;
+    if (subject) filter.subject = subject;
+    const sessions = await Session.find(filter).sort({ startedAt: -1 }).limit(500);
+
+    const summaries = await Promise.all(
+      sessions.map(async (s) => {
+        const present = await Attendance.countDocuments({ sessionId: s.sessionId });
+        const enrolled = await Student.countDocuments({
+          department: s.department,
+          semester: s.semester,
+          status: { $ne: 'rejected' },
+        });
+        return {
+          sessionId: s.sessionId,
+          subject: s.subject,
+          department: s.department,
+          semester: s.semester,
+          date: s.date,
+          startedAt: s.startedAt,
+          active: s.active,
+          present,
+          enrolled,
+          absent: Math.max(enrolled - present, 0),
+        };
+      })
+    );
+
+    res.status(200).json({ success: true, sessions: summaries });
+  } catch (error) {
+    console.error('Reports sessions error:', error.message);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });

@@ -87,7 +87,12 @@ const Signup = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert('Account created successfully! You can now log in.');
+        // Accounts are now created as "pending" — a teacher has to approve the
+        // registration before the student can log in.
+        alert(
+          data.message ||
+            'Registration submitted! Your account is waiting for teacher approval.'
+        );
         navigate('/login');
       } else {
         setError(data.message || 'Something went wrong. Please try again.');

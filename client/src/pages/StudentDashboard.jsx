@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QRScanner from './QRScanner';
+import ManualEntry from './ManualEntry';
 import './StudentDashboard.css';
 import { API_BASE } from '../utils/api';
 import { clearSession, getUser } from '../utils/auth';
@@ -35,6 +36,7 @@ const StudentDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
   const [showScanner, setShowScanner] = useState(false);
+  const [showManual, setShowManual] = useState(false);
 
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -177,9 +179,14 @@ const StudentDashboard = () => {
              activeSection === 'history' ? 'Attendance History' :
              activeSection === 'profile' ? 'My Profile' : 'Settings'}
           </h1>
-          <button className="scan-btn-top" onClick={() => setShowScanner(true)}>
-            <IconQr size={17} /> Scan QR
-          </button>
+          <div className="topbar-actions">
+            <button className="scan-btn-top secondary" onClick={() => setShowManual(true)}>
+              <IconIdCard size={17} /> Enter Code
+            </button>
+            <button className="scan-btn-top" onClick={() => setShowScanner(true)}>
+              <IconQr size={17} /> Scan QR
+            </button>
+          </div>
         </header>
 
         {activeSection === 'home' && (
@@ -213,6 +220,9 @@ const StudentDashboard = () => {
                       <small>Mark your attendance in seconds</small>
                     </span>
                     <IconChevronRight size={18} className="scan-chevron" />
+                  </button>
+                  <button className="manual-entry-link" onClick={() => setShowManual(true)}>
+                    <IconIdCard size={16} /> QR not working? Enter the 6-digit code instead
                   </button>
                 </div>
                 <div className="recent-checkins">
@@ -413,6 +423,17 @@ const StudentDashboard = () => {
           onClose={() => setShowScanner(false)}
           onSuccess={(message) => {
             setShowScanner(false);
+            showToast(message, 'success');
+            fetchHistory();
+          }}
+        />
+      )}
+
+      {showManual && (
+        <ManualEntry
+          onClose={() => setShowManual(false)}
+          onSuccess={(message) => {
+            setShowManual(false);
             showToast(message, 'success');
             fetchHistory();
           }}

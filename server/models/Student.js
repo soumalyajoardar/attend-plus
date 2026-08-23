@@ -39,6 +39,26 @@ const StudentSchema = new mongoose.Schema(
       required: true,
       minlength: 8,
     },
+    // Approval workflow: a new registration is 'pending' until a teacher
+    // approves it. Only 'approved' students can log in. Legacy records created
+    // before this field existed will read back as undefined, which the login
+    // route treats as already-approved so nobody gets locked out by the upgrade.
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+      index: true,
+    },
+    // Audit trail for who acted on the registration and when — handy for the
+    // teacher UI and for explaining a rejection later.
+    reviewedBy: {
+      type: String,
+      default: null,
+    },
+    reviewedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

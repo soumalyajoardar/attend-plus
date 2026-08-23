@@ -160,6 +160,36 @@
 }
 .scan-btn-top:hover { background: var(--ap-primary-dark); transform: translateY(-2px); }
 
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.topbar-actions .scan-btn-top { display: inline-flex; align-items: center; gap: 6px; }
+
+.scan-btn-top.secondary {
+  background: var(--ap-surface);
+  color: var(--ap-primary);
+  border: 1px solid var(--ap-primary);
+  box-shadow: none;
+}
+.scan-btn-top.secondary:hover { background: var(--ap-primary-light); color: var(--ap-primary); transform: translateY(-2px); }
+
+.manual-entry-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: none;
+  border: 1px dashed var(--ap-border);
+  border-radius: 12px;
+  color: var(--ap-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--ap-transition);
+}
+.manual-entry-link:hover { border-color: var(--ap-primary); color: var(--ap-primary); }
+
 .student-welcome { margin-bottom: 20px; }
 .student-welcome p { color: var(--ap-text-muted); font-weight: 600; font-size: 14px; }
 
