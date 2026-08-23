@@ -557,8 +557,9 @@ const TeacherDashboard = () => {
                   <option value="ETCE">ETCE</option>
                   <option value="EIE">EIE</option>
                   <option value="CIVIL">CIVIL</option>
-                  <option value="MECHANICAL">MECHANICAL</option>
                   <option value="EE">EE</option>
+                  <option value="ARCHITECTURAL ASSISTANTSHIP">ARCHITECTURAL ASSISTANTSHIP</option>
+                  <option value="PHARMACY">PHARMACY</option>
                 </select>
               </div>
 
@@ -786,7 +787,7 @@ const TeacherDashboard = () => {
               <select value={histFilters.department} onChange={(e) => setHistFilters((f) => ({ ...f, department: e.target.value }))}>
                 <option value="">All Departments</option>
                 <option value="CST">CST</option><option value="ETCE">ETCE</option><option value="EIE">EIE</option>
-                <option value="CIVIL">CIVIL</option><option value="MECHANICAL">MECHANICAL</option><option value="EE">EE</option>
+                <option value="CIVIL">CIVIL</option><option value="EE">EE</option><option value="ARCHITECTURAL ASSISTANTSHIP">ARCHITECTURAL ASSISTANTSHIP</option><option value="PHARMACY">PHARMACY</option>
               </select>
               <select value={histFilters.semester} onChange={(e) => setHistFilters((f) => ({ ...f, semester: e.target.value }))}>
                 <option value="">All Semesters</option>
@@ -849,7 +850,7 @@ const TeacherDashboard = () => {
               <select value={reportFilters.department} onChange={(e) => setReportFilters((f) => ({ ...f, department: e.target.value }))}>
                 <option value="">All Departments</option>
                 <option value="CST">CST</option><option value="ETCE">ETCE</option><option value="EIE">EIE</option>
-                <option value="CIVIL">CIVIL</option><option value="MECHANICAL">MECHANICAL</option><option value="EE">EE</option>
+                <option value="CIVIL">CIVIL</option><option value="EE">EE</option><option value="ARCHITECTURAL ASSISTANTSHIP">ARCHITECTURAL ASSISTANTSHIP</option><option value="PHARMACY">PHARMACY</option>
               </select>
               <select value={reportFilters.semester} onChange={(e) => setReportFilters((f) => ({ ...f, semester: e.target.value }))}>
                 <option value="">All Semesters</option>
