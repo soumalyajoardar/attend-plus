@@ -1,0 +1,270 @@
+/* ============ Attend+ · Credits page ============
+   Every selector here is namespaced `credits-` on purpose: all page CSS in
+   this app is imported statically and therefore bundled globally, so an
+   un-prefixed class would leak onto the dashboards. The navbar, badge,
+   footer and button classes are reused from Landing.css / index.css rather
+   than redeclared, so there is nothing here to cancel them out.
+   ------------------------------------------------------------------ */
+
+/* Logo doubles as a "home" button, so strip the button chrome. */
+.credits-logo-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+}
+
+.credits-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.credits-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* ---------- Layout ---------- */
+.credits-main {
+  max-width: 760px;
+  margin: 30px auto 0;
+  padding: 0 60px 40px;
+}
+
+/* ---------- Header ---------- */
+.credits-header {
+  text-align: center;
+  animation: fadeInUp 0.6s ease both;
+}
+
+.credits-header h1 {
+  font-size: 54px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  margin: 18px 0 10px;
+  line-height: 1.1;
+}
+
+.credits-built-by {
+  font-size: 17px;
+  color: var(--ap-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.credits-built-by strong {
+  color: var(--ap-text);
+  font-weight: 700;
+}
+
+/* ---------- Roster ---------- */
+.credits-section {
+  margin-top: 44px;
+}
+
+.credits-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.credits-section-head h2 {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: var(--ap-text-muted);
+  margin: 0;
+}
+
+.credits-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+}
+
+.credits-roster {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.credits-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius);
+  padding: 16px 20px;
+  transition: var(--ap-transition);
+}
+
+.credits-row:hover {
+  border-color: var(--ap-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--ap-shadow);
+}
+
+/* The roman numeral is the roster's ordering device — tabular so the
+   numerals stay optically aligned down the column. */
+.credits-numeral {
+  min-width: 26px;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ap-primary);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.credits-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.credits-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.credits-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ap-text);
+}
+
+.credits-role {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+}
+
+/* ---------- Closing note + action ---------- */
+/* Tinted callout. Uses full --ap-text rather than --ap-text-muted: muted
+   slate on the indigo tint only reaches 4.26:1, which fails WCAG AA for
+   body text. Full text colour keeps the tint and clears the bar easily. */
+.credits-note {
+  margin: 34px 0 0;
+  padding: 18px 20px;
+  background: var(--ap-primary-light);
+  border-radius: var(--ap-radius);
+  color: var(--ap-text);
+  font-size: 14px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.credits-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+/* ---------- Quality floor: focus + reduced motion ---------- */
+.credits-logo-btn:focus-visible,
+.credits-back-btn:focus-visible,
+.credits-actions .btn-primary:focus-visible {
+  outline: 2px solid var(--ap-primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .credits-header,
+  .credits-roster.ap-stagger > * {
+    animation: none;
+  }
+  .credits-row:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .credits-main {
+    padding: 0 20px 32px;
+    margin-top: 14px;
+  }
+
+  .credits-header h1 {
+    font-size: 38px;
+    letter-spacing: -1px;
+  }
+
+  .credits-built-by {
+    font-size: 15px;
+  }
+
+  .credits-back-btn span,
+  .credits-back-btn {
+    font-size: 13px;
+  }
+
+  .credits-row {
+    gap: 14px;
+    padding: 14px 16px;
+  }
+
+  .credits-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 13px;
+  }
+
+  .credits-name {
+    font-size: 15px;
+  }
+
+  .credits-section {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 380px) {
+  .credits-main {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .credits-header h1 {
+    font-size: 32px;
+  }
+
+  /* Keep the numeral, avatar and name on one line on the narrowest phones. */
+  .credits-row {
+    gap: 12px;
+    padding: 13px 14px;
+  }
+
+  .credits-numeral {
+    min-width: 20px;
+    font-size: 13px;
+  }
+}

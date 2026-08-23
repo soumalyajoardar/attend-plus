@@ -70,6 +70,7 @@ const Landing = () => {
         {/* Full nav actions: shown inline on desktop/tablet */}
         <div className="nav-links">
           <ThemeToggle />
+          <button className="btn-ghost" onClick={() => navigate('/credits')}>Credits</button>
           <button className="btn-ghost" onClick={() => navigate('/login')}>Sign In</button>
           <button className="btn-primary" onClick={() => navigate('/signup')}>Get Started</button>
         </div>
@@ -118,6 +119,12 @@ const Landing = () => {
             onClick={() => { setMenuOpen(false); navigate('/signup'); }}
           >
             Get Started
+          </button>
+          <button
+            className="btn-ghost nav-drawer-btn"
+            onClick={() => { setMenuOpen(false); navigate('/credits'); }}
+          >
+            Credits
           </button>
         </div>
       </aside>
@@ -203,7 +210,12 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="footer">
-        <p>© 2026 Attend+. Built for Educators.</p>
+        <p>
+          © 2026 Attend+. Built with ❤️ By the Attend+ Team ·{' '}
+          <button type="button" className="footer-link" onClick={() => navigate('/credits')}>
+            Credits
+          </button>
+        </p>
       </footer>
     </div>
   );
