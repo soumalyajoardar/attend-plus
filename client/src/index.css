@@ -176,6 +176,13 @@ h1, h2, h3, h4, h5, h6 {
   --ap-success-light: #ECFDF5;
   --ap-danger: #DC2626;
   --ap-danger-light: #FEF2F2;
+  /* Text/glyph shades of the two status colours. --ap-danger and --ap-success
+     above are tuned for SOLID FILLS (white-on-colour) and are intentionally
+     the same in both themes. Used as coloured *text* on a tinted or dark
+     background they fall under the 4.5:1 WCAG AA floor — #DC2626 on the
+     #FEF2F2 tint is only 4.41:1. Use these for coloured text and icons. */
+  --ap-danger-text: #C81E1E;
+  --ap-success-text: #15803D;
   --ap-warning: #D97706;
   --ap-bg: #F8FAFC;
   --ap-surface: #FFFFFF;
@@ -199,6 +206,9 @@ h1, h2, h3, h4, h5, h6 {
   --ap-accent: #A78BFA;
   --ap-success-light: #052e1c;
   --ap-danger-light: #2c0f0f;
+  /* Lightened so coloured text stays ≥4.5:1 on the dark surfaces. */
+  --ap-danger-text: #EF4444;
+  --ap-success-text: #16A34A;
   --ap-bg: #0B1120;
   --ap-surface: #131B2E;
   --ap-border: #223047;

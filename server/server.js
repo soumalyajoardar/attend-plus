@@ -723,6 +723,80 @@ app.get('/api/student/:registrationNo', async (req, res) => {
   }
 });
 
+// ---------- DELETE STUDENT PROFILE (self-service, permanent) ----------
+// A student can permanently remove their own account from the Settings screen.
+//
+// Two deliberate decisions here:
+//
+// 1. The current password must be supplied and is bcrypt-checked before
+//    anything is removed. This route is destructive and irreversible, and
+//    (like every other route in this app) it has no auth middleware in front
+//    of it yet, so the password IS the authorisation check. Without it,
+//    knowing a student's id would be enough to wipe their account.
+// 2. Attendance rows are intentionally NOT deleted. They are institutional
+//    records: the teacher's reports and each class's attendance percentage are
+//    computed from them, so cascading the delete would silently rewrite
+//    history for classes that already happened. The Attendance schema stores
+//    the name/registrationNo denormalised, so those rows stay readable even
+//    once the Student document is gone.
+app.post('/api/student/:id/delete', async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body;
+
+  try {
+    if (!password) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Your password is required to delete this account.' });
+    }
+
+    // The demo/testing login (student@test.com) is hardcoded in the login route
+    // and has no database record, so its id is not a real ObjectId. Bail out
+    // clearly instead of letting Mongoose throw a CastError.
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'This is a demo account and cannot be deleted.' });
+    }
+
+    const student = await Student.findById(id);
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Account not found — it may already have been deleted.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, student.password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: 'Incorrect password. Your account was NOT deleted.' });
+    }
+
+    // Count the attendance we're keeping so the response can tell the student
+    // exactly what remains on record.
+    const keptRecords = await Attendance.countDocuments({
+      registrationNo: student.registrationNo,
+    });
+
+    await Student.findByIdAndDelete(id);
+
+    console.log(
+      `🗑️  Student account deleted: ${student.registrationNo} (${student.email}) — ` +
+        `${keptRecords} attendance record(s) retained.`
+    );
+
+    res.status(200).json({
+      success: true,
+      keptRecords,
+      message: 'Your account has been permanently deleted.',
+    });
+  } catch (error) {
+    console.error('Delete student error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
+  }
+});
+
 // ---------- CONNECT TO DATABASE & START SERVER ----------
 const PORT = process.env.PORT || 5000;
 

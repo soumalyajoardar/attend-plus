@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Landing.css';
 import { isRemembered, getRole } from '../utils/auth';
 import { IconBell, IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose } from '../components/Icons';
@@ -7,10 +7,26 @@ import ThemeToggle from '../components/ThemeToggle';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // One-off confirmation banner shown after a student permanently deletes
+  // their account. StudentDashboard navigates here with
+  // `state: { accountDeleted: true, message }`; we surface it once, then
+  // clear the history state so a refresh or back-nav doesn't replay it.
+  const [deletedNotice, setDeletedNotice] = useState(
+    location.state?.accountDeleted ? (location.state.message || 'Your account has been permanently deleted.') : ''
+  );
+  useEffect(() => {
+    if (!location.state?.accountDeleted) return;
+    // Wipe the flag from history so the banner can't reappear on reload.
+    window.history.replaceState({}, document.title);
+    const t = setTimeout(() => setDeletedNotice(''), 7000);
+    return () => clearTimeout(t);
+  }, [location.state]);
 
   const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.', 'Growing.', 'Succeeding.', 'Innovating.', 'Collaborating.', 'Creating.', 'Inspiring.', 'Leading.', 'Empowering.', 'Transforming.', 'Excelling.', 'Advancing.', 'Exploring.', 'Discovering.', 'Building.', 'Sharing.', 'Connecting.', 'Celebrating.'];
 
@@ -61,6 +77,23 @@ const Landing = () => {
 
   return (
     <div className="landing-container">
+      {/* Post-deletion confirmation. Fixed-position on purpose: it must not
+          push the navbar or hero down when it appears. Renders nothing at all
+          in the normal case, so the page layout is untouched. */}
+      {deletedNotice && (
+        <div className="lp-deleted-banner" role="status">
+          <IconCheckCircle size={18} />
+          <span>{deletedNotice}</span>
+          <button
+            className="lp-deleted-dismiss"
+            onClick={() => setDeletedNotice('')}
+            aria-label="Dismiss this message"
+          >
+            <IconClose size={15} />
+          </button>
+        </div>
+      )}
+
       {/* Navigation Bar */}
       <nav className="navbar">
         <div className="logo">

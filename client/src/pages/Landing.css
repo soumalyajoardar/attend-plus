@@ -673,3 +673,76 @@
     height: 400px;
   }
 }
+
+/* ============ POST-DELETION CONFIRMATION BANNER ============
+   Shown once after a student permanently deletes their account, so the
+   deletion doesn't look like it silently failed. Prefixed `lp-` because every
+   page's CSS is bundled into one global sheet, and `position: fixed` so it
+   can never push the navbar or the hero buttons out of place.
+   ---------------------------------------------------------------- */
+
+.lp-deleted-banner {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 12px 12px 16px;
+  border: 1px solid var(--ap-success);
+  background: var(--ap-success-light);
+  color: var(--ap-text);
+  border-radius: 12px;
+  box-shadow: var(--ap-shadow-lg);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  animation: fadeInUp 0.35s ease both;
+}
+
+.lp-deleted-banner > svg {
+  color: var(--ap-success-text);
+  flex-shrink: 0;
+}
+
+.lp-deleted-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition: var(--ap-transition);
+}
+
+.lp-deleted-dismiss:hover {
+  background: rgba(22, 163, 74, 0.14);
+  color: var(--ap-text);
+}
+
+.lp-deleted-dismiss:focus-visible {
+  outline: 2px solid var(--ap-success);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-deleted-banner { animation: none; }
+}
+
+@media (max-width: 600px) {
+  .lp-deleted-banner {
+    top: 10px;
+    font-size: 13px;
+    padding: 10px 10px 10px 13px;
+  }
+}

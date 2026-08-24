@@ -508,3 +508,302 @@
   .history-row { grid-template-columns: 1.3fr 1fr; row-gap: 4px; }
   .history-row span:nth-child(3), .history-row span:nth-child(4), .history-row span:nth-child(5) { font-size: 11px; }
 }
+
+/* ============ DANGER ZONE + DELETE-ACCOUNT DIALOG ============
+   Every class below is prefixed `sd-` because all page CSS in this app is
+   imported statically and therefore bundled globally — an un-prefixed class
+   here would leak onto the landing page and the teacher dashboard. (That has
+   already happened once: a bare `.btn-secondary` in TeacherDashboard.css
+   knocked the landing hero buttons out of alignment.)
+   `.close-btn` is reused from QRScanner.css on purpose, not redeclared.
+   Coloured text/glyphs use the --ap-danger-text / --ap-success-text tokens
+   (defined in index.css) rather than --ap-danger / --ap-success, which are
+   fill-tuned and fall below 4.5:1 as text on a tint — see the note there.
+   ------------------------------------------------------------------ */
+
+.sd-danger-heading {
+  color: var(--ap-danger-text);
+}
+
+.sd-danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--ap-danger);
+  background: var(--ap-danger-light);
+  border-radius: var(--ap-radius);
+}
+
+.sd-danger-copy strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+  color: var(--ap-text);
+}
+
+/* Full --ap-text rather than --ap-text-muted: muted slate on the red tint
+   drops below the 4.5:1 WCAG AA floor for body copy. */
+.sd-danger-copy p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ap-text);
+  max-width: 52ch;
+}
+
+.sd-danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 11px 18px;
+  border: 1px solid var(--ap-danger);
+  border-radius: 10px;
+  background: var(--ap-danger);
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--ap-transition);
+}
+
+.sd-danger-btn:hover:not(:disabled) {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
+
+.sd-danger-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sd-danger-btn:focus-visible,
+.sd-delete-cancel:focus-visible,
+.sd-delete-input:focus-visible {
+  outline: 2px solid var(--ap-danger);
+  outline-offset: 2px;
+}
+
+/* ---------- Confirm dialog ---------- */
+/* z-index 1000 matches .scanner-overlay so the two never fight. */
+.sd-delete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: fadeIn 0.25s ease;
+}
+
+.sd-delete-dialog {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--ap-shadow-lg);
+  animation: scaleIn 0.25s ease;
+}
+
+.sd-delete-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sd-delete-head h3 {
+  margin: 0;
+  flex: 1;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ap-text);
+}
+
+.sd-delete-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+}
+
+.sd-delete-lead {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ap-text);
+}
+
+.sd-delete-facts {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  background: var(--ap-bg);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.sd-delete-facts li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ap-text);
+}
+
+/* Glyphs carry a text label alongside them, so colour is never the only cue. */
+.sd-delete-facts li.removed::before {
+  content: '\00d7';
+  position: absolute;
+  left: 4px;
+  font-weight: 800;
+  color: var(--ap-danger-text);
+}
+
+.sd-delete-facts li.kept::before {
+  content: '\2713';
+  position: absolute;
+  left: 3px;
+  font-weight: 800;
+  color: var(--ap-success-text);
+}
+
+.sd-delete-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ap-text);
+}
+
+.sd-delete-label code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sd-delete-input {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+.sd-delete-input:focus {
+  border-color: var(--ap-danger);
+  outline: none;
+}
+
+.sd-delete-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sd-delete-error {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -6px 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.sd-delete-error svg {
+  flex-shrink: 0;
+}
+
+.sd-delete-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* The safe choice is the visually calmer one; the destructive action has to be
+   deliberately reached for. */
+.sd-delete-cancel {
+  margin: 0;
+  padding: 11px 18px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--ap-transition);
+}
+
+.sd-delete-cancel:hover:not(:disabled) {
+  background: var(--ap-primary-light);
+}
+
+.sd-delete-cancel:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-delete-overlay,
+  .sd-delete-dialog {
+    animation: none;
+  }
+}
+
+/* Stack the danger row on narrow screens so the button keeps its full width
+   and never crushes the description text. */
+@media (max-width: 620px) {
+  .sd-danger-zone {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .sd-danger-btn {
+    width: 100%;
+  }
+
+  .sd-delete-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .sd-delete-cancel,
+  .sd-delete-actions .sd-danger-btn {
+    width: 100%;
+  }
+}

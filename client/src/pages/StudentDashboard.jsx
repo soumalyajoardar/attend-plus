@@ -11,6 +11,7 @@ import {
   IconHome, IconBell, IconQr, IconCalendar, IconUser, IconSettings, IconLogout,
   IconCheckCircle, IconRefresh, IconMoon, IconSun, IconIdCard,
   IconBuilding, IconLayers, IconMail, IconShield, IconTrendingUp, IconChevronRight,
+  IconTrash, IconAlertCircle, IconClose,
 } from '../components/Icons';
 
 const NAV_ITEMS = [
@@ -51,6 +52,15 @@ const StudentDashboard = () => {
   };
   const [prefSound, setPrefSound] = useState(localStorage.getItem('attendplus_pref_sound') !== '0');
   const [prefCompact, setPrefCompact] = useState(localStorage.getItem('attendplus_pref_compact') === '1');
+
+  // ---------- Delete-account flow ----------
+  // A confirm dialog gates the destructive call: the student must re-enter
+  // their password AND type DELETE, mirroring the two checks the server does.
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const onChange = (e) => setThemeState(e.detail);
@@ -130,6 +140,53 @@ const StudentDashboard = () => {
   const handleLogout = () => {
     clearSession();
     navigate('/');
+  };
+
+  // Close the dialog and wipe whatever was typed, so a reopened dialog never
+  // starts with a password still sitting in state.
+  const closeDeleteDialog = () => {
+    if (deleting) return; // don't let the user bail out mid-request
+    setShowDeleteDialog(false);
+    setDeletePassword('');
+    setDeleteConfirmText('');
+    setDeleteError('');
+  };
+
+  const confirmPhraseOk = deleteConfirmText.trim().toUpperCase() === 'DELETE';
+  const canSubmitDelete = confirmPhraseOk && deletePassword.length > 0 && !deleting;
+
+  const handleDeleteAccount = async () => {
+    if (!canSubmitDelete) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const response = await fetch(`${API_BASE}/api/student/${storedUser.id}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        // Wrong password / demo account / already gone — keep the dialog open
+        // so the student can correct it rather than losing what they typed.
+        setDeleteError(data.message || 'Could not delete your account. Please try again.');
+        setDeleting(false);
+        return;
+      }
+
+      // Gone for good: drop the local session immediately so no stale login
+      // survives, then hand them back to the landing page.
+      clearSession();
+      navigate('/', {
+        replace: true,
+        state: { accountDeleted: true, message: data.message },
+      });
+    } catch (err) {
+      console.error('Delete account error:', err);
+      setDeleteError('Could not reach the server. Check your connection and try again.');
+      setDeleting(false);
+    }
   };
 
   return (
@@ -402,6 +459,27 @@ const StudentDashboard = () => {
             <button className="btn-danger" style={{ marginTop: 24 }} onClick={handleLogout}>
               <IconLogout size={17} /> Log out of Attend+
             </button>
+
+            {/* Danger zone: permanent account deletion */}
+            <h3 className="settings-section-gap sd-danger-heading">
+              <IconAlertCircle size={18} /> Danger Zone
+            </h3>
+            <div className="sd-danger-zone">
+              <div className="sd-danger-copy">
+                <strong>Delete my account</strong>
+                <p>
+                  Permanently removes your Attend+ profile and sign-in. This cannot be undone —
+                  you would need to register again and wait for teacher approval.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="sd-danger-btn"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <IconTrash size={17} /> Delete account
+              </button>
+            </div>
           </div>
         )}
       </main>
@@ -438,6 +516,107 @@ const StudentDashboard = () => {
             fetchHistory();
           }}
         />
+      )}
+
+      {showDeleteDialog && (
+        <div
+          className="sd-delete-overlay"
+          onClick={closeDeleteDialog}
+          role="presentation"
+        >
+          {/* stopPropagation so clicking inside the card doesn't dismiss it */}
+          <div
+            className="sd-delete-dialog"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sd-delete-title"
+          >
+            <div className="sd-delete-head">
+              <span className="sd-delete-icon"><IconAlertCircle size={22} /></span>
+              <h3 id="sd-delete-title">Delete your account?</h3>
+              <button
+                type="button"
+                className="close-btn"
+                onClick={closeDeleteDialog}
+                aria-label="Cancel"
+                disabled={deleting}
+              >
+                <IconClose size={18} />
+              </button>
+            </div>
+
+            <p className="sd-delete-lead">
+              This permanently deletes <strong>{studentName}</strong> ({registrationNo}). It cannot
+              be undone.
+            </p>
+
+            {/* Being explicit about what survives avoids a nasty surprise, and
+                explains why their name may still appear in a teacher's report. */}
+            <ul className="sd-delete-facts">
+              <li className="removed">Your profile and sign-in are removed</li>
+              <li className="removed">You can no longer log in to Attend+</li>
+              <li className="kept">
+                Attendance already recorded for you stays on your college&apos;s records
+              </li>
+            </ul>
+
+            <label className="sd-delete-label" htmlFor="sd-delete-pw">
+              Confirm your password
+            </label>
+            <input
+              id="sd-delete-pw"
+              type="password"
+              className="sd-delete-input"
+              value={deletePassword}
+              onChange={(e) => { setDeletePassword(e.target.value); setDeleteError(''); }}
+              placeholder="Your account password"
+              autoComplete="current-password"
+              disabled={deleting}
+            />
+
+            <label className="sd-delete-label" htmlFor="sd-delete-confirm">
+              Type <code>DELETE</code> to confirm
+            </label>
+            <input
+              id="sd-delete-confirm"
+              type="text"
+              className="sd-delete-input"
+              value={deleteConfirmText}
+              onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteError(''); }}
+              placeholder="DELETE"
+              autoComplete="off"
+              disabled={deleting}
+            />
+
+            {deleteError && (
+              <p className="sd-delete-error" role="alert">
+                <IconAlertCircle size={15} /> {deleteError}
+              </p>
+            )}
+
+            <div className="sd-delete-actions">
+              <button
+                type="button"
+                className="sd-delete-cancel"
+                onClick={closeDeleteDialog}
+                disabled={deleting}
+              >
+                Keep my account
+              </button>
+              <button
+                type="button"
+                className="sd-danger-btn"
+                onClick={handleDeleteAccount}
+                disabled={!canSubmitDelete}
+              >
+                {deleting
+                  ? 'Deleting…'
+                  : <><IconTrash size={17} /> Permanently delete</>}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <ToastStack toasts={toasts} />
