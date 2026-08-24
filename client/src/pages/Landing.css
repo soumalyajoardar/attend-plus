@@ -306,10 +306,15 @@
 
 /* Belt-and-braces: force identical geometry on the two hero buttons so their
    top and bottom edges line up exactly, whatever each base class declares.
-   (.btn-primary is re-declared in several page stylesheets, so pin it here.) */
+   (.btn-primary/.btn-secondary are re-declared in several page stylesheets that
+   load after this one, so pin every box-model property here — margin included.
+   A stray `margin-top` on a global .btn-secondary is exactly what knocked
+   "Watch Demo" 10px out of line before.) */
 .hero-actions .btn-lg {
   height: 56px;
   padding: 0 32px;
+  margin: 0;
+  border-radius: 12px;
   font-size: 16px;
   line-height: 1;
   display: inline-flex;
@@ -317,6 +322,9 @@
   justify-content: center;
   gap: 8px;
   box-sizing: border-box;
+  flex: 0 0 auto;
+  align-self: center;
+  vertical-align: top;
 }
 
 .hero-actions .btn-primary { border: 1px solid transparent; }

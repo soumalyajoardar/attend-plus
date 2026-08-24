@@ -288,7 +288,13 @@
   transform: translateY(-2px);
 }
 
-.btn-secondary {
+/* Scoped to .dashboard-container on purpose. This used to be a bare
+   `.btn-secondary`, and because every page's CSS is bundled globally and this
+   file loads after Landing.css, its `margin-top: 10px` and 10px radius leaked
+   onto the landing hero's "Watch Demo" button (pushing it 10px below "Launch
+   Dashboard") and onto the Credits back button. Both teacher usages sit inside
+   .dashboard-container, so scoping keeps this page pixel-identical. */
+.dashboard-container .btn-secondary {
   background: var(--ap-surface);
   border: 1px solid var(--ap-border);
   color: var(--ap-text);
@@ -301,7 +307,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-.btn-secondary:hover {
+.dashboard-container .btn-secondary:hover {
   background: var(--ap-primary-light);
 }
 

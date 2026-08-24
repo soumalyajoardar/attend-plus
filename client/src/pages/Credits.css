@@ -26,6 +26,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  margin: 0; /* guard: page stylesheets have shipped a stray margin on .btn-secondary before */
   white-space: nowrap;
 }
 
