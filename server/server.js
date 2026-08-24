@@ -552,6 +552,113 @@ app.post('/api/students/:id/review', async (req, res) => {
   }
 });
 
+// Full student roster for the teacher's "Manage Students" page. Unlike
+// /api/students/pending this returns every status by default, and supports a
+// text search across name / registration number / email plus the usual
+// department + semester filters. Passwords are never selected.
+app.get('/api/students', async (req, res) => {
+  const { status, department, semester, search } = req.query;
+
+  try {
+    const query = {};
+    if (status && status !== 'all') query.status = status;
+    if (department && department !== 'all') query.department = department;
+    if (semester && semester !== 'all') query.semester = semester;
+
+    if (search && search.trim()) {
+      // Escape regex metacharacters so a stray '(' or '*' in the search box
+      // can't throw, and so nobody can craft a catastrophic backtracking input.
+      const safe = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const rx = new RegExp(safe, 'i');
+      query.$or = [{ fullName: rx }, { registrationNo: rx }, { email: rx }];
+    }
+
+    const students = await Student.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .limit(500);
+
+    res.status(200).json({ success: true, students, count: students.length });
+  } catch (error) {
+    console.error('Fetch students error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Teacher-initiated deletion of a student account.
+//
+// Two deliberate decisions here, mirroring the student self-delete above:
+//
+// 1. Authorisation is "type the registration number to confirm". The client
+//    sends `confirmRegistrationNo` and the server checks it against the target
+//    student's actual registration number — the check is re-done here rather
+//    than trusted from the UI, so a direct API call can't skip it. This makes
+//    it effectively impossible to delete the wrong student by a mis-click,
+//    which is the realistic failure mode for a teacher working through a list.
+//    Note this is a mistake-guard, not an identity check: like every other
+//    route in this app there is no auth middleware, so it does not stop a
+//    determined caller. Adding real teacher auth is the right follow-up.
+// 2. Attendance rows are KEPT, for the same reason as the student self-delete:
+//    they are institutional records that the class percentages are computed
+//    from, and they store the name/registrationNo denormalised so they stay
+//    readable after the Student document is gone.
+app.post('/api/students/:id/delete', async (req, res) => {
+  const { id } = req.params;
+  const { confirmRegistrationNo, deletedBy } = req.body;
+
+  try {
+    if (!confirmRegistrationNo || !String(confirmRegistrationNo).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Type the student's registration number to confirm the deletion.",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid student id.' });
+    }
+
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found — they may already have been deleted.',
+      });
+    }
+
+    // Case- and whitespace-insensitive: registration numbers are printed on ID
+    // cards in varying cases and the teacher is retyping from screen.
+    const typed = String(confirmRegistrationNo).trim().toLowerCase();
+    if (typed !== student.registrationNo.trim().toLowerCase()) {
+      return res.status(400).json({
+        success: false,
+        message: `That does not match. Type ${student.registrationNo} exactly to delete this student.`,
+      });
+    }
+
+    const keptRecords = await Attendance.countDocuments({
+      registrationNo: student.registrationNo,
+    });
+
+    await Student.findByIdAndDelete(id);
+
+    console.log(
+      `🗑️  Student deleted by ${deletedBy || 'a teacher'}: ${student.fullName} ` +
+        `(${student.registrationNo}) — ${keptRecords} attendance record(s) retained.`
+    );
+
+    res.status(200).json({
+      success: true,
+      keptRecords,
+      student: { fullName: student.fullName, registrationNo: student.registrationNo },
+      message: `${student.fullName} has been permanently deleted.`,
+    });
+  } catch (error) {
+    console.error('Teacher delete student error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // REPORTS
 // ---------------------------------------------------------------------------

@@ -10,7 +10,7 @@ import {
   IconChart, IconCheck, IconBell, IconCalendar, IconTrendingUp, IconSettings,
   IconUsers, IconAlertCircle, IconSend, IconPlay, IconStop, IconLogout,
   IconRefresh, IconMoon, IconSun, IconCheckCircle, IconUser as IconUserIcon,
-  IconDownload, IconIdCard, IconClose, IconClock,
+  IconDownload, IconIdCard, IconClose, IconClock, IconTrash,
 } from '../components/Icons';
 
 // Rotating-code derivation — the exact twin of deriveCode() in server.js, but
@@ -39,6 +39,7 @@ const sidebarItems = [
   { id: 'dashboard', label: 'Dashboard', icon: IconChart },
   { id: 'attendance', label: 'Start Attendance', icon: IconCheck },
   { id: 'approvals', label: 'Approvals', icon: IconIdCard },
+  { id: 'students', label: 'Manage Students', icon: IconUsers },
   { id: 'notifications', label: 'Notifications', icon: IconBell },
   { id: 'history', label: 'Attendance History', icon: IconCalendar },
   { id: 'reports', label: 'Reports', icon: IconTrendingUp },
@@ -84,6 +85,19 @@ const TeacherDashboard = () => {
   const [loadingApprovals, setLoadingApprovals] = useState(false);
   const [reviewingId, setReviewingId] = useState('');
   const [pendingCount, setPendingCount] = useState(0);
+
+  // Manage Students roster (every status, not just the pending queue)
+  const [roster, setRoster] = useState([]);
+  const [loadingRoster, setLoadingRoster] = useState(false);
+  const [rosterStatus, setRosterStatus] = useState('all'); // all | pending | approved | rejected
+  const [rosterSearch, setRosterSearch] = useState('');
+  // Deletion is confirmed by retyping the registration number. `deleteTarget`
+  // holds the student being deleted, so the dialog can show their details and
+  // compare what the teacher types against the real reg-no.
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteTyped, setDeleteTyped] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deletingStudent, setDeletingStudent] = useState(false);
 
   // Reports
   const [reportRows, setReportRows] = useState([]);
@@ -353,6 +367,87 @@ const TeacherDashboard = () => {
     }
   };
 
+  // ---------- Manage Students (roster + deletion) ----------
+  const fetchRoster = useCallback(async () => {
+    setLoadingRoster(true);
+    try {
+      const params = new URLSearchParams();
+      if (rosterStatus !== 'all') params.set('status', rosterStatus);
+      if (rosterSearch.trim()) params.set('search', rosterSearch.trim());
+      const response = await fetch(`${API_BASE}/api/students?${params.toString()}`);
+      const data = await response.json();
+      if (data.success) setRoster(data.students);
+      else showToast(data.message || 'Could not load the student list.', 'error');
+    } catch (err) {
+      console.error('Fetch roster error:', err);
+      showToast('Cannot connect to backend.', 'error');
+    } finally {
+      setLoadingRoster(false);
+    }
+    // showToast is stable from the useToast hook; excluded to avoid a refetch loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rosterStatus, rosterSearch]);
+
+  // Load the roster when the page opens or the status filter changes, and
+  // debounce the search box so typing doesn't fire a request per keystroke.
+  useEffect(() => {
+    if (activePage !== 'students') return;
+    const t = setTimeout(fetchRoster, rosterSearch ? 350 : 0);
+    return () => clearTimeout(t);
+  }, [activePage, fetchRoster, rosterSearch]);
+
+  const closeDeleteDialog = () => {
+    if (deletingStudent) return; // don't let the dialog vanish mid-request
+    setDeleteTarget(null);
+    setDeleteTyped('');
+    setDeleteError('');
+  };
+
+  // The typed reg-no must match before we even send the request. The server
+  // re-checks it too, so this is a convenience guard rather than the real one.
+  const deleteConfirmOk =
+    !!deleteTarget &&
+    deleteTyped.trim().toLowerCase() === String(deleteTarget.registrationNo).trim().toLowerCase();
+
+  const confirmDeleteStudent = async () => {
+    if (!deleteTarget || !deleteConfirmOk || deletingStudent) return;
+    setDeletingStudent(true);
+    setDeleteError('');
+    try {
+      const response = await fetch(`${API_BASE}/api/students/${deleteTarget._id}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          confirmRegistrationNo: deleteTyped.trim(),
+          deletedBy: teacherName,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        setDeleteError(data.message || 'Could not delete this student. Please try again.');
+        setDeletingStudent(false);
+        return;
+      }
+      // Drop the row locally instead of refetching, so the list doesn't jump.
+      setRoster((prev) => prev.filter((s) => s._id !== deleteTarget._id));
+      if (deleteTarget.status === 'pending') setPendingCount((c) => Math.max(0, c - 1));
+      setPendingStudents((prev) => prev.filter((s) => s._id !== deleteTarget._id));
+      const kept = data.keptRecords || 0;
+      showToast(
+        `${data.student?.fullName || 'Student'} deleted.` +
+          (kept > 0 ? ` ${kept} attendance record${kept === 1 ? '' : 's'} kept.` : ''),
+        'success'
+      );
+      setDeletingStudent(false);
+      setDeleteTarget(null);
+      setDeleteTyped('');
+    } catch (err) {
+      console.error('Delete student error:', err);
+      setDeleteError('Cannot connect to backend. Check your connection and try again.');
+      setDeletingStudent(false);
+    }
+  };
+
   // ---------- Reports ----------
   const fetchReports = useCallback(async () => {
     setLoadingReports(true);
@@ -472,6 +567,7 @@ const TeacherDashboard = () => {
           <h1>
             {activePage === 'attendance' ? 'Class Room' :
              activePage === 'approvals' ? 'Student Approvals' :
+             activePage === 'students' ? 'Manage Students' :
              activePage === 'history' ? 'Attendance History' :
              activePage === 'reports' ? 'Reports' :
              activePage === 'settings' ? 'Settings' :
@@ -776,6 +872,88 @@ const TeacherDashboard = () => {
           </div>
         )}
 
+        {activePage === 'students' && (
+          <div className="students-page ap-fade-in full-width">
+            <div className="section-card">
+              <div className="section-header">
+                <h3><IconUsers size={17} /> Student Roster {roster.length > 0 && <span className="count-chip">{roster.length}</span>}</h3>
+                <button className="view-all-btn" onClick={fetchRoster} title="Refresh"><IconRefresh size={15} /></button>
+              </div>
+              <p className="muted-note">
+                Every registered student. Deleting a student frees their registration number and
+                email for re-use, and permanently removes their login — their attendance records
+                are kept so class reports stay accurate.
+              </p>
+
+              <div className="td-roster-controls">
+                <div className="td-roster-tabs" role="tablist" aria-label="Filter by status">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'pending', label: 'Pending' },
+                    { id: 'approved', label: 'Approved' },
+                    { id: 'rejected', label: 'Rejected' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      role="tab"
+                      aria-selected={rosterStatus === t.id}
+                      className={`td-roster-tab ${rosterStatus === t.id ? 'active' : ''}`}
+                      onClick={() => setRosterStatus(t.id)}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="search"
+                  className="td-roster-search"
+                  placeholder="Search name, reg-no or email…"
+                  value={rosterSearch}
+                  onChange={(e) => setRosterSearch(e.target.value)}
+                  aria-label="Search students"
+                />
+              </div>
+
+              {loadingRoster ? (
+                <div className="ap-skeleton" style={{ height: 140 }} />
+              ) : roster.length === 0 ? (
+                <div className="empty-state">
+                  <IconUsers size={30} />
+                  <p className="no-students">
+                    {rosterSearch.trim()
+                      ? `No students match “${rosterSearch.trim()}”.`
+                      : 'No students in this category yet.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="td-roster-list">
+                  {roster.map((s) => (
+                    <div key={s._id} className="td-roster-row">
+                      <div className="approval-avatar"><IconUserIcon size={20} /></div>
+                      <div className="td-roster-info">
+                        <strong>{s.fullName}</strong>
+                        <p>{s.registrationNo} · {s.department} · Sem {s.semester}</p>
+                        <small>{s.email}</small>
+                      </div>
+                      <span className={`td-status-pill ${s.status || 'approved'}`}>
+                        {s.status || 'approved'}
+                      </span>
+                      <button
+                        className="td-roster-delete"
+                        onClick={() => { setDeleteTarget(s); setDeleteTyped(''); setDeleteError(''); }}
+                        title={`Delete ${s.fullName}`}
+                        aria-label={`Delete ${s.fullName}`}
+                      >
+                        <IconTrash size={15} /> Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {activePage === 'history' && (
           <div className="history-page ap-fade-in full-width">
             <div className="section-header">
@@ -971,6 +1149,75 @@ const TeacherDashboard = () => {
         })}
       </nav>
       <ToastStack toasts={toasts} />
+
+      {/* Delete-student confirmation. The teacher must retype the registration
+          number, which makes deleting the wrong row from a long list very hard
+          — the realistic failure mode here is a mis-click, not an attacker. */}
+      {deleteTarget && (
+        <div className="td-delete-overlay" onClick={closeDeleteDialog}>
+          <div
+            className="td-delete-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="td-delete-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="td-delete-head">
+              <span className="td-delete-icon"><IconAlertCircle size={22} /></span>
+              <h3 id="td-delete-title">Delete this student?</h3>
+              <button className="close-btn" onClick={closeDeleteDialog} aria-label="Cancel">
+                <IconClose size={18} />
+              </button>
+            </div>
+
+            <div className="td-delete-who">
+              <strong>{deleteTarget.fullName}</strong>
+              <p>{deleteTarget.registrationNo} · {deleteTarget.department} · Sem {deleteTarget.semester}</p>
+              <small>{deleteTarget.email}</small>
+            </div>
+
+            <ul className="td-delete-facts">
+              <li className="removed">Their login is removed permanently — this cannot be undone.</li>
+              <li className="removed">Their registration number and email become free to re-use.</li>
+              <li className="kept">Their attendance records are kept, so class reports and percentages stay accurate.</li>
+            </ul>
+
+            <label className="td-delete-label" htmlFor="td-delete-confirm">
+              Type <code>{deleteTarget.registrationNo}</code> to confirm
+            </label>
+            <input
+              id="td-delete-confirm"
+              className="td-delete-input"
+              type="text"
+              autoComplete="off"
+              value={deleteTyped}
+              onChange={(e) => { setDeleteTyped(e.target.value); setDeleteError(''); }}
+              disabled={deletingStudent}
+              placeholder={deleteTarget.registrationNo}
+            />
+
+            {deleteError && (
+              <p className="td-delete-error" role="alert">
+                <IconAlertCircle size={15} /> {deleteError}
+              </p>
+            )}
+
+            <div className="td-delete-actions">
+              <button className="td-delete-cancel" onClick={closeDeleteDialog} disabled={deletingStudent}>
+                Keep this student
+              </button>
+              <button
+                className="td-delete-confirm-btn"
+                onClick={confirmDeleteStudent}
+                disabled={!deleteConfirmOk || deletingStudent}
+              >
+                <IconTrash size={15} />
+                {deletingStudent ? 'Deleting…' : 'Permanently delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

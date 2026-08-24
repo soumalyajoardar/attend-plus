@@ -1352,3 +1352,411 @@
   .report-row span:nth-child(n+4) { font-size: 11px; }
   .threshold-picker { margin-left: 0; }
 }
+
+/* ============ MANAGE STUDENTS · ROSTER + DELETE DIALOG ============
+   Every class here is prefixed `td-` because all page CSS in this SPA is
+   imported statically and bundled into one global sheet — an un-prefixed
+   class would leak onto the landing page and the student dashboard. Coloured
+   text/glyphs use --ap-danger-text / --ap-success-text (defined in index.css)
+   rather than the fill-tuned --ap-danger / --ap-success, so they clear the
+   4.5:1 WCAG AA floor in both themes. `.close-btn` is reused from QRScanner.css.
+   ------------------------------------------------------------------ */
+
+.td-roster-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 16px 0 18px;
+}
+
+.td-roster-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--ap-bg);
+  border: 1px solid var(--ap-border);
+  border-radius: 12px;
+}
+
+.td-roster-tab {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--ap-text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ap-transition);
+}
+
+.td-roster-tab:hover { color: var(--ap-text); }
+
+.td-roster-tab.active {
+  background: var(--ap-surface);
+  color: var(--ap-primary);
+  box-shadow: var(--ap-shadow);
+}
+
+.td-roster-tab:focus-visible {
+  outline: 2px solid var(--ap-primary);
+  outline-offset: 1px;
+}
+
+.td-roster-search {
+  flex: 1;
+  min-width: 220px;
+  max-width: 340px;
+  padding: 10px 14px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font-family: inherit;
+  font-size: 13.5px;
+}
+
+.td-roster-search:focus {
+  border-color: var(--ap-primary);
+  outline: none;
+}
+
+.td-roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.td-roster-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--ap-border);
+  border-radius: 14px;
+  background: var(--ap-surface);
+  transition: var(--ap-transition);
+}
+
+.td-roster-row:hover { box-shadow: var(--ap-shadow); }
+
+.td-roster-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.td-roster-info strong {
+  display: block;
+  font-size: 14.5px;
+  color: var(--ap-text);
+}
+
+.td-roster-info p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--ap-text-muted);
+  font-weight: 600;
+}
+
+.td-roster-info small {
+  display: block;
+  margin-top: 1px;
+  font-size: 11.5px;
+  color: var(--ap-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status is doubled up as text, not conveyed by colour alone. */
+.td-status-pill {
+  flex-shrink: 0;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+  letter-spacing: 0.2px;
+}
+
+.td-status-pill.approved {
+  background: var(--ap-success-light);
+  color: var(--ap-success-text);
+}
+
+.td-status-pill.pending {
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+}
+
+.td-status-pill.rejected {
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+}
+
+.td-roster-delete {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: var(--ap-surface);
+  color: var(--ap-danger-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ap-transition);
+}
+
+.td-roster-delete:hover {
+  background: var(--ap-danger);
+  border-color: var(--ap-danger);
+  color: #fff;
+}
+
+.td-roster-delete:focus-visible {
+  outline: 2px solid var(--ap-danger);
+  outline-offset: 1px;
+}
+
+/* ---------- delete confirmation dialog ---------- */
+.td-delete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000; /* above the fixed sidebar (z-index:100) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  animation: fadeIn 0.2s ease both;
+}
+
+.td-delete-dialog {
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px 24px 24px;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius);
+  box-shadow: var(--ap-shadow-lg);
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.td-delete-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.td-delete-head h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ap-text);
+}
+
+.td-delete-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+}
+
+.td-delete-who {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--ap-bg);
+  border-radius: 12px;
+}
+
+.td-delete-who strong {
+  display: block;
+  font-size: 14.5px;
+  color: var(--ap-text);
+}
+
+.td-delete-who p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+}
+
+.td-delete-who small {
+  display: block;
+  margin-top: 1px;
+  font-size: 11.5px;
+  color: var(--ap-text-muted);
+}
+
+.td-delete-facts {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+/* Glyphs carry a text label alongside them, so colour is never the only cue. */
+.td-delete-facts li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ap-text);
+}
+
+.td-delete-facts li.removed::before {
+  content: '\00d7';
+  position: absolute;
+  left: 5px;
+  font-weight: 800;
+  color: var(--ap-danger-text);
+}
+
+.td-delete-facts li.kept::before {
+  content: '\2713';
+  position: absolute;
+  left: 4px;
+  font-weight: 800;
+  color: var(--ap-success-text);
+}
+
+.td-delete-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ap-text);
+}
+
+.td-delete-label code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.td-delete-input {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+.td-delete-input:focus {
+  border-color: var(--ap-danger);
+  outline: none;
+}
+
+.td-delete-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.td-delete-error {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -6px 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.td-delete-error svg { flex-shrink: 0; }
+
+.td-delete-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.td-delete-cancel {
+  padding: 11px 18px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ap-transition);
+}
+
+.td-delete-cancel:hover:not(:disabled) { background: var(--ap-bg); }
+.td-delete-cancel:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.td-delete-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 18px;
+  border: 1px solid var(--ap-danger);
+  border-radius: 10px;
+  background: var(--ap-danger);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--ap-transition);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25);
+}
+
+.td-delete-confirm-btn:hover:not(:disabled) { background: #B91C1C; }
+
+.td-delete-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.td-delete-cancel:focus-visible,
+.td-delete-confirm-btn:focus-visible,
+.td-delete-input:focus-visible {
+  outline: 2px solid var(--ap-danger);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .td-delete-overlay,
+  .td-delete-dialog { animation: none; }
+}
+
+@media (max-width: 620px) {
+  .td-roster-row { flex-wrap: wrap; }
+  .td-roster-info { flex-basis: 100%; order: -1; }
+  .td-delete-actions { flex-direction: column-reverse; }
+  .td-delete-cancel,
+  .td-delete-confirm-btn { width: 100%; justify-content: center; }
+}
