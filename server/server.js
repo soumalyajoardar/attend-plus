@@ -29,26 +29,12 @@ const ALLOWED_ORIGINS = [
 // Log CORS config for debugging
 console.log('🔧 CORS Allowed Origins:', ALLOWED_ORIGINS);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. curl, Postman, mobile apps, same-origin)
-      if (!origin) {
-        return callback(null, true);
-      }
-      if (ALLOWED_ORIGINS.includes(origin)) {
-        return callback(null, true);
-      }
-      // In development, allow any localhost origin
-      if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost')) {
-        return callback(null, true);
-      }
-      console.warn('🚫 CORS blocked origin:', origin);
-      callback(new Error(`CORS: origin ${origin} not allowed`));
-    },
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: ['https://attend-plus.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json()); // Allows us to read JSON data from requests
 
 // ---------- TEST ROUTE ----------
