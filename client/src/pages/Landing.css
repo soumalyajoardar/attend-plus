@@ -746,3 +746,75 @@
     padding: 10px 10px 10px 13px;
   }
 }
+
+/* ==================================================================
+   GLASSMORPHISM LAYER — ambient glow, frosted navbar, floating cards
+   ================================================================== */
+
+.landing-container {
+  background:
+    radial-gradient(900px 480px at 88% -8%, rgba(124, 58, 237, 0.10), transparent 60%),
+    radial-gradient(760px 420px at -12% 28%, rgba(79, 70, 229, 0.09), transparent 55%),
+    var(--ap-bg);
+}
+[data-theme='dark'] .landing-container {
+  background:
+    radial-gradient(900px 480px at 88% -8%, rgba(167, 139, 250, 0.14), transparent 60%),
+    radial-gradient(760px 420px at -12% 28%, rgba(129, 140, 248, 0.12), transparent 55%),
+    var(--ap-bg);
+}
+
+/* Sticky frosted navbar */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(248, 250, 252, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--ap-border);
+  box-sizing: border-box;
+  width: 100%;
+}
+[data-theme='dark'] .navbar { background: rgba(11, 17, 32, 0.72); }
+@supports not (backdrop-filter: blur(1px)) {
+  .navbar { background: var(--ap-bg); }
+}
+
+/* Floating mockup cards go glassy */
+.float-card {
+  background: rgba(255, 255, 255, 0.66);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+[data-theme='dark'] .float-card {
+  background: rgba(19, 27, 46, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .float-card { background: var(--ap-surface); }
+}
+
+/* Phone screen QR placeholder picks up a soft sheen too */
+.fake-qr {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Slide-in menu matches the frosted language */
+.nav-drawer {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+[data-theme='dark'] .nav-drawer { background: rgba(19, 27, 46, 0.88); }
+
+/* Post-deletion banner gets a light frost as well */
+.lp-deleted-banner {
+  background: color-mix(in srgb, var(--ap-success-light) 82%, transparent);
+  background: rgba(236, 253, 245, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+[data-theme='dark'] .lp-deleted-banner { background: rgba(5, 46, 28, 0.82); }

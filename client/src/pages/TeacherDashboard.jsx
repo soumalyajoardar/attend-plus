@@ -350,41 +350,11 @@ const TeacherDashboard = () => {
     }
   }, []);
 
-  // Keep the sidebar badge current: refresh the pending count on load and
+    // Keep the sidebar badge current: refresh the pending count on load and
   // whenever the teacher opens the dashboard or approvals page.
   useEffect(() => {
     if (activePage === 'approvals' || activePage === 'dashboard') fetchPendingStudents();
   }, [activePage, fetchPendingStudents]);
-
-  // Dashboard tiles: Total Students comes from the counts API; the other
-  // tiles are derived from the reports data (fetched via fetchReports).
-  useEffect(() => {
-    if (activePage !== 'dashboard') return;
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/students/counts`);
-        const d = await res.json();
-        if (d.success) setTotalStudents(d.counts.approved);
-      } catch {
-        /* tile keeps its placeholder until it succeeds */
-      }
-    })();
-    fetchReports();
-  }, [activePage, fetchReports]);
-
-  // Derive "Classes Today" and "Avg Attendance" from whatever reports returned.
-  // Today is computed in the institution's timezone so it matches the `date`
-  // strings the server stamps on sessions (default Asia/Kolkata — same as
-  // INSTITUTION_TZ in the server .env).
-  useEffect(() => {
-    const istToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
-    setClassesToday(reportSessions.filter((s) => s.date === istToday).length);
-
-    const scored = reportRows.filter((r) => r.held > 0);
-    setAvgAttendance(
-      scored.length ? Math.round(scored.reduce((t, r) => t + r.percentage, 0) / scored.length) : null
-    );
-  }, [reportRows, reportSessions]);
 
   const reviewStudent = async (id, action) => {
     setReviewingId(id);
@@ -520,6 +490,39 @@ const TeacherDashboard = () => {
   useEffect(() => {
     if (activePage === 'reports') fetchReports();
   }, [activePage, fetchReports]);
+
+  // Dashboard tiles: Total Students comes from the counts API; the other
+  // tiles are derived from the reports data (fetched via fetchReports).
+  // NOTE: must live below fetchReports' useCallback declaration — referencing
+  // it earlier put the binding in its temporal dead zone during render and
+  // crashed the whole portal to a white screen.
+  useEffect(() => {
+    if (activePage !== 'dashboard') return;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/students/counts`);
+        const d = await res.json();
+        if (d.success) setTotalStudents(d.counts.approved);
+      } catch {
+        /* tile keeps its placeholder until it succeeds */
+      }
+    })();
+    fetchReports();
+  }, [activePage, fetchReports]);
+
+  // Derive "Classes Today" and "Avg Attendance" from whatever reports returned.
+  // Today is computed in the institution's timezone so it matches the `date`
+  // strings the server stamps on sessions (default Asia/Kolkata — same as
+  // INSTITUTION_TZ in the server .env).
+  useEffect(() => {
+    const istToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    setClassesToday(reportSessions.filter((s) => s.date === istToday).length);
+
+    const scored = reportRows.filter((r) => r.held > 0);
+    setAvgAttendance(
+      scored.length ? Math.round(scored.reduce((t, r) => t + r.percentage, 0) / scored.length) : null
+    );
+  }, [reportRows, reportSessions]);
 
   // Build a CSV from whatever report view is active and trigger a download.
   const exportReportCsv = () => {
