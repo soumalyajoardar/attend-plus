@@ -10,7 +10,7 @@ import {
   IconChart, IconCheck, IconBell, IconCalendar, IconTrendingUp, IconSettings,
   IconUsers, IconAlertCircle, IconSend, IconPlay, IconStop, IconLogout,
   IconRefresh, IconMoon, IconSun, IconCheckCircle, IconUser as IconUserIcon,
-  IconDownload, IconIdCard, IconClose, IconClock, IconTrash,
+  IconDownload, IconIdCard, IconClose, IconClock, IconTrash, IconMenu,
 } from '../components/Icons';
 
 // Rotating-code derivation — the exact twin of deriveCode() in server.js, but
@@ -112,10 +112,17 @@ const TeacherDashboard = () => {
   // local state so the Settings toggle here reflects/updates the same value
   // used on Landing, Login, Signup, and the Student Dashboard.
   const [theme, setThemeState] = useState(getTheme());
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
   const setTheme = (next) => {
     setGlobalTheme(next);
     setThemeState(next);
   };
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileNavOpen]);
 
   useEffect(() => {
     const onChange = (e) => setThemeState(e.detail);
@@ -564,16 +571,21 @@ const TeacherDashboard = () => {
 
       <main className="main-content">
         <header className="topbar">
-          <h1>
-            {activePage === 'attendance' ? 'Class Room' :
-             activePage === 'approvals' ? 'Student Approvals' :
-             activePage === 'students' ? 'Manage Students' :
-             activePage === 'history' ? 'Attendance History' :
-             activePage === 'reports' ? 'Reports' :
-             activePage === 'settings' ? 'Settings' :
-             activePage === 'notifications' ? 'Notifications' :
-             'Dashboard'}
-          </h1>
+          <div className="topbar-left">
+            <button type="button" className="nav-menu-trigger" onClick={() => setMobileNavOpen(true)} aria-label="Open menu" aria-expanded={mobileNavOpen}>
+              <IconMenu size={22} />
+            </button>
+            <h1>
+              {activePage === 'attendance' ? 'Class Room' :
+               activePage === 'approvals' ? 'Student Approvals' :
+               activePage === 'students' ? 'Manage Students' :
+               activePage === 'history' ? 'Attendance History' :
+               activePage === 'reports' ? 'Reports' :
+               activePage === 'settings' ? 'Settings' :
+               activePage === 'notifications' ? 'Notifications' :
+               'Dashboard'}
+            </h1>
+          </div>
           <div className="topbar-right">
             <span className="date-text">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -1137,17 +1149,40 @@ const TeacherDashboard = () => {
           </div>
         )}
       </main>
-      <nav className="bottom-nav-teacher">
-        {sidebarItems.map((item) => {
-          const Ico = item.icon;
-          return (
-            <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => setActivePage(item.id)}>
-              <Ico size={18} />
-              <small>{item.label.split(' ')[0]}</small>
-            </button>
-          );
-        })}
-      </nav>
+      {/* Mobile Slide-in Nav Drawer */}
+      <div className={`nav-drawer-overlay ${mobileNavOpen ? 'is-open' : ''}`} onClick={() => setMobileNavOpen(false)} />
+      <aside className={`nav-drawer ${mobileNavOpen ? 'is-open' : ''}`} aria-hidden={!mobileNavOpen}>
+        <div className="nav-drawer-header">
+          <div className="sidebar-logo">
+            <span className="logo-icon">+</span>
+            <h2>Attend<span>+</span></h2>
+          </div>
+          <button type="button" className="nav-drawer-close" onClick={() => setMobileNavOpen(false)} aria-label="Close menu">
+            <IconClose size={20} />
+          </button>
+        </div>
+        <div className="nav-drawer-body">
+          {sidebarItems.map((item) => {
+            const Ico = item.icon;
+            return (
+              <button
+                key={item.id}
+                className={`nav-drawer-btn ${activePage === item.id ? 'active' : ''}`}
+                onClick={() => { setActivePage(item.id); setMobileNavOpen(false); }}
+              >
+                <Ico size={18} className="sidebar-icon" />
+                <span>{item.label}</span>
+                {item.id === 'approvals' && pendingCount > 0 && (
+                  <span className="notification-badge inline">{pendingCount}</span>
+                )}
+              </button>
+            );
+          })}
+          <button className="nav-drawer-btn logout-btn" onClick={() => { handleLogout(); setMobileNavOpen(false); }}>
+            <IconLogout size={16} /> Logout
+          </button>
+        </div>
+      </aside>
       <ToastStack toasts={toasts} />
 
       {/* Delete-student confirmation. The teacher must retype the registration

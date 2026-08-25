@@ -150,6 +150,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  gap: 16px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .topbar h1 {
@@ -157,12 +164,33 @@
   font-weight: 900;
   letter-spacing: -1px;
   margin: 0;
+  white-space: nowrap;
 }
 
 .date-text {
   color: var(--ap-text-muted);
   font-size: 14px;
   font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Mobile menu trigger */
+.nav-menu-trigger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.nav-menu-trigger:hover {
+  background: var(--ap-primary-light);
 }
 
 /* Dashboard Grid */
@@ -930,74 +958,69 @@
   }
 }
 
-/* Bottom Navigation for Teacher Mobile */
+/* Bottom Navigation for Teacher Mobile - REPLACED BY SLIDE-IN DRAWER */
 .bottom-nav-teacher {
   display: none;
 }
 
 @media (max-width: 768px) {
-  .bottom-nav-teacher {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    background: var(--ap-surface);
-    border-top: 1px solid var(--ap-border);
-    justify-content: space-around;
-    padding: 8px 4px;
-    z-index: 100;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  .bottom-nav-teacher button {
-    background: none;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    color: var(--ap-text-muted);
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    padding: 5px 2px;
-    border-radius: 10px;
-    transition: 0.2s ease;
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .bottom-nav-teacher button span {
-    font-size: 20px;
-  }
-
-  .bottom-nav-teacher button small {
-    font-size: 9px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  .bottom-nav-teacher button.active {
-    color: var(--ap-primary);
-    background: var(--ap-primary-light);
-  }
-
-  /* Hide sidebar on mobile */
   .sidebar {
     display: none;
   }
 
-  /* Adjust main content to full width */
+  .nav-menu-trigger {
+    display: flex;
+  }
+
   .main-content {
     margin-left: 0;
     padding: 15px;
-    padding-bottom: 80px; /* Space for bottom nav */
+  }
+
+  .topbar h1 {
+    font-size: 20px;
+  }
+
+  .date-text {
+    display: none;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .dashboard-sections {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .attendance-page {
+    flex-direction: column;
+  }
+
+  .control-panel, .display-panel {
+    width: 100%;
+  }
+
+  .class-selection-card {
+    padding: 20px;
+  }
+
+  .class-header-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .qr-code-wrapper {
+    width: 200px;
+    height: 200px;
+  }
+
+  .manual-code {
+    font-size: 24px;
+    letter-spacing: 3px;
   }
 }
 /* ---------- Sent-notifications feed (teacher view) ---------- */
@@ -1149,6 +1172,88 @@
 
 @media (max-width: 900px) {
   .notifications-page { grid-template-columns: 1fr; }
+}
+
+/* ==================================================================
+   Mobile Slide-in Nav Drawer (replaces bottom nav)
+   ================================================================== */
+
+.nav-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 150;
+}
+
+.nav-drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 78%;
+  max-width: 320px;
+  background: var(--ap-surface);
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-drawer.is-open {
+  transform: translateX(0);
+}
+
+.nav-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.nav-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--ap-text);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.nav-drawer-close:hover {
+  background: var(--ap-primary-light);
+}
+
+.nav-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-drawer-btn {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* ==================================================================

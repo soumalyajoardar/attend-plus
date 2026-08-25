@@ -11,7 +11,7 @@ import {
   IconHome, IconBell, IconQr, IconCalendar, IconUser, IconSettings, IconLogout,
   IconCheckCircle, IconRefresh, IconMoon, IconSun, IconIdCard,
   IconBuilding, IconLayers, IconMail, IconShield, IconTrendingUp, IconChevronRight,
-  IconTrash, IconAlertCircle, IconClose,
+  IconTrash, IconAlertCircle, IconClose, IconMenu,
 } from '../components/Icons';
 
 const NAV_ITEMS = [
@@ -46,12 +46,18 @@ const StudentDashboard = () => {
   // mirrors it so this Settings toggle stays in sync with the toggle on
   // Landing/Login/Signup and the Teacher Dashboard.
   const [theme, setThemeState] = useState(getTheme());
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const setTheme = (next) => {
     setGlobalTheme(next);
     setThemeState(next);
   };
   const [prefSound, setPrefSound] = useState(localStorage.getItem('attendplus_pref_sound') !== '0');
   const [prefCompact, setPrefCompact] = useState(localStorage.getItem('attendplus_pref_compact') === '1');
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileNavOpen]);
 
   // ---------- Delete-account flow ----------
   // A confirm dialog gates the destructive call: the student must re-enter
@@ -230,12 +236,17 @@ const StudentDashboard = () => {
 
       <main className="student-main">
         <header className="student-topbar">
-          <h1>
-            {activeSection === 'home' ? `Hello, ${studentName.split(' ')[0]}` :
-             activeSection === 'notifications' ? 'Notifications' :
-             activeSection === 'history' ? 'Attendance History' :
-             activeSection === 'profile' ? 'My Profile' : 'Settings'}
-          </h1>
+          <div className="topbar-left">
+            <button type="button" className="nav-menu-trigger" onClick={() => setMobileNavOpen(true)} aria-label="Open menu" aria-expanded={mobileNavOpen}>
+              <IconMenu size={22} />
+            </button>
+            <h1>
+              {activeSection === 'home' ? `Hello, ${studentName.split(' ')[0]}` :
+               activeSection === 'notifications' ? 'Notifications' :
+               activeSection === 'history' ? 'Attendance History' :
+               activeSection === 'profile' ? 'My Profile' : 'Settings'}
+            </h1>
+          </div>
           <div className="topbar-actions">
             <button className="scan-btn-top secondary" onClick={() => setShowManual(true)}>
               <IconIdCard size={17} /> Enter Code
@@ -484,17 +495,40 @@ const StudentDashboard = () => {
         )}
       </main>
 
-      <nav className="student-bottom-nav">
-        {NAV_ITEMS.map((item) => {
-          const Ico = item.icon;
-          return (
-            <button key={item.id} className={activeSection === item.id ? 'active' : ''} onClick={() => setActiveSection(item.id)}>
-              <Ico size={19} />
-              <small>{item.label}</small>
-            </button>
-          );
-        })}
-      </nav>
+      {/* Mobile Slide-in Nav Drawer */}
+      <div className={`nav-drawer-overlay ${mobileNavOpen ? 'is-open' : ''}`} onClick={() => setMobileNavOpen(false)} />
+      <aside className={`nav-drawer ${mobileNavOpen ? 'is-open' : ''}`} aria-hidden={!mobileNavOpen}>
+        <div className="nav-drawer-header">
+          <div className="student-logo">
+            <span className="logo-icon">+</span>
+            <h2>Attend<span>+</span></h2>
+          </div>
+          <button type="button" className="nav-drawer-close" onClick={() => setMobileNavOpen(false)} aria-label="Close menu">
+            <IconClose size={20} />
+          </button>
+        </div>
+        <div className="nav-drawer-body">
+          {NAV_ITEMS.map((item) => {
+            const Ico = item.icon;
+            return (
+              <button
+                key={item.id}
+                className={`nav-drawer-btn ${activeSection === item.id ? 'active' : ''}`}
+                onClick={() => { setActiveSection(item.id); setMobileNavOpen(false); }}
+              >
+                <Ico size={18} />
+                <span>{item.label}</span>
+                {item.id === 'notifications' && unreadCount > 0 && (
+                  <span className="notification-badge inline">{unreadCount}</span>
+                )}
+              </button>
+            );
+          })}
+          <button className="nav-drawer-btn logout-btn" onClick={() => { handleLogout(); setMobileNavOpen(false); }}>
+            <IconLogout size={17} /> Logout
+          </button>
+        </div>
+      </aside>
 
       {showScanner && (
         <QRScanner

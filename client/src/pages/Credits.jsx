@@ -20,11 +20,11 @@ import {
 */
 
 const CONTRIBUTORS = [
-  { numeral: 'i',   name: 'Poulami Paul',    role: 'Project Manager',  initials: 'PP', icon: IconUsers },
-  { numeral: 'ii',  name: 'Soumalya Joardar', role: 'Frontend',        initials: 'SJ', icon: IconPhone },
-  { numeral: 'iii', name: 'Sanchari Kundu',  role: 'Database',         initials: 'SK', icon: IconLayers },
-  { numeral: 'iv',  name: 'Ankita Sarkar',   role: 'UI/UX Design',     initials: 'AS', icon: IconEye },
-  { numeral: 'v',   name: 'Dipayan Nag',     role: 'Backend',          initials: 'DN', icon: IconSettings },
+  { numeral: '1.',   name: 'Poulami Paul',    role: 'Project Manager',  initials: 'PP', icon: IconUsers },
+  { numeral: '2.',  name: 'Soumalya Joardar', role: 'Frontend',        initials: 'SJ', icon: IconPhone },
+  { numeral: '3.', name: 'Sanchari Kundu',  role: 'Database',         initials: 'SK', icon: IconLayers },
+  { numeral: '4.',  name: 'Ankita Sarkar',   role: 'UI/UX Design',     initials: 'AS', icon: IconEye },
+  { numeral: '5.',   name: 'Dipayan Nag',     role: 'Backend',          initials: 'DN', icon: IconSettings },
 ];
 
 const Credits = () => {
@@ -90,7 +90,7 @@ const Credits = () => {
         </section>
 
         <p className="credits-note">
-          Attend+ is a paperless attendance system built as our major project — secure rotating
+          Attend+ is a paperless attendance system built as our major project. It uses secure rotating
           QR codes and a manual code fallback, so a class can be marked present in seconds.
         </p>
 

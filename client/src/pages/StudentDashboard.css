@@ -125,6 +125,96 @@
 .logout-btn:hover { background: #FEE2E2; transform: translateY(-1px); }
 [data-theme='dark'] .logout-btn:hover { background: #3A1414; }
 
+/* ==================================================================
+   Mobile Slide-in Nav Drawer (replaces bottom nav)
+   ================================================================== */
+
+.nav-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 150;
+}
+
+.nav-drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 78%;
+  max-width: 320px;
+  background: var(--ap-surface);
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-drawer.is-open {
+  transform: translateX(0);
+}
+
+.nav-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.nav-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--ap-text);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.nav-drawer-close:hover {
+  background: var(--ap-primary-light);
+}
+
+.nav-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-drawer-btn {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-drawer-btn.logout-btn {
+  justify-content: center;
+  padding: 12px;
+}
+
 /* ---------- Main ---------- */
 .student-main {
   margin-left: 250px;
@@ -135,9 +225,16 @@
 
 .student-topbar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 22px;
+  gap: 16px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .student-topbar h1 {
@@ -145,6 +242,26 @@
   font-weight: 900;
   letter-spacing: -0.5px;
   margin: 0;
+  white-space: nowrap;
+}
+
+/* Mobile menu trigger */
+.nav-menu-trigger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.nav-menu-trigger:hover {
+  background: var(--ap-primary-light);
 }
 
 .scan-btn-top {
@@ -479,35 +596,14 @@
 @media (max-width: 768px) {
   .student-sidebar { display: none; }
   .student-main { margin-left: 0; padding: 20px 16px 100px; }
-  .student-bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    width: 100%;
-    background: var(--ap-surface);
-    border-top: 1px solid var(--ap-border);
-    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
-    z-index: 200;
-    justify-content: space-around;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-  .student-bottom-nav button {
-    background: none; border: none;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    color: var(--ap-text-muted);
-    font-size: 10px;
-    font-weight: 700;
-    padding: 4px 4px;
-    cursor: pointer;
-    flex: 1 1 0;
-    min-width: 0;
-  }
-  .student-bottom-nav button.active { color: var(--ap-primary); }
+  .nav-menu-trigger { display: flex; }
   .home-stats { grid-template-columns: 1fr 1fr; }
   .history-row { grid-template-columns: 1.3fr 1fr; row-gap: 4px; }
   .history-row span:nth-child(3), .history-row span:nth-child(4), .history-row span:nth-child(5) { font-size: 11px; }
 }
+
+/* Bottom nav (mobile) - REPLACED BY SLIDE-IN DRAWER */
+.student-bottom-nav { display: none; }
 
 /* ============ DANGER ZONE + DELETE-ACCOUNT DIALOG ============
    Every class below is prefixed `sd-` because all page CSS in this app is
