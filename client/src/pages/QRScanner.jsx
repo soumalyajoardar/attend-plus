@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import './QRScanner.css';
 import { API_BASE } from '../utils/api';
+import { getUser } from '../utils/auth';
 import { IconClose, IconCheckCircle, IconClock, IconAlertCircle } from '../components/Icons';
 
 const QRScanner = ({ onClose, onSuccess }) => {
@@ -11,54 +12,23 @@ const QRScanner = ({ onClose, onSuccess }) => {
   const scannerRef = useRef(null);
   const hasScannedRef = useRef(false);
 
-  useEffect(() => {
-    startScanner();
-    return () => {
-      stopScanner();
-    };
-  }, []);
-
-  const startScanner = async () => {
-    try {
-      const scanner = new Html5Qrcode('qr-reader');
-      scannerRef.current = scanner;
-      
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 5, qrbox: { width: 200, height: 200 } },
-        (decodedText) => {
-          if (!hasScannedRef.current) {
-            hasScannedRef.current = true;
-            handleScan(decodedText);
-          }
-        },
-        () => {
-          // Silent errors during scanning
-        }
-      );
-    } catch (err) {
-      setError('Cannot access camera. Please allow camera permission.');
-      console.error('Scanner error:', err);
-    }
-  };
-
-  const stopScanner = () => {
+  const stopScanner = useCallback(() => {
     if (scannerRef.current) {
       scannerRef.current.stop().then(() => {
         scannerRef.current.clear();
       }).catch(() => {});
       scannerRef.current = null;
     }
-  };
+  }, []);
 
-  const handleScan = async (decodedText) => {
+  const handleScan = useCallback(async (decodedText) => {
     setIsProcessing(true);
     stopScanner();
-    
-    console.log('Scanned QR Data:', decodedText);
 
     try {
-      const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
+      // Must go through getUser(), not localStorage directly — when the student
+      // logs in without "Remember Me" the session lives in sessionStorage.
+      const studentData = getUser();
 
       if (!studentData.registrationNo) {
         setError('Your session has expired. Please log in again.');
@@ -78,8 +48,7 @@ const QRScanner = ({ onClose, onSuccess }) => {
       });
 
       const result = await response.json();
-      console.log('Backend response:', result);
-      
+
       if (result.success) {
         setSuccess(true);
         setError('');
@@ -90,19 +59,44 @@ const QRScanner = ({ onClose, onSuccess }) => {
         setError(result.message || 'Failed to mark attendance.');
         setIsProcessing(false);
         hasScannedRef.current = false;
-        setTimeout(() => {
-          startScanner();
-        }, 2000);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Cannot connect to server. Please try again.');
       setIsProcessing(false);
       hasScannedRef.current = false;
-      setTimeout(() => {
-        startScanner();
-      }, 2000);
     }
-  };
+  }, [stopScanner, onSuccess]);
+
+  const startScanner = useCallback(async () => {
+    try {
+      const scanner = new Html5Qrcode('qr-reader');
+      scannerRef.current = scanner;
+
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 5, qrbox: { width: 200, height: 200 } },
+        (decodedText) => {
+          if (!hasScannedRef.current) {
+            hasScannedRef.current = true;
+            handleScan(decodedText);
+          }
+        },
+        () => {
+          // Scan frame errors are expected (no QR in frame yet) — intentionally silent
+        }
+      );
+    } catch (err) {
+      setError('Cannot access camera. Please allow camera permission.');
+      console.error('Scanner error:', err);
+    }
+  }, [handleScan]);
+
+  useEffect(() => {
+    startScanner();
+    return () => {
+      stopScanner();
+    };
+  }, [startScanner, stopScanner]);
 
   const handleClose = () => {
     stopScanner();

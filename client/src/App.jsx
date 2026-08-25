@@ -8,6 +8,13 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import { isAuthed } from './utils/auth';
 
+// ProtectedRoute re-evaluates isAuthed() on every navigation rather than
+// only on the initial bundle render. This prevents a race where clearing
+// session storage (logout) doesn't re-check the guard until a hard reload.
+function ProtectedRoute({ role, children }) {
+  return isAuthed(role) ? children : <Navigate to="/login" replace />;
+}
+
 function App() {
   return (
     <Router>
@@ -20,13 +27,21 @@ function App() {
         {/* Teacher Dashboard - checks either localStorage (remembered) or sessionStorage */}
         <Route
           path="/teacher-dashboard"
-          element={isAuthed('teacher') ? <TeacherDashboard /> : <Navigate to="/login" />}
+          element={
+            <ProtectedRoute role="teacher">
+              <TeacherDashboard />
+            </ProtectedRoute>
+          }
         />
 
         {/* Student Dashboard - checks either localStorage (remembered) or sessionStorage */}
         <Route
           path="/student-dashboard"
-          element={isAuthed('student') ? <StudentDashboard /> : <Navigate to="/login" />}
+          element={
+            <ProtectedRoute role="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </Router>

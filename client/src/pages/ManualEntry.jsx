@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './QRScanner.css';
 import { API_BASE } from '../utils/api';
+import { getUser } from '../utils/auth';
 import { IconClose, IconCheckCircle, IconClock, IconAlertCircle, IconIdCard } from '../components/Icons';
 
 // Manual attendance entry — the fallback for when a student's camera won't scan
@@ -33,7 +34,9 @@ const ManualEntry = ({ onClose, onSuccess }) => {
     setError('');
 
     try {
-      const studentData = JSON.parse(localStorage.getItem('attendplus_user') || '{}');
+      // Must go through getUser(), not localStorage directly — when the student
+      // logs in without "Remember Me" the session lives in sessionStorage.
+      const studentData = getUser();
 
       if (!studentData.registrationNo) {
         setError('Your session has expired. Please log in again.');
@@ -63,7 +66,7 @@ const ManualEntry = ({ onClose, onSuccess }) => {
         setError(result.message || 'That code was not accepted. Ask your teacher for the current code.');
         setIsProcessing(false);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Cannot connect to server. Please try again.');
       setIsProcessing(false);
     }

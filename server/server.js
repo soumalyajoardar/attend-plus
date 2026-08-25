@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 require('dotenv').config();
+const { localDate } = require('./utils/localTime');
 
 const Student = require('./models/Student');
 const Teacher = require('./models/Teacher');
@@ -15,7 +16,26 @@ const Session = require('./models/Session');
 const app = express();
 
 // Middleware
-app.use(cors()); // Allows the React frontend to talk to this server
+// Allow the React frontend (production + local dev) to talk to this server.
+// REACT_APP_CLIENT_URL can be set to the exact Render/Vercel deployment URL.
+const ALLOWED_ORIGINS = [
+  process.env.CLIENT_URL || 'https://attend-plus.onrender.com',
+  'http://localhost:3000',
+  'http://localhost:5173',
+];
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. curl, Postman, mobile apps)
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json()); // Allows us to read JSON data from requests
 
 // ---------- TEST ROUTE ----------
@@ -23,35 +43,110 @@ app.get('/', (req, res) => {
   res.send('Attend+ Backend is running!');
 });
 
+// Escapes a user-supplied string so it is safe to drop inside a RegExp literal.
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Anchored case-insensitive exact match. Registration numbers and teacher IDs
+// are normalised to upper case on the way in, but records created before that
+// normalisation existed may be stored in any casing — this makes the lookups
+// find them anyway, so nobody is locked out of an account they already have.
+const exactIgnoreCase = (value) => new RegExp(`^${escapeRegex(value)}$`, 'i');
+
+// The minimum we accept server-side. The signup form enforces the same number,
+// but the form is not the only way to reach this route.
+const MIN_PASSWORD_LENGTH = 8;
+
 // ---------- SIGNUP ROUTE ----------
 app.post('/api/auth/signup', async (req, res) => {
   const { fullName, registrationNo, department, semester, email, parentEmail, password } = req.body;
 
+  // Guard before any string method runs. These used to be called directly on
+  // req.body values inside the try, so a request missing `email` threw a
+  // TypeError and surfaced to the student as "Server error" instead of telling
+  // them what was actually wrong.
+  const required = { fullName, registrationNo, department, semester, email, parentEmail, password };
+  const missing = Object.keys(required).filter(
+    (key) => typeof required[key] !== 'string' || !required[key].trim()
+  );
+  if (missing.length) {
+    return res.status(400).json({
+      success: false,
+      message: `Please fill in every field. Missing: ${missing.join(', ')}.`,
+    });
+  }
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return res.status(400).json({
+      success: false,
+      message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+    });
+  }
+
+  // Registration numbers are stored upper case so that "d23cs001" and "D23CS001"
+  // are one student rather than two. The unique index on the field is
+  // case-sensitive, so without this it happily accepts both.
+  const normalizedReg = registrationNo.trim().toUpperCase();
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
-    // 1. Check if the student already exists by email
-    const existingStudent = await Student.findOne({ email: email.toLowerCase() });
-    if (existingStudent) {
+    // 1. Look for anything already using this email or registration number.
+    const [emailMatch, regMatch] = await Promise.all([
+      Student.findOne({ email: normalizedEmail }),
+      Student.findOne({ registrationNo: exactIgnoreCase(normalizedReg) }),
+    ]);
+
+    // A *rejected* registration may be re-submitted — the login screen tells
+    // rejected students to "register again", which was impossible while any
+    // existing record blocked the email. Pending and approved records still
+    // block, as they should.
+    if (emailMatch && emailMatch.status !== 'rejected') {
       return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+    }
+    if (regMatch && regMatch.status !== 'rejected') {
+      return res
+        .status(400)
+        .json({ success: false, message: 'An account with this registration number already exists.' });
+    }
+
+    // Both matches are rejected records, but they're two *different* people —
+    // we can't tell which one is being re-submitted, so don't guess.
+    if (emailMatch && regMatch && String(emailMatch._id) !== String(regMatch._id)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'This email and registration number belong to two different past registrations. ' +
+          'Please contact your teacher.',
+      });
     }
 
     // 2. Hash the password (encrypt it)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Create the new student in the database, held as 'pending' until a
-    //    teacher approves the registration. A pending account cannot log in.
-    const newStudent = new Student({
-      fullName,
-      registrationNo,
+    const details = {
+      fullName: fullName.trim(),
+      registrationNo: normalizedReg,
       department,
       semester,
-      email: email.toLowerCase(),
-      parentEmail: parentEmail.toLowerCase(),
+      email: normalizedEmail,
+      parentEmail: parentEmail.trim().toLowerCase(),
       password: hashedPassword,
       status: 'pending',
-    });
+      // Clear the old review so the teacher sees a fresh request, not a stale
+      // "rejected by X" trail on something now awaiting approval.
+      reviewedBy: null,
+      reviewedAt: null,
+    };
 
-    await newStudent.save();
+    // 3. Either revive the rejected record or create a new one. Held as
+    //    'pending' until a teacher approves; a pending account cannot log in.
+    const reinstating = emailMatch || regMatch;
+    if (reinstating) {
+      Object.assign(reinstating, details);
+      await reinstating.save();
+    } else {
+      await new Student(details).save();
+    }
 
     // 4. Send success response
     res.status(201).json({
@@ -63,6 +158,25 @@ app.post('/api/auth/signup', async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error.message);
+
+    // A unique-index collision that slipped past the checks above (two people
+    // submitting the same details at the same instant). Name the field instead
+    // of returning a bare 500.
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0];
+      const label = field === 'registrationNo' ? 'registration number' : 'email';
+      return res.status(400).json({ success: false, message: `An account with this ${label} already exists.` });
+    }
+
+    // Bad department/semester (both are enums on the model) is the caller's
+    // mistake, not ours.
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: Object.values(error.errors)[0]?.message || 'Some of those details are not valid.',
+      });
+    }
+
     res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
   }
 });
@@ -89,15 +203,19 @@ app.post('/api/auth/login', async (req, res) => {
     return null;
   };
 
-  // Hardcoded Teacher Login (Admin)
-  const HARDCODED_TEACHER_ID = 'ADMIN-2026';
-  const HARDCODED_TEACHER_PASSWORD = 'admin@2026';
+  const ADMIN_TEACHER_ID = process.env.ADMIN_TEACHER_ID || 'ADMIN-2026';
+  const ADMIN_TEACHER_PASSWORD = process.env.ADMIN_TEACHER_PASSWORD || 'admin@2026';
+  const ADMIN_TEACHER_EMAIL = process.env.ADMIN_TEACHER_EMAIL || 'admin@attendplus.com';
 
-  if (email === HARDCODED_TEACHER_ID && password === HARDCODED_TEACHER_PASSWORD) {
+  // Hardcoded Student Login (For Testing) — move to env in production
+  const TEST_STUDENT_EMAIL = process.env.TEST_STUDENT_EMAIL || 'student@test.com';
+  const TEST_STUDENT_PASSWORD = process.env.TEST_STUDENT_PASSWORD || 'student@123';
+
+  if (email === ADMIN_TEACHER_ID && password === ADMIN_TEACHER_PASSWORD) {
     if (portalMismatch('teacher')) return;
 
     const token = jwt.sign(
-      { id: 'admin', email: 'admin@attendplus.com', role: 'teacher' },
+      { id: 'admin', email: ADMIN_TEACHER_EMAIL, role: 'teacher' },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -109,22 +227,18 @@ app.post('/api/auth/login', async (req, res) => {
       user: {
         id: 'admin',
         fullName: 'Admin Teacher',
-        teacherId: 'ADMIN-2026',
+        teacherId: ADMIN_TEACHER_ID,
         department: 'ALL',
-        email: 'admin@attendplus.com',
+        email: ADMIN_TEACHER_EMAIL,
       },
     });
   }
 
-  // Hardcoded Student Login (For Testing)
-  const HARDCODED_STUDENT_EMAIL = 'student@test.com';
-  const HARDCODED_STUDENT_PASSWORD = 'student@123';
-
-  if (email === HARDCODED_STUDENT_EMAIL && password === HARDCODED_STUDENT_PASSWORD) {
+  if (email === TEST_STUDENT_EMAIL && password === TEST_STUDENT_PASSWORD) {
     if (portalMismatch('student')) return;
 
     const token = jwt.sign(
-      { id: 'student123', email: 'student@test.com', role: 'student' },
+      { id: 'student123', email: TEST_STUDENT_EMAIL, role: 'student' },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -135,11 +249,11 @@ app.post('/api/auth/login', async (req, res) => {
       role: 'student',
       user: {
         id: 'student123',
-        fullName: 'Rohan Sharma',
+        fullName: 'Test Student',
         registrationNo: 'REG-2024-001',
         department: 'CST',
         semester: '3rd',
-        email: 'student@test.com',
+        email: TEST_STUDENT_EMAIL,
       },
     });
   }
@@ -352,17 +466,27 @@ async function markAttendance({ session, registrationNo, studentId, method }, re
     return res.status(200).json({ success: true, message: 'Already marked present.', duplicate: true });
   }
 
-  await Attendance.create({
-    sessionId: session.sessionId,
-    studentId: (studentId || student._id).toString(),
-    registrationNo,
-    studentName: student.fullName,
-    department: session.department,
-    semester: session.semester,
-    subject: session.subject,
-    teacherId: session.teacherId,
-    method,
-  });
+  try {
+    await Attendance.create({
+      sessionId: session.sessionId,
+      studentId: (studentId || student._id).toString(),
+      registrationNo,
+      studentName: student.fullName,
+      department: session.department,
+      semester: session.semester,
+      subject: session.subject,
+      teacherId: session.teacherId,
+      method,
+    });
+  } catch (createErr) {
+    // E11000 means two concurrent requests both passed the findOne check above
+    // and raced to insert. The unique index caught the second one — that is
+    // exactly "already marked present", so return a success rather than a 500.
+    if (createErr.code === 11000) {
+      return res.status(200).json({ success: true, message: 'Already marked present.', duplicate: true });
+    }
+    throw createErr; // unexpected error — let the outer catch handle it
+  }
 
   const total = await Attendance.countDocuments({ sessionId: session.sessionId });
   console.log(`✅ Attendance (${method}) saved for ${student.fullName} — session ${session.sessionId} now has ${total}`);
@@ -746,7 +870,7 @@ app.get('/api/reports/sessions', async (req, res) => {
           subject: s.subject,
           department: s.department,
           semester: s.semester,
-          date: s.date,
+          date: s.date || (s.startedAt ? localDate(s.startedAt) : ''),
           startedAt: s.startedAt,
           active: s.active,
           present,
@@ -906,6 +1030,13 @@ app.post('/api/student/:id/delete', async (req, res) => {
 
 // ---------- CONNECT TO DATABASE & START SERVER ----------
 const PORT = process.env.PORT || 5000;
+
+// Validate critical environment variables
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'change_this_to_a_long_random_secret') {
+  console.error('❌ FATAL: JWT_SECRET is not set or is using the default value.');
+  console.error('   Generate a secure secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+  process.exit(1);
+}
 
 mongoose
   .connect(process.env.MONGO_URI)

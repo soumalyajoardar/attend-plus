@@ -18,9 +18,11 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // prevent double-submit
     setError(''); // Clear previous errors
 
     // 1. Check if name is long enough
@@ -31,14 +33,14 @@ const Signup = () => {
 
     // Check Registration Number
     if (registrationNo.trim().length < 3) {
-    setError('Please enter your registration number.');
-    return;
+      setError('Please enter your registration number.');
+      return;
     }
 
-// Check Department & Semester
+    // Check Department & Semester
     if (!department || !semester) {
-    setError('Please select your department and semester.');
-    return;
+      setError('Please select your department and semester.');
+      return;
     }
 
     // 2. Check Student Email
@@ -59,15 +61,15 @@ const Signup = () => {
       return;
     }
 
-    // 5. Check Password Strength (Minimum 8 characters)
+    // 5. Check Password Strength (minimum 8 characters, matching server rule)
     if (password.length < 8) {
       setError('Password must be at least 8 characters long.');
       return;
     }
 
-    // If all validations pass!
+    // If all validations pass, send to server
+    setLoading(true);
     try {
-      console.log('Sending data:', { fullName, registrationNo, department, semester, email, parentEmail, password });
       const response = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: {
@@ -87,20 +89,25 @@ const Signup = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Accounts are now created as "pending" — a teacher has to approve the
-        // registration before the student can log in.
-        alert(
-          data.message ||
-            'Registration submitted! Your account is waiting for teacher approval.'
-        );
-        navigate('/login');
+        // Accounts are created as "pending" — a teacher must approve before
+        // the student can log in. Navigate to login with a success notice
+        // instead of using a blocking alert().
+        navigate('/login', {
+          state: {
+            notice:
+              data.message ||
+              'Registration submitted! Your account is waiting for teacher approval.',
+          },
+        });
       } else {
         setError(data.message || 'Something went wrong. Please try again.');
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Cannot connect to server. Contact admin for backend run.');
+    } catch (_err) {
+      setError('Cannot connect to server. Please check your connection or try again later.');
+      setLoading(false);
     }
-};
+  };
 
   return (
     <div className="login-container">
@@ -205,28 +212,28 @@ const Signup = () => {
           </div>
 
           <div className="input-group">
-  <label>Create Password</label>
-  <div className="password-wrapper">
-    <input 
-      type={showPassword ? 'text' : 'password'} 
-      placeholder="Min. 6 characters" 
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      required 
-      minLength="6"
-    />
-    <span 
-      className="eye-icon" 
-      onClick={() => setShowPassword(!showPassword)}
-      title={showPassword ? 'Hide password' : 'Show password'}
-    >
-      {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
-    </span>
-  </div>
-</div>
+            <label>Create Password</label>
+            <div className="password-wrapper">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Min. 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength="8"
+              />
+              <span
+                className="eye-icon"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+              </span>
+            </div>
+          </div>
 
-          <button type="submit" className="btn-primary btn-block">
-            Create Account <IconArrowRight size={16} />
+          <button type="submit" className="btn-primary btn-block" disabled={loading}>
+            {loading ? 'Submitting…' : <> Create Account <IconArrowRight size={16} /></>}
           </button>
         </form>
 

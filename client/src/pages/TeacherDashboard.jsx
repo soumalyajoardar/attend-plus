@@ -292,7 +292,7 @@ const TeacherDashboard = () => {
       } else {
         showToast(data.message || 'Failed to send notification.', 'error');
       }
-    } catch (err) {
+    } catch (_err) {
       showToast('Cannot connect to backend.', 'error');
     } finally {
       setSending(false);

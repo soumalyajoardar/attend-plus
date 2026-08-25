@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { localDate } = require('../utils/localTime');
 
 // One document per attendance session a teacher runs. Persisting this (rather
 // than only holding it in a global variable) is what makes the Reports page
@@ -54,9 +55,11 @@ const SessionSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Institution-local calendar day, not the host's (see utils/localTime.js) —
+    // otherwise an evening class on a UTC server is filed under the day before.
     date: {
       type: String,
-      default: () => new Date().toISOString().split('T')[0],
+      default: () => localDate(),
       index: true,
     },
   },

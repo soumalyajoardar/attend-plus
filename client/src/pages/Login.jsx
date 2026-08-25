@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
 import { API_BASE } from '../utils/api';
 import { saveSession } from '../utils/auth';
-import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle } from '../components/Icons';
+import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle, IconCheckCircle } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [userType, setUserType] = useState('student'); // Default is student
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +16,8 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Notice passed from the signup page after a successful registration
+  const notice = location.state?.notice || '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,15 +47,15 @@ const Login = () => {
         saveSession({ token: data.token, role: data.role, user: data.user }, rememberMe);
 
         if (data.role === 'teacher') {
-          window.location.href = '/teacher-dashboard';
+          navigate('/teacher-dashboard');
         } else {
-          window.location.href = '/student-dashboard';
+          navigate('/student-dashboard');
         }
       } else {
         setError(data.message || 'Login failed.');
         setLoading(false);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Cannot connect to server.');
       setLoading(false);
     }
@@ -96,6 +99,11 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="login-form">
+          {notice && (
+            <div className="error-box" style={{ background: 'var(--success-bg, #d4edda)', color: 'var(--success-color, #155724)', borderColor: 'var(--success-border, #c3e6cb)' }}>
+              <IconCheckCircle size={16} /> {notice}
+            </div>
+          )}
           {error && <div className="error-box"><IconAlertCircle size={16} /> {error}</div>}
           <div className="input-group">
             <label>{userType === 'student' ? 'Registration Number' : 'Teacher ID'}</label>
