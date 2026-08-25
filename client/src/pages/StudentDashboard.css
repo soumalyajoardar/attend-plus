@@ -593,17 +593,419 @@
   .profile-grid { grid-template-columns: 1fr; }
 }
 
+/* ==================================================================
+   Mobile Styles (<= 768px) - Slide-in Drawer + Touch Optimizations
+   ================================================================== */
 @media (max-width: 768px) {
-  .student-sidebar { display: none; }
-  .student-main { margin-left: 0; padding: 20px 16px 100px; }
-  .nav-menu-trigger { display: flex; }
-  .home-stats { grid-template-columns: 1fr 1fr; }
-  .history-row { grid-template-columns: 1.3fr 1fr; row-gap: 4px; }
-  .history-row span:nth-child(3), .history-row span:nth-child(4), .history-row span:nth-child(5) { font-size: 11px; }
+  /* Hide fixed sidebar, use slide-in drawer instead */
+  .student-sidebar {
+    display: none;
+  }
+
+  /* Show mobile menu trigger in topbar */
+  .nav-menu-trigger {
+    display: flex;
+  }
+
+  /* Main content full width */
+  .student-main {
+    margin-left: 0;
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+
+  /* Topbar adjustments */
+  .student-topbar {
+    gap: 12px;
+  }
+  .topbar-left {
+    gap: 12px;
+  }
+  .student-topbar h1 {
+    font-size: 20px;
+  }
+
+  /* Home stats - 2x2 grid */
+  .home-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .mini-stat {
+    padding: 16px;
+    gap: 12px;
+    min-height: 80px;
+  }
+  .mini-stat-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+  .mini-stat h3 {
+    font-size: 20px;
+  }
+  .mini-stat p {
+    font-size: 11px;
+  }
+
+  /* Scan section */
+  .scan-section {
+    margin-bottom: 16px;
+  }
+  .scan-btn {
+    padding: 20px;
+    min-height: 100px;
+    gap: 14px;
+    border-radius: 16px;
+  }
+  .scan-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+  .scan-text strong {
+    font-size: 16px;
+  }
+  .scan-text small {
+    font-size: 12px;
+  }
+  .scan-chevron {
+    font-size: 16px;
+  }
+
+  .manual-entry-link {
+    padding: 14px;
+    font-size: 14px;
+    min-height: 48px;
+    margin-top: 10px;
+  }
+
+  /* Recent check-ins */
+  .recent-checkins {
+    padding: 16px 18px;
+  }
+  .mini-history-row {
+    padding: 12px 0;
+    font-size: 13px;
+  }
+  .mini-history-row .ok {
+    font-size: 16px;
+  }
+  .mini-history-row small {
+    font-size: 11px;
+  }
+
+  /* Notifications column */
+  .notifications-column {
+    padding: 18px;
+  }
+  .notification-list {
+    max-height: 60vh;
+  }
+  .notification-item {
+    padding: 14px 12px;
+    min-height: 64px;
+  }
+  .notification-content strong {
+    font-size: 14px;
+  }
+  .notification-content p {
+    font-size: 13px;
+  }
+  .notification-content small {
+    font-size: 11px;
+  }
+
+  /* Full page cards (History, Profile, Settings) */
+  .full-page-card {
+    padding: 20px;
+  }
+  .full-page-card h3 {
+    font-size: 17px;
+  }
+
+  /* History table - horizontal scroll */
+  .history-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .history-row {
+    grid-template-columns: 1.3fr 1fr;
+    row-gap: 4px;
+    min-width: 400px;
+    padding: 14px 12px;
+  }
+  .history-head {
+    font-size: 10px;
+  }
+  .hist-subject {
+    font-size: 13px;
+  }
+  .history-row span {
+    font-size: 12px;
+  }
+  .history-row span:nth-child(3),
+  .history-row span:nth-child(4),
+  .history-row span:nth-child(5) {
+    font-size: 11px;
+  }
+  .method-pill {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  /* Profile */
+  .profile-header {
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  .profile-header h2 {
+    font-size: 19px;
+  }
+  .profile-header p {
+    font-size: 12px;
+  }
+  .profile-grid {
+    gap: 12px;
+  }
+  .profile-field {
+    padding: 14px;
+    gap: 10px;
+  }
+  .profile-field small {
+    font-size: 10px;
+  }
+  .profile-field strong {
+    font-size: 13px;
+  }
+
+  /* Settings */
+  .settings-list {
+    gap: 10px;
+  }
+  .settings-row {
+    padding: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .settings-row-label {
+    flex: 1;
+    min-width: 180px;
+  }
+  .settings-row-label strong {
+    font-size: 14px;
+  }
+  .settings-row-label p {
+    font-size: 12px;
+  }
+  .switch {
+    width: 48px;
+    height: 28px;
+  }
+  .switch .slider::before {
+    width: 22px;
+    height: 22px;
+  }
+  .switch input:checked + .slider::before {
+    transform: translateX(20px);
+  }
+
+  /* Scan buttons in topbar */
+  .scan-btn-top {
+    padding: 12px 16px;
+    font-size: 14px;
+    min-height: 44px;
+    gap: 6px;
+  }
+  .topbar-actions {
+    gap: 8px;
+  }
+  .scan-btn-top span {
+    display: inline; /* Show text on mobile */
+  }
+
+  /* Toast notifications */
+  .ap-toast-stack {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+  .ap-toast {
+    min-width: auto;
+    padding: 14px 16px;
+  }
+
+  /* Slide-in drawer improvements */
+  .nav-drawer {
+    width: 85%;
+    max-width: 300px;
+  }
+  .nav-drawer-body {
+    padding: 16px 20px;
+    gap: 8px;
+  }
+  .nav-drawer-btn {
+    padding: 16px 18px;
+    font-size: 16px;
+    min-height: 52px;
+    border-radius: 12px;
+    gap: 14px;
+    text-align: left;
+    justify-content: flex-start;
+  }
+  .nav-drawer-btn svg {
+    font-size: 20px;
+  }
+  .nav-drawer-btn.logout-btn {
+    margin-top: 8px;
+    background: var(--ap-danger-light);
+    color: var(--ap-danger);
+    justify-content: center;
+  }
+  .nav-drawer-btn.logout-btn:hover {
+    background: var(--ap-danger);
+    color: white;
+  }
+  .nav-drawer-header {
+    padding: 16px 20px;
+  }
+  .nav-drawer-close {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Danger zone */
+  .sd-danger-zone {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px;
+  }
+  .sd-danger-copy strong {
+    font-size: 14px;
+  }
+  .sd-danger-copy p {
+    font-size: 13px;
+  }
+  .sd-danger-btn {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 15px;
+    min-height: 48px;
+  }
+
+  /* Delete dialog */
+  .sd-delete-dialog {
+    padding: 20px;
+    margin: 16px;
+    max-height: 85vh;
+  }
+  .sd-delete-head {
+    gap: 10px;
+  }
+  .sd-delete-head h3 {
+    font-size: 17px;
+  }
+  .sd-delete-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .sd-delete-lead {
+    font-size: 14px;
+  }
+  .sd-delete-facts {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .sd-delete-facts li {
+    font-size: 13px;
+    padding-left: 20px;
+  }
+  .sd-delete-facts li.removed::before {
+    left: 2px;
+  }
+  .sd-delete-facts li.kept::before {
+    left: 1px;
+  }
+  .sd-delete-label {
+    font-size: 12px;
+  }
+  .sd-delete-input {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 48px;
+  }
+  .sd-delete-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  .sd-delete-cancel,
+  .sd-delete-actions .sd-danger-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 18px;
+    font-size: 15px;
+    min-height: 48px;
+  }
 }
 
-/* Bottom nav (mobile) - REPLACED BY SLIDE-IN DRAWER */
-.student-bottom-nav { display: none; }
+/* Small mobile (<= 480px) */
+@media (max-width: 480px) {
+  .student-main {
+    padding: 12px;
+  }
+  .student-topbar h1 {
+    font-size: 18px;
+  }
+  .home-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .mini-stat {
+    padding: 14px;
+    min-height: 72px;
+  }
+  .mini-stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .mini-stat h3 {
+    font-size: 18px;
+  }
+  .scan-btn {
+    padding: 18px;
+    min-height: 90px;
+  }
+  .scan-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .recent-checkins {
+    padding: 14px 16px;
+  }
+  .full-page-card {
+    padding: 16px;
+  }
+  .history-row {
+    min-width: 360px;
+    padding: 12px 10px;
+  }
+  .notifications-column {
+    padding: 16px;
+  }
+  .nav-drawer {
+    width: 90%;
+    max-width: 280px;
+  }
+  .sd-delete-dialog {
+    margin: 12px;
+    padding: 18px;
+  }
+}
 
 /* ============ DANGER ZONE + DELETE-ACCOUNT DIALOG ============
    Every class below is prefixed `sd-` because all page CSS in this app is

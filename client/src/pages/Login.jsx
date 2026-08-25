@@ -55,8 +55,16 @@ const Login = () => {
         setError(data.message || 'Login failed.');
         setLoading(false);
       }
-    } catch (_err) {
-      setError('Cannot connect to server.');
+    } catch (err) {
+      console.error('Login error:', err);
+      // Provide more helpful error messages
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Cannot connect to server. Please check your internet connection or try again later.');
+      } else if (err.message?.includes('CORS')) {
+        setError('Connection blocked by server. Please contact support.');
+      } else {
+        setError('Cannot connect to server. Please try again.');
+      }
       setLoading(false);
     }
   };

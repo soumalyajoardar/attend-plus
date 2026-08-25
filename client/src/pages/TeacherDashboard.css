@@ -601,77 +601,481 @@
   }
 }
 
-/* Mobile Responsive for Teacher Dashboard */
+/* ==================================================================
+   Mobile Styles (<= 768px) - Slide-in Drawer + Touch Optimizations
+   ================================================================== */
 @media (max-width: 768px) {
+  /* Hide fixed sidebar, use slide-in drawer instead */
   .sidebar {
-    width: 60px;
-  }
-
-  .sidebar-logo h2,
-  .sidebar-link span:last-child,
-  .teacher-details,
-  .logout-btn {
     display: none;
   }
 
-  .sidebar-link {
-    justify-content: center;
-    padding: 12px;
+  /* Show mobile menu trigger in topbar */
+  .nav-menu-trigger {
+    display: flex;
   }
 
-  .sidebar-icon {
-    font-size: 22px;
-  }
-
+  /* Main content full width */
   .main-content {
-    margin-left: 60px;
-    padding: 15px;
+    margin-left: 0;
+    padding: 16px;
+    padding-bottom: 100px; /* space for any floating elements */
   }
 
+  /* Topbar adjustments */
+  .topbar {
+    gap: 12px;
+  }
+  .topbar-left {
+    gap: 12px;
+  }
   .topbar h1 {
     font-size: 20px;
   }
-
   .date-text {
     display: none;
   }
 
+  /* Dashboard grid - single column */
   .dashboard-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 
+  .stat-card {
+    padding: 20px;
+    gap: 12px;
+  }
+  .stat-icon {
+    font-size: 28px;
+  }
+  .stat-card h3 {
+    font-size: 22px;
+  }
+
+  /* Dashboard sections - single column */
   .dashboard-sections {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 16px;
   }
 
+  .section-card {
+    padding: 20px;
+  }
+
+  /* Quick actions - 2x2 grid on mobile */
+  .quick-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .quick-action-btn {
+    padding: 16px 12px;
+    min-height: 80px; /* Better touch target */
+  }
+  .quick-action-btn span {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+  .quick-action-btn strong {
+    font-size: 12px;
+  }
+
+  /* Welcome banner */
+  .welcome-banner {
+    padding: 24px;
+  }
+  .welcome-banner h2 {
+    font-size: 22px;
+  }
+
+  /* Attendance page */
   .attendance-page {
     flex-direction: column;
+    gap: 16px;
   }
 
   .control-panel, .display-panel {
     width: 100%;
   }
 
-  .class-selection-card {
+  .control-panel {
     padding: 20px;
   }
 
+  .display-panel {
+    gap: 16px;
+  }
+
+  /* Class selection */
+  .class-selection-screen {
+    min-height: auto;
+    padding: 20px 16px;
+  }
+  .class-selection-card {
+    padding: 24px;
+    border-radius: 16px;
+  }
+  .selection-header h2 {
+    font-size: 22px;
+  }
+  .selection-icon {
+    font-size: 40px;
+  }
+
+  .input-group {
+    margin-bottom: 16px;
+  }
+  .input-group select {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 48px; /* Better touch target */
+  }
+
+  .btn-primary, .btn-secondary, .btn-danger {
+    padding: 16px 24px;
+    font-size: 16px;
+    min-height: 52px; /* Better touch target */
+  }
+
+  /* Class header */
   .class-header-banner {
     flex-direction: column;
     text-align: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+  .class-header-banner h2 {
+    font-size: 20px;
   }
 
+  /* QR code */
+  .qr-section {
+    padding: 20px;
+  }
+  .qr-section h3 {
+    font-size: 17px;
+  }
+  .qr-code-wrapper {
+    width: 240px;
+    height: 240px;
+  }
+  .qr-hint {
+    font-size: 12px;
+  }
+
+  /* Manual code box */
+  .manual-code-box {
+    padding: 20px;
+  }
+  .manual-code {
+    font-size: 28px;
+    letter-spacing: 4px;
+  }
+  .manual-label {
+    font-size: 12px;
+  }
+  .manual-countdown {
+    height: 6px;
+  }
+
+  /* Attendance list */
+  .attendance-section {
+    padding: 20px;
+  }
+  .attendance-item {
+    padding: 16px 12px;
+    min-height: 64px; /* Better touch target */
+  }
+  .student-avatar {
+    font-size: 22px;
+  }
+  .student-info strong {
+    font-size: 15px;
+  }
+  .student-info p {
+    font-size: 12px;
+  }
+  .present-badge {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  /* Notifications page */
+  .notifications-page {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .notification-form-card {
+    padding: 24px;
+  }
+  .text-input, .text-area {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 48px;
+  }
+  .sent-notif-feed {
+    max-height: 60vh;
+  }
+
+  /* History & Reports tables - horizontal scroll */
+  .history-table.teacher .history-row,
+  .report-row {
+    grid-template-columns: 1.4fr 1fr 1fr 0.8fr 0.8fr 0.7fr;
+    min-width: 600px;
+  }
+  .history-table, .report-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-bar select {
+    padding: 12px 14px;
+    font-size: 15px;
+    min-height: 44px;
+  }
+
+  /* Reports meta cards */
+  .report-meta-row {
+    gap: 12px;
+  }
+  .report-meta-card {
+    padding: 14px 16px;
+    min-width: 140px;
+  }
+  .report-meta-card h3 {
+    font-size: 24px;
+  }
+
+  .report-tabs {
+    gap: 6px;
+  }
+  .report-tabs button {
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+
+  /* Approvals */
+  .approval-item {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .approval-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .approval-info {
+    flex: 1;
+    min-width: 180px;
+  }
+  .approval-info strong {
+    font-size: 15px;
+  }
+  .approval-info p {
+    font-size: 13px;
+  }
+  .approval-info small {
+    font-size: 11px;
+  }
+  .approval-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .approve-btn, .reject-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  /* Manage Students roster */
+  .td-roster-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .td-roster-tabs {
+    width: 100%;
+    justify-content: center;
+  }
+  .td-roster-tab {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .td-roster-search {
+    width: 100%;
+    max-width: none;
+    padding: 12px 14px;
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .td-roster-row {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .td-roster-info {
+    flex: 1;
+    min-width: 180px;
+  }
+  .td-roster-delete {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  /* Settings */
+  .settings-row {
+    padding: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .settings-row-label {
+    flex: 1;
+    min-width: 180px;
+  }
+  .switch {
+    width: 48px;
+    height: 28px;
+  }
+  .switch .slider::before {
+    width: 22px;
+    height: 22px;
+  }
+  .switch input:checked + .slider::before {
+    transform: translateX(20px);
+  }
+
+  /* Login/Signup pages */
+  .login-container {
+    padding: 16px;
+  }
+  .login-card, .signup-card {
+    padding: 24px 20px;
+    margin-top: 0;
+  }
+  .login-logo h2 {
+    font-size: 24px;
+  }
+  .input-group input {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 48px;
+  }
+  .role-toggle button {
+    padding: 14px;
+    font-size: 15px;
+    min-height: 48px;
+  }
+  .password-wrapper input {
+    padding: 14px 16px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+  .eye-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Toast notifications */
+  .ap-toast-stack {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+  .ap-toast {
+    min-width: auto;
+    padding: 14px 16px;
+  }
+
+  /* Slide-in drawer improvements */
+  .nav-drawer {
+    width: 85%;
+    max-width: 300px;
+  }
+  .nav-drawer-body {
+    padding: 16px 20px;
+    gap: 8px;
+  }
+  .nav-drawer-btn {
+    padding: 16px 18px;
+    font-size: 16px;
+    min-height: 52px;
+    border-radius: 12px;
+    gap: 14px;
+  }
+  .nav-drawer-btn svg {
+    font-size: 20px;
+  }
+  .nav-drawer-btn.logout-btn {
+    margin-top: 8px;
+    background: var(--ap-danger-light);
+    color: var(--ap-danger);
+  }
+  .nav-drawer-btn.logout-btn:hover {
+    background: var(--ap-danger);
+    color: white;
+  }
+  .nav-drawer-header {
+    padding: 16px 20px;
+  }
+  .nav-drawer-close {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Small mobile (<= 480px) */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px;
+  }
+  .topbar h1 {
+    font-size: 18px;
+  }
+  .stat-card {
+    padding: 16px;
+  }
+  .stat-icon {
+    font-size: 24px;
+  }
+  .stat-card h3 {
+    font-size: 20px;
+  }
+  .welcome-banner {
+    padding: 20px;
+  }
+  .welcome-banner h2 {
+    font-size: 20px;
+  }
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+  .class-selection-card {
+    padding: 20px;
+  }
   .qr-code-wrapper {
     width: 200px;
     height: 200px;
   }
-
   .manual-code {
     font-size: 24px;
     letter-spacing: 3px;
+  }
+  .nav-drawer {
+    width: 90%;
+    max-width: 280px;
+  }
+  .login-card, .signup-card {
+    padding: 20px 16px;
   }
 }
 

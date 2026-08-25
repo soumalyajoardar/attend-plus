@@ -17,21 +17,34 @@ const app = express();
 
 // Middleware
 // Allow the React frontend (production + local dev) to talk to this server.
-// REACT_APP_CLIENT_URL can be set to the exact Render/Vercel deployment URL.
+// CLIENT_URL can be set to the exact Render/Vercel deployment URL.
 const ALLOWED_ORIGINS = [
   process.env.CLIENT_URL || 'https://attend-plus.onrender.com',
   'http://localhost:3000',
   'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
 ];
+
+// Log CORS config for debugging
+console.log('🔧 CORS Allowed Origins:', ALLOWED_ORIGINS);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. curl, Postman, mobile apps)
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: origin ${origin} not allowed`));
+      // Allow requests with no origin (e.g. curl, Postman, mobile apps, same-origin)
+      if (!origin) {
+        return callback(null, true);
       }
+      if (ALLOWED_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+      // In development, allow any localhost origin
+      if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost')) {
+        return callback(null, true);
+      }
+      console.warn('🚫 CORS blocked origin:', origin);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
     },
     credentials: true,
   })
@@ -41,6 +54,15 @@ app.use(express.json()); // Allows us to read JSON data from requests
 // ---------- TEST ROUTE ----------
 app.get('/', (req, res) => {
   res.send('Attend+ Backend is running!');
+});
+
+// Health check endpoint for connectivity testing
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    cors: process.env.CLIENT_URL 
+  });
 });
 
 // Escapes a user-supplied string so it is safe to drop inside a RegExp literal.
