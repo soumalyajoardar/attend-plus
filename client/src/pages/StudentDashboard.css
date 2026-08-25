@@ -1499,3 +1499,87 @@
     justify-content: center;
   }
 }
+
+/* ==================================================================
+   GLASSMORPHISM LAYER — ambient page glow + frosted surfaces
+   ================================================================== */
+
+.student-main {
+  background:
+    radial-gradient(900px 480px at 88% -8%, rgba(124, 58, 237, 0.10), transparent 60%),
+    radial-gradient(760px 420px at -12% 28%, rgba(79, 70, 229, 0.09), transparent 55%),
+    var(--ap-bg);
+  background-attachment: fixed;
+}
+[data-theme='dark'] .student-main {
+  background:
+    radial-gradient(900px 480px at 88% -8%, rgba(167, 139, 250, 0.14), transparent 60%),
+    radial-gradient(760px 420px at -12% 28%, rgba(129, 140, 248, 0.12), transparent 55%),
+    var(--ap-bg);
+  background-attachment: fixed;
+}
+
+/* Glass cards */
+.mini-stat,
+.recent-checkins,
+.notifications-column,
+.full-page-card,
+.student-mini-card {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+[data-theme='dark'] .mini-stat,
+[data-theme='dark'] .recent-checkins,
+[data-theme='dark'] .notifications-column,
+[data-theme='dark'] .full-page-card,
+[data-theme='dark'] .student-mini-card {
+  background: rgba(19, 27, 46, 0.55);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .mini-stat, .recent-checkins, .notifications-column,
+  .full-page-card, .student-mini-card { background: var(--ap-surface); }
+}
+
+/* Sticky frosted topbar */
+.student-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 14px 4px;
+  margin: -6px 0 20px;
+  background: rgba(248, 250, 252, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--ap-border);
+}
+[data-theme='dark'] .student-topbar { background: rgba(11, 17, 32, 0.72); }
+@supports not (backdrop-filter: blur(1px)) {
+  .student-topbar { background: var(--ap-bg); }
+}
+
+/* Scan button keeps the brand gradient + gains a glass sheen */
+.scan-btn {
+  position: relative;
+  overflow: hidden;
+}
+.scan-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
+/* Frosted delete dialog */
+.sd-delete-overlay {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.sd-delete-dialog {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+[data-theme='dark'] .sd-delete-dialog { background: rgba(19, 27, 46, 0.88); }

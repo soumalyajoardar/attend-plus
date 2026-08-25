@@ -108,6 +108,11 @@ const TeacherDashboard = () => {
   const [defaulterThreshold, setDefaulterThreshold] = useState(75);
   const [reportView, setReportView] = useState('students'); // 'students' | 'defaulters' | 'sessions'
 
+  // Dashboard tiles — every value is fetched/computed, nothing hardcoded.
+  const [totalStudents, setTotalStudents] = useState(null);   // approved students
+  const [classesToday, setClassesToday] = useState(null);     // sessions dated today
+  const [avgAttendance, setAvgAttendance] = useState(null);   // mean of student %
+
   // Dark mode is shared app-wide (utils/theme.js); this just mirrors it into
   // local state so the Settings toggle here reflects/updates the same value
   // used on Landing, Login, Signup, and the Student Dashboard.
@@ -350,6 +355,36 @@ const TeacherDashboard = () => {
   useEffect(() => {
     if (activePage === 'approvals' || activePage === 'dashboard') fetchPendingStudents();
   }, [activePage, fetchPendingStudents]);
+
+  // Dashboard tiles: Total Students comes from the counts API; the other
+  // tiles are derived from the reports data (fetched via fetchReports).
+  useEffect(() => {
+    if (activePage !== 'dashboard') return;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/students/counts`);
+        const d = await res.json();
+        if (d.success) setTotalStudents(d.counts.approved);
+      } catch {
+        /* tile keeps its placeholder until it succeeds */
+      }
+    })();
+    fetchReports();
+  }, [activePage, fetchReports]);
+
+  // Derive "Classes Today" and "Avg Attendance" from whatever reports returned.
+  // Today is computed in the institution's timezone so it matches the `date`
+  // strings the server stamps on sessions (default Asia/Kolkata — same as
+  // INSTITUTION_TZ in the server .env).
+  useEffect(() => {
+    const istToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    setClassesToday(reportSessions.filter((s) => s.date === istToday).length);
+
+    const scored = reportRows.filter((r) => r.held > 0);
+    setAvgAttendance(
+      scored.length ? Math.round(scored.reduce((t, r) => t + r.percentage, 0) / scored.length) : null
+    );
+  }, [reportRows, reportSessions]);
 
   const reviewStudent = async (id, action) => {
     setReviewingId(id);
@@ -619,10 +654,26 @@ const TeacherDashboard = () => {
             </div>
 
             <div className="dashboard-grid ap-stagger">
-              <div className="stat-card"><span className="stat-icon"><IconUsers size={22} /></span><div><h3>248</h3><p>Total Students</p></div></div>
-              <div className="stat-card"><span className="stat-icon"><IconCheck size={22} /></span><div><h3>4</h3><p>Classes Today</p></div></div>
-              <div className="stat-card"><span className="stat-icon"><IconTrendingUp size={22} /></span><div><h3>92%</h3><p>Avg Attendance</p></div></div>
-              <div className="stat-card"><span className="stat-icon"><IconAlertCircle size={22} /></span><div><h3>14</h3><p>Absentees</p></div></div>
+              <button type="button" className="stat-tile" onClick={() => setActivePage('students')}>
+                <span className="stat-icon"><IconUsers size={22} /></span>
+                <div><h3>{totalStudents ?? '…'}</h3><p>Total Students</p></div>
+              </button>
+              <button type="button" className="stat-tile" onClick={() => setActivePage('history')}>
+                <span className="stat-icon"><IconCheck size={22} /></span>
+                <div><h3>{classesToday ?? '…'}</h3><p>Classes Today</p></div>
+              </button>
+              <button type="button" className="stat-tile" onClick={() => setActivePage('reports')}>
+                <span className="stat-icon"><IconTrendingUp size={22} /></span>
+                <div><h3>{avgAttendance === null ? '—' : `${avgAttendance}%`}</h3><p>Avg Attendance</p></div>
+              </button>
+              <button
+                type="button"
+                className={`stat-tile ${pendingCount > 0 ? 'hot' : ''}`}
+                onClick={() => setActivePage('approvals')}
+              >
+                <span className="stat-icon"><IconAlertCircle size={22} /></span>
+                <div><h3>{pendingCount}</h3><p>Pending Approvals</p></div>
+              </button>
             </div>
 
             <div className="section-card">

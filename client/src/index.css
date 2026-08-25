@@ -354,3 +354,19 @@ canvas {
   max-width: 100%;
   height: auto;
 }
+
+/* ---------------------------------------------------------------------
+   Glassmorphism accents (shared)
+   Translucent surfaces + backdrop blur. Each themed value has a plain
+   var(--ap-surface) fallback for browsers without backdrop-filter.
+   --------------------------------------------------------------------- */
+.ap-toast {
+  background: var(--ap-surface);
+  background: color-mix(in srgb, var(--ap-surface) 80%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .ap-toast { background: var(--ap-surface); }
+}

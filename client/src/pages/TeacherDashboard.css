@@ -2498,3 +2498,181 @@
   .qr-code-wrapper canvas { width: 168px !important; height: 168px !important; }
   .filter-bar select { flex: 1 1 100%; }
 }
+
+/* ==================================================================
+   GLASSMORPHISM LAYER — ambient page glow + frosted surfaces
+   ================================================================== */
+
+/* Soft brand-tinted ambience so the translucent cards have something to
+   blur; fixed attachment keeps the glow steady while lists scroll. */
+.main-content {
+  background:
+    radial-gradient(900px 480px at 88% -8%, rgba(124, 58, 237, 0.10), transparent 60%),
+    radial-gradient(760px 420px at -12% 28%, rgba(79, 70, 229, 0.09), transparent 55%),
+    var(--ap-bg);
+  background-attachment: fixed;
+}
+[data-theme='dark'] .main-content {
+  background:
+    radial-gradient(900px 480px at 88% -8%, rgba(167, 139, 250, 0.14), transparent 60%),
+    radial-gradient(760px 420px at -12% 28%, rgba(129, 140, 248, 0.12), transparent 55%),
+    var(--ap-bg);
+  background-attachment: fixed;
+}
+
+/* Glass card recipe (light / dark) */
+.section-card,
+.control-panel,
+.qr-section,
+.attendance-section,
+.notification-form-card,
+.sent-notifications-card {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+}
+[data-theme='dark'] .section-card,
+[data-theme='dark'] .control-panel,
+[data-theme='dark'] .qr-section,
+[data-theme='dark'] .attendance-section,
+[data-theme='dark'] .notification-form-card,
+[data-theme='dark'] .sent-notifications-card {
+  background: rgba(19, 27, 46, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .section-card, .control-panel, .qr-section,
+  .attendance-section, .notification-form-card,
+  .sent-notifications-card { background: var(--ap-surface); }
+  [data-theme='dark'] .section-card, [data-theme='dark'] .control-panel,
+  [data-theme='dark'] .qr-section, [data-theme='dark'] .attendance-section,
+  [data-theme='dark'] .notification-form-card,
+  [data-theme='dark'] .sent-notifications-card { background: var(--ap-surface); }
+}
+
+/* Sticky frosted topbar — page content slides beneath it */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 14px 4px;
+  margin: -6px 0 24px;
+  background: color-mix(in srgb, var(--ap-bg) 72%, transparent);
+  background: rgba(248, 250, 252, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--ap-border);
+}
+[data-theme='dark'] .topbar { background: rgba(11, 17, 32, 0.72); }
+@supports not (backdrop-filter: blur(1px)) {
+  .topbar { background: var(--ap-bg); }
+}
+
+/* Welcome banner keeps the brand gradient but gains a glass sheen */
+.welcome-banner {
+  position: relative;
+  overflow: hidden;
+}
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
+/* Manual code panel goes glassy over the gradient page */
+.manual-code-box {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+[data-theme='dark'] .manual-code-box { background: rgba(30, 27, 58, 0.5); }
+
+/* ---------- Real-data dashboard tiles (replaces static stat cards) ---------- */
+.stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 18px;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+}
+[data-theme='dark'] .stat-tile {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(19, 27, 46, 0.55);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .stat-tile { background: var(--ap-surface); }
+}
+
+.stat-tile:hover {
+  transform: translateY(-4px);
+  border-color: var(--ap-primary);
+  box-shadow: 0 14px 34px rgba(79, 70, 229, 0.18);
+}
+
+.stat-tile:focus-visible {
+  outline: 2px solid var(--ap-primary);
+  outline-offset: 2px;
+}
+
+.stat-tile .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+  flex-shrink: 0;
+}
+
+.stat-tile h3 {
+  font-size: 24px;
+  font-weight: 900;
+  margin: 0;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-tile p {
+  color: var(--ap-text-muted);
+  font-size: 12px;
+  margin: 3px 0 0;
+  font-weight: 600;
+}
+
+/* Attention state for actionable tiles (e.g. approvals waiting) */
+.stat-tile.hot .stat-icon {
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+}
+.stat-tile.hot h3 { color: var(--ap-danger-text); }
+
+/* Frosted delete dialog */
+.td-delete-overlay {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.td-delete-dialog {
+  background: color-mix(in srgb, var(--ap-surface) 86%, transparent);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+[data-theme='dark'] .td-delete-dialog { background: rgba(19, 27, 46, 0.88); }
