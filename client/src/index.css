@@ -347,3 +347,10 @@ button {
 .ap-theme-toggle:active {
   transform: translateY(0);
 }
+
+/* Media can never push a layout wider than the viewport */
+img,
+canvas {
+  max-width: 100%;
+  height: auto;
+}

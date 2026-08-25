@@ -2269,3 +2269,232 @@
   .td-delete-cancel,
   .td-delete-confirm-btn { width: 100%; justify-content: center; }
 }
+
+/* ==================================================================
+   SIDEBAR RE-SKIN — brand gradient (matches the welcome/class banners
+   and the site's hero grading). Scoped under .sidebar so nothing leaks.
+   ================================================================== */
+.sidebar {
+  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
+  color: #fff;
+  box-shadow: 4px 0 24px rgba(79, 70, 229, 0.28);
+}
+
+.sidebar-logo {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.sidebar .logo-icon {
+  background: #fff;
+  color: #4F46E5;
+}
+
+.sidebar-logo h2 { color: #fff; }
+.sidebar-logo h2 span { color: #C7D2FE; }
+
+.sidebar-link {
+  color: rgba(255, 255, 255, 0.78);
+}
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  transform: translateX(3px);
+}
+.sidebar-link.active {
+  background: #fff;
+  color: #4338CA;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  transform: none;
+}
+
+.sidebar .notification-badge.inline {
+  margin-left: auto;
+  background: #fff;
+  color: #4338CA;
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.teacher-card {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.teacher-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.teacher-details strong { color: #fff; }
+.teacher-details p { color: rgba(255, 255, 255, 0.7); }
+
+.sidebar .logout-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.sidebar .logout-btn:hover {
+  background: #DC2626;
+  border-color: #DC2626;
+}
+
+/* ---------- Drawer re-skin (same gradient as the sidebar) ---------- */
+.nav-drawer {
+  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
+  box-shadow: 8px 0 32px rgba(30, 27, 75, 0.45);
+}
+.nav-drawer-header { border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
+.nav-drawer-close { color: #fff; }
+.nav-drawer-close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+.nav-drawer .sidebar-logo { border-bottom: none; padding: 18px 0 0; }
+.nav-drawer .logo-icon { background: #fff; color: #4F46E5; }
+.nav-drawer-header h2,
+.nav-drawer .sidebar-logo h2 { color: #fff; }
+.nav-drawer-header h2 span,
+.nav-drawer .sidebar-logo h2 span { color: #C7D2FE; }
+
+.nav-drawer-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.82);
+}
+.nav-drawer-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.nav-drawer-btn.active {
+  background: #fff;
+  color: #4338CA;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+.nav-drawer .logout-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.nav-drawer .logout-btn:hover {
+  background: #DC2626;
+  border-color: #DC2626;
+  transform: none;
+}
+.nav-drawer .notification-badge.inline {
+  margin-left: auto;
+  background: #fff;
+  color: #4338CA;
+}
+
+/* ==================================================================
+   OVERFLOW HARDENING — nothing may push the page wider than the screen
+   ================================================================== */
+.main-content {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.topbar-left { min-width: 0; }
+.topbar h1 {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.section-header { flex-wrap: wrap; gap: 8px; }
+
+/* Grid blowout fix: fr columns must be allowed to shrink below content */
+@media (min-width: 769px) {
+  .history-table.teacher .history-row,
+  .report-row {
+    grid-template-columns:
+      minmax(0, 1.5fr) minmax(0, 1.1fr) minmax(0, 1.1fr)
+      minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 0.9fr);
+  }
+}
+@media (max-width: 768px) {
+  .history-table.teacher .history-row,
+  .report-row {
+    grid-template-columns:
+      minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)
+      minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 0.7fr);
+    min-width: 560px;
+  }
+}
+
+.history-table,
+.report-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-bar select {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.report-meta-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.approval-info,
+.td-roster-info,
+.student-info,
+.control-panel,
+.display-panel,
+.qr-section,
+.attendance-section,
+.notifications-page,
+.sent-notifications-card,
+.full-width,
+.placeholder-page.full-width {
+  min-width: 0;
+  max-width: 100%;
+}
+.placeholder-page.full-width { max-width: min(900px, 100%); }
+
+.approval-info strong,
+.approval-info small,
+.td-roster-info strong,
+.td-roster-info small,
+.sent-notif-item p,
+.sent-notif-list li span,
+.welcome-banner h2 {
+  overflow-wrap: anywhere;
+}
+.sent-notif-list li { flex-wrap: wrap; }
+.present-badge { flex-shrink: 0; }
+
+.class-header-banner > div { min-width: 0; }
+.qr-code-wrapper { max-width: 100%; }
+.td-roster-tabs { flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+  .main-content { padding: 14px 14px 90px; }
+  .topbar-left { flex: 1; }
+  .topbar h1 { font-size: 19px; }
+
+  /* QR canvas is rendered at a fixed pixel size — scale it to fit */
+  .qr-code-wrapper { width: auto; height: auto; padding: 10px; }
+  .qr-code-wrapper canvas { width: 200px !important; height: 200px !important; }
+
+  .manual-code { font-size: 26px; letter-spacing: 2px; }
+  .filter-bar { gap: 8px; }
+  .filter-bar select { flex: 1 1 46%; }
+  .report-tabs button { padding: 10px 14px; }
+}
+
+@media (max-width: 400px) {
+  .qr-code-wrapper canvas { width: 168px !important; height: 168px !important; }
+  .filter-bar select { flex: 1 1 100%; }
+}

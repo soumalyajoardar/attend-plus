@@ -1305,3 +1305,197 @@
     width: 100%;
   }
 }
+
+/* ==================================================================
+   SIDEBAR RE-SKIN — brand gradient (matches the scan button and the
+   site's hero grading). Scoped under .student-sidebar so nothing leaks.
+   ================================================================== */
+.student-sidebar {
+  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
+  color: #fff;
+  box-shadow: 4px 0 24px rgba(79, 70, 229, 0.28);
+}
+
+.student-logo {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.student-sidebar .logo-icon {
+  background: #fff;
+  color: #4F46E5;
+}
+
+.student-logo h2 { color: #fff; }
+.student-logo h2 span { color: #C7D2FE; }
+
+.student-sidebar-nav .sidebar-link {
+  color: rgba(255, 255, 255, 0.78);
+}
+.student-sidebar-nav .sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.student-sidebar-nav .sidebar-link.active {
+  background: #fff;
+  color: #4338CA;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.student-sidebar .notification-badge.inline {
+  margin-left: auto;
+  background: #fff;
+  color: #4338CA;
+}
+
+.student-sidebar .sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.student-mini-card {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.student-avatar-small {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.student-mini-details strong { color: #fff; }
+.student-mini-details p { color: rgba(255, 255, 255, 0.7); }
+
+.student-sidebar .logout-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.student-sidebar .logout-btn:hover {
+  background: #DC2626;
+  border-color: #DC2626;
+  transform: none;
+}
+
+/* ---------- Drawer re-skin (same gradient as the sidebar) ---------- */
+.nav-drawer {
+  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
+  box-shadow: 8px 0 32px rgba(30, 27, 75, 0.45);
+}
+.nav-drawer-header { border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
+.nav-drawer-close { color: #fff; }
+.nav-drawer-close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+.nav-drawer .student-logo { border-bottom: none; padding: 18px 0 0; }
+.nav-drawer .logo-icon { background: #fff; color: #4F46E5; }
+.nav-drawer-header h2,
+.nav-drawer .student-logo h2 { color: #fff; }
+.nav-drawer-header h2 span,
+.nav-drawer .student-logo h2 span { color: #C7D2FE; }
+
+.nav-drawer-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.82);
+}
+.nav-drawer-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.nav-drawer-btn.active {
+  background: #fff;
+  color: #4338CA;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+.nav-drawer .logout-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.nav-drawer .logout-btn:hover {
+  background: #DC2626;
+  border-color: #DC2626;
+  transform: none;
+}
+.nav-drawer .notification-badge.inline {
+  margin-left: auto;
+  background: #fff;
+  color: #4338CA;
+}
+
+/* ==================================================================
+   OVERFLOW HARDENING — nothing may push the page wider than the screen
+   ================================================================== */
+.student-main {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.topbar-left { min-width: 0; }
+.student-topbar h1 {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.section-header { flex-wrap: wrap; gap: 8px; }
+
+/* Grid blowout fix: fr columns must be allowed to shrink below content */
+.history-row {
+  grid-template-columns:
+    minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, 0.9fr)
+    minmax(0, 0.9fr) minmax(0, 0.8fr);
+}
+
+.history-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.notification-content,
+.scan-text,
+.mini-stat > div,
+.profile-field > div,
+.student-mini-details,
+.recent-checkins,
+.notifications-column,
+.full-page-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.notification-content strong,
+.notification-content p,
+.mini-history-row span,
+.scan-text strong,
+.scan-text small,
+.student-welcome p,
+.profile-field strong {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .student-main { padding: 14px 14px 90px; }
+  .topbar-left { flex: 1; }
+  .student-topbar h1 { font-size: 19px; }
+  .topbar-actions { gap: 8px; }
+  .scan-btn-top { padding: 10px 14px; font-size: 13px; }
+
+  /* Table scrolls horizontally instead of stretching the page */
+  .history-row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    min-width: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-topbar { flex-wrap: wrap; }
+  .topbar-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .topbar-actions .scan-btn-top {
+    flex: 1;
+    justify-content: center;
+  }
+}
