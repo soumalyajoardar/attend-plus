@@ -115,10 +115,6 @@ h1, h2, h3, h4, h5, h6 {
     grid-template-columns: 1fr;
   }
 
-  .float-card {
-    display: none; /* Hide floating cards on very small screens to prevent overlap */
-  }
-
   .footer {
     font-size: 12px;
   }
@@ -157,10 +153,6 @@ h1, h2, h3, h4, h5, h6 {
 
   .hero-dashboard {
     width: min(440px, 100%);
-  }
-
-  .float-card {
-    display: none; /* Hide on tablets too to keep it clean */
   }
 }
 /* ---------------------------------------------------------------------- */

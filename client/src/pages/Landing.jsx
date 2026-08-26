@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Landing.css';
 import { isRemembered, getRole } from '../utils/auth';
-import { IconBell, IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers } from '../components/Icons';
+import { IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Landing = () => {
@@ -254,21 +254,6 @@ const Landing = () => {
             </div>
           </div>
 
-          {/* Floating accents — glassy, kept for depth */}
-          <div className="float-card float-top">
-            <span className="icon"><IconBell size={18} /></span>
-            <div>
-              <strong>Class Started</strong>
-              <p>CS-4A • 32 Students Present</p>
-            </div>
-          </div>
-          <div className="float-card float-bottom">
-            <span className="icon"><IconCheckCircle size={18} /></span>
-            <div>
-              <strong>Rohan Sharma</strong>
-              <p>Checked in 2 mins ago</p>
-            </div>
-          </div>
         </div>
       </main>
 

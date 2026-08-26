@@ -544,51 +544,7 @@
 [data-theme='dark'] .hero-dashboard-footer { background: rgba(255,255,255,0.03); border-top-color: rgba(255,255,255,0.06); }
 .hero-dashboard-footer span { display: inline-flex; align-items: center; gap: 5px; }
 
-/* ---------- FLOATING CARDS ---------- */
-.float-card {
-  background: var(--ap-surface);
-  border-radius: 15px;
-  padding: 15px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  position: absolute;
-  z-index: 3;
-}
 
-.float-card .icon {
-  font-size: 24px;
-}
-
-.float-card strong {
-  font-size: 14px;
-  display: block;
-}
-
-.float-card p {
-  font-size: 12px;
-  color: var(--ap-text-muted);
-  margin: 0;
-}
-
-.float-top {
-  top: 60px;
-  right: -30px;
-  animation: floatAnimation 4s ease-in-out infinite, fadeInUp 0.8s ease 0.8s both; 
-}
-
-.float-bottom {
-  bottom: 60px;
-  left: -30px;
-  animation: floatAnimation 5s ease-in-out infinite, fadeInUp 0.8s ease 1s both; 
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-  100% { transform: translateY(0px); }
-}
 
 /* ---------- FOOTER ---------- */
 .footer {
@@ -712,9 +668,6 @@
     grid-template-columns: 1fr;
   }
   .hero-qr-card, .hero-stats-col { width: 100%; }
-  .float-card {
-    display: none;
-  }
 
   .badge {
     font-size: 10px;
@@ -867,20 +820,7 @@
   .navbar { background: var(--ap-bg); }
 }
 
-/* Floating mockup cards go glassy */
-.float-card {
-  background: rgba(255, 255, 255, 0.66);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-}
-[data-theme='dark'] .float-card {
-  background: rgba(19, 27, 46, 0.6);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-@supports not (backdrop-filter: blur(1px)) {
-  .float-card { background: var(--ap-surface); }
-}
+
 
 /* Dashboard QR grid keeps the frosted feel */
 .hero-qr-grid {
