@@ -193,12 +193,12 @@
   background: var(--ap-primary-light);
 }
 
-/* Dashboard Grid */
+/* Dashboard Grid - balanced spacing */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .stat-card {
@@ -666,18 +666,21 @@
   /* Quick actions - 2x2 grid on mobile */
   .quick-actions {
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
   }
   .quick-action-btn {
-    padding: 16px 12px;
-    min-height: 80px; /* Better touch target */
+    padding: 18px 14px;
+    min-height: 96px;
+    gap: 8px;
   }
   .quick-action-btn span {
-    font-size: 24px;
-    margin-bottom: 6px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    margin-bottom: 0;
   }
   .quick-action-btn strong {
-    font-size: 12px;
+    font-size: 12.5px;
   }
 
   /* Welcome banner */
@@ -1319,40 +1322,57 @@
   margin: 3px 0 0;
 }
 
-/* Quick Actions */
+/* Quick Actions - more breathing room, theme-aware */
 .quick-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 .quick-action-btn {
-  background: var(--ap-bg);
+  background: var(--ap-surface);
   border: 1px solid var(--ap-border);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: var(--ap-radius);
+  padding: 22px 18px;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ap-transition);
   text-align: center;
   font-family: 'Inter', sans-serif;
+  box-shadow: var(--ap-shadow);
 }
 
 .quick-action-btn:hover {
   background: var(--ap-primary-light);
   border-color: var(--ap-primary);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.15);
+  transform: translateY(-2px);
+  box-shadow: var(--ap-shadow-md);
 }
 
+.quick-action-btn:active { transform: translateY(0); }
+
 .quick-action-btn span {
-  font-size: 28px;
-  display: block;
-  margin-bottom: 8px;
+  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
 }
 
 .quick-action-btn strong {
   font-size: 13px;
+  font-weight: 700;
   color: var(--ap-text);
+  line-height: 1.3;
 }
 
 /* Responsive */
@@ -2397,5 +2417,40 @@
 .welcome-banner { border-radius: var(--ap-radius-lg); padding: 28px; background: var(--ap-primary); color: #fff; }
 .welcome-banner h2 { color: #fff; font-size: 22px; }
 .welcome-banner p { color: rgba(255,255,255,0.85); }
-.stat-tile { border: 1px solid var(--ap-border); box-shadow: var(--ap-shadow); border-radius: var(--ap-radius); background: var(--ap-surface); }
+.stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 18px;
+  border: 1px solid var(--ap-border);
+  box-shadow: var(--ap-shadow);
+  border-radius: var(--ap-radius);
+  background: var(--ap-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--ap-transition);
+  width: 100%;
+}
 .stat-tile:hover { border-color: var(--ap-border-strong); box-shadow: var(--ap-shadow-md); transform: translateY(-2px); }
+.stat-tile:active { transform: translateY(0); }
+.stat-tile .stat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+  flex-shrink: 0;
+}
+.stat-tile h3 { font-size: 22px; font-weight: 800; margin: 0; color: var(--ap-text); letter-spacing: -0.02em; line-height: 1; }
+.stat-tile p { font-size: 12px; font-weight: 600; color: var(--ap-text-muted); margin: 4px 0 0; }
+.stat-tile.hot { border-color: rgba(220,38,38,0.25); }
+.stat-tile.hot .stat-icon { background: var(--ap-danger-light); color: var(--ap-danger-text); }
+.stat-tile.hot h3 { color: var(--ap-danger-text); }
+/* Dark theme tweaks */
+[data-theme='dark'] .quick-action-btn { background: var(--ap-surface); border-color: var(--ap-border); }
+[data-theme='dark'] .quick-action-btn:hover { background: var(--ap-primary-light); border-color: var(--ap-primary); }
+[data-theme='dark'] .stat-tile { background: var(--ap-surface); border-color: var(--ap-border); }
+[data-theme='dark'] .stat-tile .stat-icon { background: var(--ap-primary-light); color: var(--ap-primary); }
