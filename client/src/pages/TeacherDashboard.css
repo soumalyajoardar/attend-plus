@@ -193,12 +193,12 @@
   background: var(--ap-primary-light);
 }
 
-/* Dashboard Grid - balanced spacing */
+/* Dashboard Grid - PC: generous spacing */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 20px;
+  margin-bottom: 32px;
 }
 
 .stat-card {
@@ -1322,24 +1322,24 @@
   margin: 3px 0 0;
 }
 
-/* Quick Actions - more breathing room, theme-aware */
+/* Quick Actions - PC: extra breathing room, theme-aware */
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 
 .quick-action-btn {
   background: var(--ap-surface);
   border: 1px solid var(--ap-border);
   border-radius: var(--ap-radius);
-  padding: 22px 18px;
-  min-height: 108px;
+  padding: 28px 20px;
+  min-height: 124px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
   cursor: pointer;
   transition: all var(--ap-transition);
   text-align: center;
@@ -1361,9 +1361,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   background: var(--ap-primary-light);
   color: var(--ap-primary);
 }
@@ -2420,8 +2420,8 @@
 .stat-tile {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px 18px;
+  gap: 18px;
+  padding: 22px 20px;
   border: 1px solid var(--ap-border);
   box-shadow: var(--ap-shadow);
   border-radius: var(--ap-radius);
@@ -2434,23 +2434,32 @@
 .stat-tile:hover { border-color: var(--ap-border-strong); box-shadow: var(--ap-shadow-md); transform: translateY(-2px); }
 .stat-tile:active { transform: translateY(0); }
 .stat-tile .stat-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--ap-primary-light);
   color: var(--ap-primary);
   flex-shrink: 0;
+  font-size: 20px;
 }
-.stat-tile h3 { font-size: 22px; font-weight: 800; margin: 0; color: var(--ap-text); letter-spacing: -0.02em; line-height: 1; }
-.stat-tile p { font-size: 12px; font-weight: 600; color: var(--ap-text-muted); margin: 4px 0 0; }
-.stat-tile.hot { border-color: rgba(220,38,38,0.25); }
+.stat-tile h3 { font-size: 24px; font-weight: 800; margin: 0; color: var(--ap-text); letter-spacing: -0.02em; line-height: 1; }
+.stat-tile p { font-size: 12.5px; font-weight: 600; color: var(--ap-text-muted); margin: 4px 0 0; letter-spacing: 0.01em; }
+.stat-tile.hot { border-color: rgba(220,38,38,0.28); background: var(--ap-surface); }
 .stat-tile.hot .stat-icon { background: var(--ap-danger-light); color: var(--ap-danger-text); }
 .stat-tile.hot h3 { color: var(--ap-danger-text); }
-/* Dark theme tweaks */
-[data-theme='dark'] .quick-action-btn { background: var(--ap-surface); border-color: var(--ap-border); }
-[data-theme='dark'] .quick-action-btn:hover { background: var(--ap-primary-light); border-color: var(--ap-primary); }
-[data-theme='dark'] .stat-tile { background: var(--ap-surface); border-color: var(--ap-border); }
-[data-theme='dark'] .stat-tile .stat-icon { background: var(--ap-primary-light); color: var(--ap-primary); }
+/* Dark theme - keep contrast, match overall surface/border system */
+[data-theme='dark'] .quick-action-btn { background: var(--ap-surface); border-color: var(--ap-border); box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+[data-theme='dark'] .quick-action-btn:hover { background: #1E1B3A; border-color: #4F46E5; }
+[data-theme='dark'] .stat-tile { background: var(--ap-surface); border-color: var(--ap-border); box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+[data-theme='dark'] .stat-tile:hover { border-color: #334155; }
+[data-theme='dark'] .stat-tile .stat-icon { background: #1E1B3A; color: #818CF8; }
+[data-theme='dark'] .stat-tile.hot { border-color: rgba(248,113,113,0.35); }
+
+/* PC view - ensure generous spacing is not overridden */
+@media (min-width: 769px) {
+  .section-card { padding: 28px; }
+  .section-card h3 { margin-bottom: 22px; }
+}
