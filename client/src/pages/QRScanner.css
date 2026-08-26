@@ -4,9 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,18 +13,13 @@
 }
 
 .scanner-modal {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
   border-radius: 20px;
   width: 90%;
   max-width: 400px;
   overflow: hidden;
   animation: scaleIn 0.3s ease;
-}
-
-[data-theme='dark'] .scanner-modal {
-  background: rgba(19, 27, 46, 0.9);
 }
 
 .scanner-header {

@@ -270,46 +270,4 @@
   }
 }
 
-/* ==================================================================
-   GLASSMORPHISM — credits inherits the landing glow + frosted rows
-   Subtle blur kept on mobile too; reduced-motion respected above.
-   ================================================================== */
-.credits-main {
-  background: transparent;
-}
-.credits-row {
-  background: rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-color: rgba(255, 255, 255, 0.65);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-}
-[data-theme='dark'] .credits-row {
-  background: rgba(19, 27, 46, 0.55);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-@supports not (backdrop-filter: blur(1px)) {
-  .credits-row { background: var(--ap-surface); }
-}
 
-.credits-note {
-  background: rgba(238, 242, 255, 0.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
-[data-theme='dark'] .credits-note {
-  background: rgba(30, 27, 58, 0.45);
-  border-color: rgba(255, 255, 255, 0.06);
-}
-@supports not (backdrop-filter: blur(1px)) {
-  .credits-note { background: var(--ap-primary-light); }
-}
-
-@media (max-width: 768px) {
-  .credits-row, .credits-note {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-}

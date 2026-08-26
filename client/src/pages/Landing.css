@@ -368,12 +368,10 @@
 
 .hero-dashboard {
   width: min(440px, 100%);
-  background: rgba(255, 255, 255, 0.64);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
   border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12), 0 8px 24px rgba(79, 70, 229, 0.10);
+  box-shadow: var(--ap-shadow-lg);
   overflow: hidden;
   position: relative;
   z-index: 2;
@@ -381,16 +379,8 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .hero-dashboard:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16), 0 10px 28px rgba(79, 70, 229, 0.14);
-}
-[data-theme='dark'] .hero-dashboard {
-  background: rgba(19, 27, 46, 0.62);
-  border-color: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-}
-@supports not (backdrop-filter: blur(1px)) {
-  .hero-dashboard { background: var(--ap-surface); }
+  transform: translateY(-4px);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.12);
 }
 
 .hero-dashboard-header {
@@ -398,12 +388,8 @@
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  background: rgba(255, 255, 255, 0.55);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-}
-[data-theme='dark'] .hero-dashboard-header {
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: var(--ap-bg);
+  border-bottom: 1px solid var(--ap-border);
 }
 .dash-dots { display: flex; gap: 6px; }
 .dash-dots i {
@@ -448,15 +434,11 @@
 }
 
 .hero-qr-card {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: var(--ap-bg);
+  border: 1px solid var(--ap-border);
   border-radius: 18px;
   padding: 16px;
   text-align: center;
-}
-[data-theme='dark'] .hero-qr-card {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
 }
 .hero-qr-grid {
   width: 112px; height: 112px;
@@ -474,7 +456,6 @@
   border-radius: 4px;
 }
 .hero-qr-grid span.white { background: var(--ap-surface); }
-[data-theme='dark'] .hero-qr-grid span.white { background: rgba(19,27,46,1); }
 
 .hero-qr-meta strong { display: block; font-size: 13px; font-weight: 800; color: var(--ap-text); }
 .hero-qr-meta span { display: block; font-size: 11px; color: var(--ap-text-muted); margin-top: 2px; }
@@ -492,14 +473,10 @@
 .hero-stats-col { display: flex; flex-direction: column; gap: 12px; }
 .hero-mini-stat {
   display: flex; align-items: center; gap: 10px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: var(--ap-bg);
+  border: 1px solid var(--ap-border);
   border-radius: 14px;
   padding: 12px;
-}
-[data-theme='dark'] .hero-mini-stat {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
 }
 .hero-mini-icon {
   width: 36px; height: 36px; border-radius: 10px;
@@ -517,8 +494,7 @@
   padding: 4px 8px; border-radius: 20px;
   font-size: 11px; font-weight: 800;
 }
-.hero-progress { background: rgba(255,255,255,0.5); border-radius: 12px; padding: 10px 12px; border: 1px solid rgba(226,232,240,0.7); }
-[data-theme='dark'] .hero-progress { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06); }
+.hero-progress { background: var(--ap-bg); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--ap-border); }
 .hero-progress-label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--ap-text-muted); margin-bottom: 6px; }
 .hero-progress-track { height: 6px; background: var(--ap-border); border-radius: 20px; overflow: hidden; }
 .hero-progress-track i { display: block; height: 100%; background: linear-gradient(90deg, var(--ap-primary), var(--ap-accent)); border-radius: 20px; }
@@ -527,21 +503,19 @@
 .hero-live-list li {
   display: flex; align-items: center; gap: 7px;
   font-size: 11px; font-weight: 600; color: var(--ap-text-muted);
-  background: rgba(255,255,255,0.55);
-  border: 1px solid rgba(226,232,240,0.7);
+  background: var(--ap-bg);
+  border: 1px solid var(--ap-border);
   border-radius: 10px; padding: 7px 10px;
 }
-[data-theme='dark'] .hero-live-list li { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06); }
 .hero-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ap-success); flex-shrink: 0; }
 
 .hero-dashboard-footer {
   display: flex; gap: 12px; justify-content: center;
   padding: 12px 16px;
-  background: rgba(248, 250, 252, 0.6);
-  border-top: 1px solid rgba(226, 232, 240, 0.7);
+  background: var(--ap-bg);
+  border-top: 1px solid var(--ap-border);
   font-size: 11px; font-weight: 600; color: var(--ap-text-muted);
 }
-[data-theme='dark'] .hero-dashboard-footer { background: rgba(255,255,255,0.03); border-top-color: rgba(255,255,255,0.06); }
 .hero-dashboard-footer span { display: inline-flex; align-items: center; gap: 5px; }
 
 
@@ -786,61 +760,4 @@
   }
 }
 
-/* ==================================================================
-   GLASSMORPHISM LAYER — ambient glow, frosted navbar, floating cards
-   ================================================================== */
 
-.landing-container {
-  background:
-    radial-gradient(900px 480px at 88% -8%, rgba(124, 58, 237, 0.10), transparent 60%),
-    radial-gradient(760px 420px at -12% 28%, rgba(79, 70, 229, 0.09), transparent 55%),
-    var(--ap-bg);
-}
-[data-theme='dark'] .landing-container {
-  background:
-    radial-gradient(900px 480px at 88% -8%, rgba(167, 139, 250, 0.14), transparent 60%),
-    radial-gradient(760px 420px at -12% 28%, rgba(129, 140, 248, 0.12), transparent 55%),
-    var(--ap-bg);
-}
-
-/* Sticky frosted navbar */
-.navbar {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  background: rgba(248, 250, 252, 0.72);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--ap-border);
-  box-sizing: border-box;
-  width: 100%;
-}
-[data-theme='dark'] .navbar { background: rgba(11, 17, 32, 0.72); }
-@supports not (backdrop-filter: blur(1px)) {
-  .navbar { background: var(--ap-bg); }
-}
-
-
-
-/* Dashboard QR grid keeps the frosted feel */
-.hero-qr-grid {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-/* Slide-in menu matches the frosted language */
-.nav-drawer {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-[data-theme='dark'] .nav-drawer { background: rgba(19, 27, 46, 0.88); }
-
-/* Post-deletion banner gets a light frost as well */
-.lp-deleted-banner {
-  background: color-mix(in srgb, var(--ap-success-light) 82%, transparent);
-  background: rgba(236, 253, 245, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-[data-theme='dark'] .lp-deleted-banner { background: rgba(5, 46, 28, 0.82); }
