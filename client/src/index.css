@@ -108,9 +108,11 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 22px;
   }
 
-  .phone-mockup {
-    width: 240px;
-    height: 440px;
+  .hero-dashboard {
+    width: 100%;
+  }
+  .hero-dashboard-body {
+    grid-template-columns: 1fr;
   }
 
   .float-card {
@@ -153,9 +155,8 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
   }
 
-  .phone-mockup {
-    width: 280px;
-    height: 500px;
+  .hero-dashboard {
+    width: min(440px, 100%);
   }
 
   .float-card {

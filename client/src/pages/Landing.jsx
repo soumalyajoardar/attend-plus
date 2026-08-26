@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Landing.css';
 import { isRemembered, getRole } from '../utils/auth';
-import { IconBell, IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose } from '../components/Icons';
+import { IconBell, IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Landing = () => {
@@ -200,30 +200,61 @@ const Landing = () => {
           </div>
         </div>
 
-        {/* Hero Visual / Mockup */}
+        {/* Hero Visual — glass dashboard preview (replaces the narrow phone mockup) */}
         <div className="hero-visual">
-          <div className="phone-mockup">
-            <div className="phone-header">
-              <span className="camera-dot"></span>
+          <div className="hero-dashboard">
+            <div className="hero-dashboard-header">
+              <span className="dash-dots" aria-hidden="true"><i /><i /><i /></span>
+              <span className="dash-title">CS-4A · Data Structures</span>
+              <span className="dash-live"><span className="live-dot" /> Live</span>
             </div>
-            <div className="phone-screen">
-              <div className="qr-placeholder">
-                <div className="fake-qr">
-                  <div className="qr-row"><span></span><span></span><span></span><span></span></div>
-                  <div className="qr-row"><span></span><span className="white"></span><span></span><span></span></div>
-                  <div className="qr-row"><span></span><span></span><span className="white"></span><span></span></div>
-                  <div className="qr-row"><span></span><span></span><span></span><span></span></div>
+
+            <div className="hero-dashboard-body">
+              <div className="hero-qr-card">
+                <div className="hero-qr-grid" aria-hidden="true">
+                  <span /><span /><span /><span />
+                  <span /><span className="white" /><span /><span />
+                  <span /><span /><span className="white" /><span />
+                  <span /><span /><span /><span />
+                </div>
+                <div className="hero-qr-meta">
+                  <strong>Scan to mark present</strong>
+                  <span>QR rotates every 5s · 10:00 AM</span>
+                </div>
+                <div className="hero-qr-foot">
+                  <span className="hero-qr-pill"><IconShield size={12} /> Proxy-proof</span>
+                  <span className="hero-qr-pill"><IconClock size={12} /> 6-digit fallback</span>
                 </div>
               </div>
-              <h4 className="mock-title">Scan to Attend</h4>
-              <p className="mock-sub">Data Structures - 10:00 AM</p>
-              <div className="mock-success">
-                <span className="green-dot"></span> Marked Present
+
+              <div className="hero-stats-col">
+                <div className="hero-mini-stat">
+                  <span className="hero-mini-icon"><IconUsers size={16} /></span>
+                  <div>
+                    <strong>27 / 32</strong>
+                    <p>Present</p>
+                  </div>
+                  <span className="hero-mini-pct">84%</span>
+                </div>
+                <div className="hero-progress">
+                  <div className="hero-progress-label"><span>Attendance</span><span>84%</span></div>
+                  <div className="hero-progress-track"><i style={{ width: '84%' }} /></div>
+                </div>
+                <ul className="hero-live-list">
+                  <li><span className="hero-live-dot" /> Rohan Sharma — just now</li>
+                  <li><span className="hero-live-dot" /> Priya Das — 1m ago</li>
+                  <li><span className="hero-live-dot" /> Aman Khan — 2m ago</li>
+                </ul>
               </div>
             </div>
+
+            <div className="hero-dashboard-footer">
+              <span><IconQr size={13} /> Secure rotating code</span>
+              <span><IconCheckCircle size={13} /> Marked present instantly</span>
+            </div>
           </div>
-          
-          {/* Floating elements for design */}
+
+          {/* Floating accents — glassy, kept for depth */}
           <div className="float-card float-top">
             <span className="icon"><IconBell size={18} /></span>
             <div>
