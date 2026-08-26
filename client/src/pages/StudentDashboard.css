@@ -1,4 +1,4 @@
-/* ============ Attend+ · Student Dashboard ============ */
+﻿/* ============ Attend+ · Student Dashboard ============ */
 
 .student-container {
   display: flex;
@@ -1307,121 +1307,6 @@
 }
 
 /* ==================================================================
-   SIDEBAR RE-SKIN — brand gradient (matches the scan button and the
-   site's hero grading). Scoped under .student-sidebar so nothing leaks.
-   ================================================================== */
-.student-sidebar {
-  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
-  color: #fff;
-  box-shadow: 4px 0 24px rgba(79, 70, 229, 0.28);
-}
-
-.student-logo {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.student-sidebar .logo-icon {
-  background: #fff;
-  color: #4F46E5;
-}
-
-.student-logo h2 { color: #fff; }
-.student-logo h2 span { color: #C7D2FE; }
-
-.student-sidebar-nav .sidebar-link {
-  color: rgba(255, 255, 255, 0.78);
-}
-.student-sidebar-nav .sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-}
-.student-sidebar-nav .sidebar-link.active {
-  background: #fff;
-  color: #4338CA;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-}
-
-.student-sidebar .notification-badge.inline {
-  margin-left: auto;
-  background: #fff;
-  color: #4338CA;
-}
-
-.student-sidebar .sidebar-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.student-mini-card {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.student-avatar-small {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-.student-mini-details strong { color: #fff; }
-.student-mini-details p { color: rgba(255, 255, 255, 0.7); }
-
-.student-sidebar .logout-btn {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.student-sidebar .logout-btn:hover {
-  background: #DC2626;
-  border-color: #DC2626;
-  transform: none;
-}
-
-/* ---------- Drawer re-skin (same gradient as the sidebar) ---------- */
-.nav-drawer {
-  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
-  box-shadow: 8px 0 32px rgba(30, 27, 75, 0.45);
-}
-.nav-drawer-header { border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
-.nav-drawer-close { color: #fff; }
-.nav-drawer-close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
-
-.nav-drawer .student-logo { border-bottom: none; padding: 18px 0 0; }
-.nav-drawer .logo-icon { background: #fff; color: #4F46E5; }
-.nav-drawer-header h2,
-.nav-drawer .student-logo h2 { color: #fff; }
-.nav-drawer-header h2 span,
-.nav-drawer .student-logo h2 span { color: #C7D2FE; }
-
-.nav-drawer-btn {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.82);
-}
-.nav-drawer-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-}
-.nav-drawer-btn.active {
-  background: #fff;
-  color: #4338CA;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-}
-.nav-drawer .logout-btn {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.nav-drawer .logout-btn:hover {
-  background: #DC2626;
-  border-color: #DC2626;
-  transform: none;
-}
-.nav-drawer .notification-badge.inline {
-  margin-left: auto;
-  background: #fff;
-  color: #4338CA;
-}
-
-/* ==================================================================
    OVERFLOW HARDENING — nothing may push the page wider than the screen
    ================================================================== */
 .student-main {
@@ -1499,3 +1384,19 @@
     justify-content: center;
   }
 }
+/* Professional polish */
+.student-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--ap-surface);
+  border-bottom: 1px solid var(--ap-border);
+  padding: 16px 0;
+  margin: -26px -40px 24px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+.student-topbar h1 { font-size: 19px; font-weight: 700; }
+.mini-stat, .recent-checkins, .notifications-column, .full-page-card { border: 1px solid var(--ap-border); box-shadow: var(--ap-shadow); border-radius: var(--ap-radius); background: var(--ap-surface); }
+.mini-stat:hover { border-color: var(--ap-border-strong); box-shadow: var(--ap-shadow-md); }
+.scan-btn { border-radius: var(--ap-radius-lg); box-shadow: var(--ap-shadow-md); }

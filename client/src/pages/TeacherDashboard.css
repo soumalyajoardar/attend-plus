@@ -1,4 +1,4 @@
-.dashboard-container {
+﻿.dashboard-container {
   display: flex;
   font-family: 'Inter', sans-serif;
   background-color: var(--ap-bg);
@@ -2271,129 +2271,6 @@
 }
 
 /* ==================================================================
-   SIDEBAR RE-SKIN — brand gradient (matches the welcome/class banners
-   and the site's hero grading). Scoped under .sidebar so nothing leaks.
-   ================================================================== */
-.sidebar {
-  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
-  color: #fff;
-  box-shadow: 4px 0 24px rgba(79, 70, 229, 0.28);
-}
-
-.sidebar-logo {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.sidebar .logo-icon {
-  background: #fff;
-  color: #4F46E5;
-}
-
-.sidebar-logo h2 { color: #fff; }
-.sidebar-logo h2 span { color: #C7D2FE; }
-
-.sidebar-link {
-  color: rgba(255, 255, 255, 0.78);
-}
-.sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  transform: translateX(3px);
-}
-.sidebar-link.active {
-  background: #fff;
-  color: #4338CA;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-  transform: none;
-}
-
-.sidebar .notification-badge.inline {
-  margin-left: auto;
-  background: #fff;
-  color: #4338CA;
-}
-
-.sidebar-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.teacher-card {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.teacher-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.teacher-details strong { color: #fff; }
-.teacher-details p { color: rgba(255, 255, 255, 0.7); }
-
-.sidebar .logout-btn {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.sidebar .logout-btn:hover {
-  background: #DC2626;
-  border-color: #DC2626;
-}
-
-/* ---------- Drawer re-skin (same gradient as the sidebar) ---------- */
-.nav-drawer {
-  background: linear-gradient(185deg, #4F46E5 0%, #6D28D9 55%, #7C3AED 100%);
-  box-shadow: 8px 0 32px rgba(30, 27, 75, 0.45);
-}
-.nav-drawer-header { border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
-.nav-drawer-close { color: #fff; }
-.nav-drawer-close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
-
-.nav-drawer .sidebar-logo { border-bottom: none; padding: 18px 0 0; }
-.nav-drawer .logo-icon { background: #fff; color: #4F46E5; }
-.nav-drawer-header h2,
-.nav-drawer .sidebar-logo h2 { color: #fff; }
-.nav-drawer-header h2 span,
-.nav-drawer .sidebar-logo h2 span { color: #C7D2FE; }
-
-.nav-drawer-btn {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.82);
-}
-.nav-drawer-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-}
-.nav-drawer-btn.active {
-  background: #fff;
-  color: #4338CA;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-}
-.nav-drawer .logout-btn {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.nav-drawer .logout-btn:hover {
-  background: #DC2626;
-  border-color: #DC2626;
-  transform: none;
-}
-.nav-drawer .notification-badge.inline {
-  margin-left: auto;
-  background: #fff;
-  color: #4338CA;
-}
-
-/* ==================================================================
    OVERFLOW HARDENING — nothing may push the page wider than the screen
    ================================================================== */
 .main-content {
@@ -2498,3 +2375,27 @@
   .qr-code-wrapper canvas { width: 168px !important; height: 168px !important; }
   .filter-bar select { flex: 1 1 100%; }
 }
+/* Professional polish */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--ap-surface);
+  border-bottom: 1px solid var(--ap-border);
+  padding: 18px 0;
+  margin: -30px -40px 28px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+.topbar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.date-text { font-size: 12.5px; color: var(--ap-text-muted); border: 1px solid var(--ap-border); padding: 6px 10px; border-radius: 20px; background: var(--ap-surface); }
+.section-card, .control-panel, .qr-section, .attendance-section, .notification-form-card, .sent-notifications-card {
+  border: 1px solid var(--ap-border);
+  box-shadow: var(--ap-shadow);
+  border-radius: var(--ap-radius);
+}
+.welcome-banner { border-radius: var(--ap-radius-lg); padding: 28px; background: var(--ap-primary); color: #fff; }
+.welcome-banner h2 { color: #fff; font-size: 22px; }
+.welcome-banner p { color: rgba(255,255,255,0.85); }
+.stat-tile { border: 1px solid var(--ap-border); box-shadow: var(--ap-shadow); border-radius: var(--ap-radius); background: var(--ap-surface); }
+.stat-tile:hover { border-color: var(--ap-border-strong); box-shadow: var(--ap-shadow-md); transform: translateY(-2px); }

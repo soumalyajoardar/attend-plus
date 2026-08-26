@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Landing.css';
 import { isRemembered, getRole } from '../utils/auth';
-import { IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers } from '../components/Icons';
+import { IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers, IconChart, IconSend, IconLayers } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Landing = () => {
@@ -10,8 +10,7 @@ const Landing = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
-  const [displayText, setDisplayText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [displayText, setDisplayText] = useState('accurate');
 
   // One-off confirmation banner shown after a student permanently deletes
   // their account. StudentDashboard navigates here with
@@ -28,35 +27,14 @@ const Landing = () => {
     return () => clearTimeout(t);
   }, [location.state]);
 
-  const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.', 'Growing.', 'Succeeding.', 'Innovating.', 'Collaborating.', 'Creating.', 'Inspiring.', 'Leading.', 'Empowering.', 'Transforming.', 'Excelling.', 'Advancing.', 'Exploring.', 'Discovering.', 'Building.', 'Sharing.', 'Connecting.', 'Celebrating.'];
-
-  // Typewriter effect: types the word out, pauses, deletes it, moves to the
-  // next word, and loops forever.
+  const heroHighlights = ['accurate', 'instant', 'secure', 'paperless'];
   useEffect(() => {
-    const currentWord = dynamicWords[wordIndex];
-    let timeout;
-
-    if (!isDeleting && displayText.length < currentWord.length) {
-      // typing
-      timeout = setTimeout(() => {
-        setDisplayText(currentWord.slice(0, displayText.length + 1));
-      }, 90);
-    } else if (!isDeleting && displayText.length === currentWord.length) {
-      // pause at full word before deleting
-      timeout = setTimeout(() => setIsDeleting(true), 3000);
-    } else if (isDeleting && displayText.length > 0) {
-      // deleting
-      timeout = setTimeout(() => {
-        setDisplayText(currentWord.slice(0, displayText.length - 1));
-      }, 45);
-    } else if (isDeleting && displayText.length === 0) {
-      // move to next word
-      setIsDeleting(false);
-      setWordIndex((i) => (i + 1) % dynamicWords.length);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [displayText, isDeleting, wordIndex]);
+    const t = setInterval(() => setWordIndex((i) => (i + 1) % heroHighlights.length), 2200);
+    return () => clearInterval(t);
+  }, []);
+  useEffect(() => {
+    setDisplayText(heroHighlights[wordIndex]);
+  }, [wordIndex]);
 
   // Lock body scroll while the mobile slide-in menu is open.
   useEffect(() => {
@@ -165,37 +143,39 @@ const Landing = () => {
       {/* Hero Section */}
       <main className="hero">
         <div className="hero-text">
-          <span className="badge">Simplified Attendance for Modern Institutes</span>
-          <h1>Stop Wasting Time on Roll Calls. <br /> Start <span className="highlight typewriter-wrap">
-            <span className="typewriter-text">{displayText}</span>
-            <span className="typewriter-cursor"> </span>
-          </span></h1>
-          <p>
-            Attend+ uses secure, dynamic QR codes to take attendance in seconds. 
-            No more shouting names, no more paper sheets, and no more proxy attendance.
+          <span className="badge"><span className="badge-dot" /> Trusted by faculty & students</span>
+          <h1>Attendance that is <br /><span className="highlight highlight-anim">{displayText}</span>.</h1>
+          <p className="hero-lead">
+            Secure rotating QR + 6-digit fallback. No proxies, no paper, no wasted lecture time.
+            Built for real classrooms — fast, reliable, and audit-ready.
           </p>
           <div className="hero-actions">
             <button className="btn-primary btn-lg" onClick={handleLaunchDashboard}>
               Launch Dashboard <IconArrowRight size={18} />
             </button>
-            <button className="btn-secondary btn-lg">
-              <IconPlay size={18} /> Watch Demo
+            <button className="btn-secondary btn-lg" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
+              <IconPlay size={18} /> How it works
             </button>
           </div>
+          <ul className="hero-trust">
+            <li><IconShield size={14} /> Proxy-proof</li>
+            <li><IconClock size={14} /> 5-sec check-in</li>
+            <li><IconCheckCircle size={14} /> Paperless</li>
+          </ul>
           <div className="stats">
             <div>
-              <h3>5 Sec</h3>
-              <p>Average Check-in Time</p>
+              <h3>5s</h3>
+              <p>Avg. check-in</p>
             </div>
             <div className="divider"></div>
             <div>
               <h3>100%</h3>
-              <p>Paperless Process</p>
+              <p>Paperless</p>
             </div>
             <div className="divider"></div>
             <div>
               <h3>0</h3>
-              <p>Proxy Attendance</p>
+              <p>Proxy attendance</p>
             </div>
           </div>
         </div>
@@ -257,14 +237,98 @@ const Landing = () => {
         </div>
       </main>
 
+      {/* Features */}
+      <section className="lp-section" aria-labelledby="features-heading">
+        <div className="lp-section-inner">
+          <div className="lp-section-head">
+            <h2 id="features-heading">Built for how classes actually run</h2>
+            <p>No extra hardware. No spreadsheets. Just a session code and a scan.</p>
+          </div>
+          <div className="lp-features">
+            <div className="lp-feature">
+              <span className="lp-feature-icon"><IconQr size={20} /></span>
+              <h3>Rotating QR, every 5s</h3>
+              <p>Each session derives a new code from a per-session secret. Screenshots and forwards expire instantly.</p>
+            </div>
+            <div className="lp-feature">
+              <span className="lp-feature-icon"><IconShield size={20} /></span>
+              <h3>Proxy-proof by design</h3>
+              <p>Time-bound verification on the server, plus a 30s manual 6-digit fallback when the camera fails.</p>
+            </div>
+            <div className="lp-feature">
+              <span className="lp-feature-icon"><IconChart size={20} /></span>
+              <h3>Reports you can use</h3>
+              <p>Department, semester, and subject filters, defaulter lists, and one-click CSV for records.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="lp-section lp-section-alt" aria-labelledby="hiw-heading">
+        <div className="lp-section-inner">
+          <div className="lp-section-head">
+            <h2 id="hiw-heading">Three steps. Under a minute.</h2>
+            <p>Teachers start a session. Students check in. Everyone moves on.</p>
+          </div>
+          <ol className="lp-steps">
+            <li>
+              <span className="lp-step-num">01</span>
+              <div>
+                <h3>Teacher starts session</h3>
+                <p>Select department, semester, subject → get a live QR and manual code. No setup beyond that.</p>
+              </div>
+            </li>
+            <li>
+              <span className="lp-step-num">02</span>
+              <div>
+                <h3>Students scan or enter code</h3>
+                <p>QR via camera or 6 digits typed in. Verified instantly against the session secret.</p>
+              </div>
+            </li>
+            <li>
+              <span className="lp-step-num">03</span>
+              <div>
+                <h3>Attendance is recorded</h3>
+                <p>Live list updates, history is saved, and reports stay accurate all semester.</p>
+              </div>
+            </li>
+          </ol>
+          <div className="lp-cta">
+            <button className="btn-primary btn-lg" onClick={handleLaunchDashboard}>Get started — it’s free <IconArrowRight size={18} /></button>
+            <span className="lp-cta-note"><IconLayers size={14} /> No credit card · Approval-based student access</span>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="footer">
-        <p>
-          © 2026 Attend+. Built with ❤️ By the Attend+ Team ·{' '}
-          <button type="button" className="footer-link" onClick={() => navigate('/credits')}>
-            Credits
-          </button>
-        </p>
+      <footer className="footer footer-pro">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <div className="logo">
+              <span className="logo-icon">+</span>
+              <h2>Attend<span>+</span></h2>
+            </div>
+            <p>Paperless attendance for modern institutes. Secure, fast, and built for real classrooms.</p>
+          </div>
+          <div className="footer-links">
+            <div>
+              <h4>Product</h4>
+              <button type="button" className="footer-link" onClick={handleLaunchDashboard}>Launch Dashboard</button>
+              <button type="button" className="footer-link" onClick={() => navigate('/login')}>Sign In</button>
+              <button type="button" className="footer-link" onClick={() => navigate('/signup')}>Create Account</button>
+            </div>
+            <div>
+              <h4>Resources</h4>
+              <button type="button" className="footer-link" onClick={() => navigate('/credits')}>Credits & Team</button>
+              <a className="footer-link" href="#how-it-works">How it works</a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>© 2026 Attend+ · Group 8, SGP Major Project</p>
+          <span className="footer-meta">Built for institute use · Approval-gated access</span>
+        </div>
       </footer>
     </div>
   );
