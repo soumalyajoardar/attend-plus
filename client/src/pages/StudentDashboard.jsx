@@ -4,7 +4,7 @@ import QRScanner from './QRScanner';
 import ManualEntry from './ManualEntry';
 import './StudentDashboard.css';
 import { API_BASE } from '../utils/api';
-import { clearSession, getUser } from '../utils/auth';
+import { clearSession, getUser, getToken } from '../utils/auth';
 import { getTheme, setTheme as setGlobalTheme } from '../utils/theme';
 import { useToast, ToastStack } from '../components/Toast';
 import {
@@ -31,7 +31,8 @@ const StudentDashboard = () => {
   const [department] = useState(storedUser.department || 'CST');
   const [semester] = useState(storedUser.semester || '1st');
   const [registrationNo] = useState(storedUser.registrationNo || 'N/A');
-  const [email] = useState(storedUser.email || '');
+  const [email, setEmail] = useState(storedUser.email || '');
+  const [parentEmail, setParentEmail] = useState(storedUser.parentEmail || '');
 
   const [activeSection, setActiveSection] = useState('home');
   const [notifications, setNotifications] = useState([]);
@@ -72,6 +73,25 @@ const StudentDashboard = () => {
     const onChange = (e) => setThemeState(e.detail);
     window.addEventListener('attendplus-theme-change', onChange);
     return () => window.removeEventListener('attendplus-theme-change', onChange);
+  }, []);
+
+  // Pull the student's live record from the server so the email / parent email
+  // shown in Profile & Settings always match the database, even on a stale
+  // session. Falls back silently to the stored values if this fails.
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    fetch(`${API_BASE}/api/student/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.student) {
+          if (d.student.email) setEmail(d.student.email);
+          if (d.student.parentEmail) setParentEmail(d.student.parentEmail);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // ---------- Notifications: global feed, no department/semester filter ----------
@@ -415,7 +435,7 @@ const StudentDashboard = () => {
               <div className="profile-field"><IconBuilding size={17} /><div><small>Department</small><strong>{department}</strong></div></div>
               <div className="profile-field"><IconLayers size={17} /><div><small>Semester</small><strong>{semester}</strong></div></div>
               <div className="profile-field"><IconMail size={17} /><div><small>Email</small><strong>{email || '—'}</strong></div></div>
-              <div className="profile-field"><IconMail size={17} /><div><small>Parent Email</small><strong>{storedUser.parentEmail || '—'}</strong></div></div>
+              <div className="profile-field"><IconMail size={17} /><div><small>Parent Email</small><strong>{parentEmail || '—'}</strong></div></div>
               <div className="profile-field"><IconShield size={17} /><div><small>Account Type</small><strong>Student</strong></div></div>
             </div>
             <p className="muted-note">This is the information you provided while registering. Contact the admin to correct any details.</p>

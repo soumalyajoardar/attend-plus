@@ -337,11 +337,60 @@ app.post('/api/auth/login', async (req, res) => {
           department: user.department,
           semester: user.semester,
           registrationNo: user.registrationNo,
+          parentEmail: user.parentEmail,
         }),
       },
     });
   } catch (error) {
     console.error('Login error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// ---------- STUDENT PROFILE (live DB record) ----------
+// The stored session object can go stale (e.g. right after a field like
+// parentEmail was added server-side, or if the code changed without a
+// re-login). This returns the student's current DB record so the dashboard
+// always shows accurate contact details without forcing a re-login.
+app.get('/api/student/profile', async (req, res) => {
+  try {
+    const auth = req.headers.authorization || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : auth;
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Not authenticated.' });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ success: false, message: 'Invalid or expired session.' });
+    }
+
+    if (payload.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Not a student account.' });
+    }
+
+    const student = await Student.findById(payload.id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found.' });
+    }
+
+    res.json({
+      success: true,
+      student: {
+        id: student._id,
+        fullName: student.fullName,
+        email: student.email,
+        parentEmail: student.parentEmail,
+        department: student.department,
+        semester: student.semester,
+        registrationNo: student.registrationNo,
+        status: student.status,
+      },
+    });
+  } catch (error) {
+    console.error('Student profile error:', error.message);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });

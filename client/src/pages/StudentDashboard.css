@@ -1,4 +1,4 @@
-﻿/* ============ Attend+ · Student Dashboard ============ */
+/* ============ Attend+ · Student Dashboard ============ */
 
 .student-container {
   display: flex;
@@ -423,7 +423,7 @@
 }
 
 .full-page-card { padding: 26px; }
-.full-page-card h3 { margin: 0 0 6px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.full-page-card h3 { margin-bottom: 16px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
 
 .muted-note { color: var(--ap-text-muted); font-size: 13px; margin: 4px 0 16px; }
 
@@ -528,7 +528,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--ap-bg);
+  background: var(--ap-surface);
   border: 1px solid var(--ap-border);
   border-radius: 12px;
   padding: 14px;
@@ -547,7 +547,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: var(--ap-bg);
+  background: var(--ap-surface);
   border: 1px solid var(--ap-border);
   border-radius: 12px;
 }
@@ -1028,7 +1028,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 18px 20px;
+  padding: 20px 22px;
   border: 1px solid var(--ap-danger);
   background: var(--ap-danger-light);
   border-radius: var(--ap-radius);
@@ -1037,7 +1037,7 @@
 .sd-danger-copy strong {
   display: block;
   font-size: 15px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   color: var(--ap-text);
 }
 
@@ -1307,6 +1307,125 @@
 }
 
 /* ==================================================================
+   SIDEBAR RE-SKIN — light glass, on-theme. The previous violet gradient
+   read as too heavy in light mode; this keeps a single violet accent for
+   the active item and lets the page's glass system do the rest.
+   ================================================================== */
+.student-sidebar {
+  background: var(--ap-glass-bg);
+  color: var(--ap-text);
+  border-right: 1px solid var(--ap-glass-border);
+  box-shadow: var(--ap-glass-shadow);
+}
+
+.student-logo {
+  border-bottom: 1px solid var(--ap-glass-border);
+}
+
+.student-sidebar .logo-icon {
+  background: var(--ap-primary);
+  color: #fff;
+}
+
+.student-logo h2 { color: var(--ap-text); }
+.student-logo h2 span { color: var(--ap-primary); }
+
+.student-sidebar-nav .sidebar-link {
+  color: var(--ap-text-muted);
+}
+.student-sidebar-nav .sidebar-link:hover {
+  background: var(--ap-primary-light);
+  color: var(--ap-text);
+}
+.student-sidebar-nav .sidebar-link.active {
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+  box-shadow: none;
+}
+
+.student-sidebar .notification-badge.inline {
+  margin-left: auto;
+  background: var(--ap-primary);
+  color: #fff;
+}
+
+.student-sidebar .sidebar-footer {
+  border-top: 1px solid var(--ap-glass-border);
+}
+
+.student-mini-card {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-glass-border);
+}
+
+.student-avatar-small {
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+}
+
+.student-mini-details strong { color: var(--ap-text); }
+.student-mini-details p { color: var(--ap-text-muted); }
+
+.student-sidebar .logout-btn {
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+  border: 1px solid var(--ap-danger);
+}
+.student-sidebar .logout-btn:hover {
+  background: var(--ap-danger);
+  color: #fff;
+  border-color: var(--ap-danger);
+  transform: translateY(-1px);
+}
+
+/* ---------- Drawer re-skin (same light glass as the sidebar) ---------- */
+.nav-drawer {
+  background: var(--ap-glass-bg);
+  box-shadow: 10px 0 30px rgba(15, 23, 42, 0.15);
+}
+.nav-drawer-header { border-bottom: 1px solid var(--ap-glass-border); }
+.nav-drawer-close { color: var(--ap-text); }
+.nav-drawer-close:hover { background: var(--ap-primary-light); color: var(--ap-primary); }
+
+.nav-drawer .student-logo { border-bottom: none; padding: 18px 0 0; }
+.nav-drawer .logo-icon { background: var(--ap-primary); color: #fff; }
+.nav-drawer-header h2,
+.nav-drawer .student-logo h2 { color: var(--ap-text); }
+.nav-drawer-header h2 span,
+.nav-drawer .student-logo h2 span { color: var(--ap-primary); }
+
+.nav-drawer-btn {
+  background: transparent;
+  border: none;
+  color: var(--ap-text-muted);
+}
+.nav-drawer-btn:hover {
+  background: var(--ap-primary-light);
+  color: var(--ap-text);
+}
+.nav-drawer-btn.active {
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+  box-shadow: none;
+}
+.nav-drawer .logout-btn {
+  background: var(--ap-danger-light);
+  color: var(--ap-danger-text);
+  border: 1px solid var(--ap-danger);
+}
+.nav-drawer .logout-btn:hover {
+  background: var(--ap-danger);
+  color: #fff;
+  border-color: var(--ap-danger);
+  transform: none;
+}
+.nav-drawer .notification-badge.inline {
+  margin-left: auto;
+  background: var(--ap-primary);
+  color: #fff;
+}
+
+/* ==================================================================
    OVERFLOW HARDENING — nothing may push the page wider than the screen
    ================================================================== */
 .student-main {
@@ -1384,19 +1503,3 @@
     justify-content: center;
   }
 }
-/* Professional polish */
-.student-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: var(--ap-surface);
-  border-bottom: 1px solid var(--ap-border);
-  padding: 16px 0;
-  margin: -26px -40px 24px;
-  padding-left: 40px;
-  padding-right: 40px;
-}
-.student-topbar h1 { font-size: 19px; font-weight: 700; }
-.mini-stat, .recent-checkins, .notifications-column, .full-page-card { border: 1px solid var(--ap-border); box-shadow: var(--ap-shadow); border-radius: var(--ap-radius); background: var(--ap-surface); }
-.mini-stat:hover { border-color: var(--ap-border-strong); box-shadow: var(--ap-shadow-md); }
-.scan-btn { border-radius: var(--ap-radius-lg); box-shadow: var(--ap-shadow-md); }

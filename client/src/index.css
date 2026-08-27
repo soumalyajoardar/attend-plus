@@ -59,23 +59,18 @@ html {
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', sans-serif;
   background-color: var(--ap-bg, #F8FAFC);
   color: var(--ap-text, #0F172A);
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   transition: background-color 0.25s ease, color 0.25s ease;
-  line-height: 1.6;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', sans-serif;
   color: var(--ap-text, #0F172A);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
 }
 
 @media (max-width: 600px) {
@@ -166,32 +161,35 @@ h1, h2, h3, h4, h5, h6 {
 
 :root {
   color-scheme: light;
-  --ap-primary: #4338CA;
-  --ap-primary-dark: #3730A3;
+  --ap-primary: #4F46E5;
+  --ap-primary-dark: #4338CA;
   --ap-primary-light: #EEF2FF;
-  --ap-primary-soft: #E0E7FF;
-  --ap-accent: #6366F1;
-  --ap-success: #0F9A4A;
+  --ap-accent: #7C3AED;
+  --ap-success: #16A34A;
   --ap-success-light: #ECFDF5;
   --ap-danger: #DC2626;
   --ap-danger-light: #FEF2F2;
+  /* Text/glyph shades of the two status colours. --ap-danger and --ap-success
+     above are tuned for SOLID FILLS (white-on-colour) and are intentionally
+     the same in both themes. Used as coloured *text* on a tinted or dark
+     background they fall under the 4.5:1 WCAG AA floor — #DC2626 on the
+     #FEF2F2 tint is only 4.41:1. Use these for coloured text and icons. */
   --ap-danger-text: #C81E1E;
   --ap-success-text: #15803D;
-  --ap-warning: #B45309;
+  --ap-warning: #D97706;
   --ap-bg: #F8FAFC;
-  --ap-surface: #FFFFFF;
+  --ap-surface: rgba(255, 255, 255, 0.70);
+  --ap-glass-bg: rgba(255, 255, 255, 0.70);
+  --ap-glass-border: rgba(255, 255, 255, 0.55);
+  --ap-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.10);
+  --ap-glass-blur: 16px;
   --ap-border: #E2E8F0;
-  --ap-border-strong: #CBD5E1;
   --ap-text: #0F172A;
   --ap-text-muted: #64748B;
-  --ap-text-faint: #94A3B8;
-  --ap-radius: 14px;
-  --ap-radius-sm: 10px;
-  --ap-radius-lg: 18px;
-  --ap-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.05);
-  --ap-shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 4px rgba(15, 23, 42, 0.06);
-  --ap-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.06);
-  --ap-transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --ap-radius: 16px;
+  --ap-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --ap-shadow-lg: 0 25px 50px rgba(15, 23, 42, 0.08);
+  --ap-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Dark theme, toggled by adding data-theme="dark" to <html> or <body> */
@@ -209,7 +207,11 @@ h1, h2, h3, h4, h5, h6 {
   --ap-danger-text: #EF4444;
   --ap-success-text: #16A34A;
   --ap-bg: #0B1120;
-  --ap-surface: #131B2E;
+  --ap-surface: rgba(19, 27, 46, 0.55);
+  --ap-glass-bg: rgba(19, 27, 46, 0.55);
+  --ap-glass-border: rgba(255, 255, 255, 0.10);
+  --ap-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --ap-glass-blur: 16px;
   --ap-border: #223047;
   --ap-text: #E2E8F0;
   --ap-text-muted: #94A3B8;
@@ -220,6 +222,66 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme='dark'] body {
   background-color: var(--ap-bg);
   color: var(--ap-text);
+}
+
+/* ==================================================================
+   GLASSMORPHISM — global subtlety layer
+   The page background gets brand-tinted colour washes so the translucent
+   surfaces below actually have something to blur. Bodies are pinned with
+   background-attachment: fixed so the wash doesn't scroll away.
+   ================================================================== */
+body { background-attachment: fixed; }
+
+:root body {
+  background:
+    radial-gradient(1100px 540px at 8% -10%, rgba(124, 58, 237, 0.12), transparent 55%),
+    radial-gradient(900px 480px at 102% 0%, rgba(79, 70, 229, 0.12), transparent 50%),
+    radial-gradient(800px 600px at 50% 120%, rgba(37, 99, 235, 0.08), transparent 55%),
+    linear-gradient(180deg, #F8FAFC 0%, #EEF2FF 100%);
+}
+
+[data-theme='dark'] body {
+  background:
+    radial-gradient(1100px 540px at 8% -10%, rgba(124, 58, 237, 0.20), transparent 55%),
+    radial-gradient(900px 480px at 102% 0%, rgba(79, 70, 229, 0.20), transparent 50%),
+    radial-gradient(800px 600px at 50% 120%, rgba(37, 99, 235, 0.14), transparent 55%),
+    linear-gradient(180deg, #0B1120 0%, #131B2E 100%);
+}
+
+/* Every backdrop-blurred surface in the app. */
+.sidebar, .student-sidebar,
+.section-card, .stat-tile, .mini-stat,
+.qr-section, .attendance-section, .control-panel,
+.notification-form-card, .sent-notifications-card, .class-selection-card,
+.recent-checkins, .notifications-column, .full-page-card,
+.settings-row, .profile-field, .approval-item, .td-roster-row,
+.report-table, .history-table, .class-item, .approval-list,
+.td-roster-list, .stat-card, .nav-drawer, .quick-action-btn,
+.sent-notif-item, .notification-item, .ap-toast,
+.topbar, .student-topbar {
+  backdrop-filter: blur(var(--ap-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ap-glass-blur));
+}
+
+/* Cards picked up a translucent surface via --ap-surface; give them a hairline
+   glass edge + soft shadow so the blur reads as glass, not as "washed out". */
+.section-card, .stat-tile, .mini-stat,
+.qr-section, .attendance-section, .control-panel,
+.notification-form-card, .sent-notifications-card, .class-selection-card,
+.recent-checkins, .notifications-column, .full-page-card,
+.settings-row, .profile-field, .approval-item, .td-roster-row,
+.report-table, .history-table, .class-item, .quick-action-btn,
+.stat-card, .ap-toast {
+  border: 1px solid var(--ap-glass-border) !important;
+  box-shadow: var(--ap-glass-shadow) !important;
+}
+
+/* Top bars become floating glass strips. */
+.topbar, .student-topbar {
+  background: var(--ap-glass-bg);
+  border: 1px solid var(--ap-glass-border);
+  border-radius: 16px;
+  padding: 14px 20px;
 }
 
 /* Form controls inherit the theme text colour by default. Browsers otherwise
@@ -306,16 +368,14 @@ button {
 .ap-toast {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: var(--ap-surface);
   border: 1px solid var(--ap-border);
   color: var(--ap-text);
   padding: 14px 18px;
-  border-radius: var(--ap-radius-sm);
+  border-radius: 12px;
   box-shadow: var(--ap-shadow-lg);
-  min-width: 280px;
-  font-size: 13.5px;
-  font-weight: 500;
+  min-width: 260px;
   animation: fadeInUp 0.3s ease both;
 }
 
