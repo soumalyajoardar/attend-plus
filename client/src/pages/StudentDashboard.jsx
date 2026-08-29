@@ -11,7 +11,7 @@ import {
   IconHome, IconBell, IconQr, IconCalendar, IconUser, IconSettings, IconLogout,
   IconCheckCircle, IconRefresh, IconMoon, IconSun, IconIdCard,
   IconBuilding, IconLayers, IconMail, IconShield, IconTrendingUp, IconChevronRight,
-  IconTrash, IconAlertCircle, IconClose, IconMenu,
+  IconTrash, IconAlertCircle, IconClose, IconMenu, IconLogo,
 } from '../components/Icons';
 
 const NAV_ITEMS = [
@@ -211,7 +211,7 @@ const StudentDashboard = () => {
     <div className={`student-container ${prefCompact ? 'compact' : ''}`}>
       <aside className="student-sidebar">
         <div className="student-logo">
-          <span className="logo-icon">+</span>
+          <IconLogo size={30} className="logo-icon" />
           <h2>Attend<span>+</span></h2>
         </div>
         <nav className="student-sidebar-nav">
@@ -513,7 +513,7 @@ const StudentDashboard = () => {
       <aside className={`nav-drawer ${mobileNavOpen ? 'is-open' : ''}`} aria-hidden={!mobileNavOpen}>
         <div className="nav-drawer-header">
           <div className="student-logo">
-            <span className="logo-icon">+</span>
+            <IconLogo size={30} className="logo-icon" />
             <h2>Attend<span>+</span></h2>
           </div>
           <button type="button" className="nav-drawer-close" onClick={() => setMobileNavOpen(false)} aria-label="Close menu">

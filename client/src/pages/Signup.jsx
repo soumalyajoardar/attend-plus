@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css'; // We will reuse the same styles as the login page!
 import { API_BASE } from '../utils/api';
-import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle } from '../components/Icons';
+import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle, IconLogo } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Signup = () => {
@@ -127,7 +127,7 @@ const Signup = () => {
       <div className="login-card signup-card">
         {/* Logo */}
         <div className="login-logo">
-          <span className="logo-icon">+</span>
+          <IconLogo size={30} className="logo-icon" />
           <h2>Attend<span>+</span></h2>
         </div>
 

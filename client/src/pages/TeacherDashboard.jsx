@@ -10,7 +10,7 @@ import {
   IconChart, IconCheck, IconBell, IconCalendar, IconTrendingUp, IconSettings,
   IconUsers, IconAlertCircle, IconSend, IconPlay, IconStop, IconLogout,
   IconRefresh, IconMoon, IconSun, IconCheckCircle, IconUser as IconUserIcon,
-  IconDownload, IconIdCard, IconClose, IconClock, IconTrash, IconMenu,
+  IconDownload, IconIdCard, IconClose, IconClock, IconTrash, IconMenu, IconLogo,
 } from '../components/Icons';
 
 async function deriveCode(secret, step, kind) {
@@ -578,7 +578,7 @@ const TeacherDashboard = () => {
     <div className="dashboard-container">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <span className="logo-icon">+</span>
+          <IconLogo size={30} className="logo-icon" />
           <h2>Attend<span>+</span></h2>
         </div>
         <nav className="sidebar-nav">
@@ -1301,7 +1301,7 @@ const TeacherDashboard = () => {
       <aside className={`nav-drawer ${mobileNavOpen ? 'is-open' : ''}`} aria-hidden={!mobileNavOpen}>
         <div className="nav-drawer-header">
           <div className="sidebar-logo">
-            <span className="logo-icon">+</span>
+            <IconLogo size={30} className="logo-icon" />
             <h2>Attend<span>+</span></h2>
           </div>
           <button type="button" className="nav-drawer-close" onClick={() => setMobileNavOpen(false)} aria-label="Close menu">

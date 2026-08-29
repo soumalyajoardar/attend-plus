@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
 import { API_BASE } from '../utils/api';
 import { saveSession } from '../utils/auth';
-import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle, IconCheckCircle } from '../components/Icons';
+import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle, IconCheckCircle, IconLogo } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Login = () => {
@@ -77,7 +77,7 @@ const Login = () => {
       <div className="login-card">
         {/* Logo */}
         <div className="login-logo">
-          <span className="logo-icon">+</span>
+          <IconLogo size={30} className="logo-icon" />
           <h2>Attend<span>+</span></h2>
         </div>
 

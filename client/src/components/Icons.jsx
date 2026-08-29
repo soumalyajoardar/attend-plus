@@ -35,6 +35,14 @@ export const IconMenu = (p) => (
   <Icon {...p}><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></Icon>
 );
 
+export const IconLogo = (p) => (
+  <Icon {...p}>
+    <path d="M14 30 L22 22 L26 26 L34 18" strokeWidth="2.5" />
+    <circle cx="34" cy="18" r="4" fill="currentColor" stroke="none"/>
+    <circle cx="14" cy="30" r="4" fill="currentColor" stroke="none"/>
+  </Icon>
+);
+
 export const IconHome = (p) => (
   <Icon {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /><path d="M9.5 21v-6h5v6" /></Icon>
 );

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Landing.css';
 import { isRemembered, getRole } from '../utils/auth';
-import { IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers } from '../components/Icons';
+import { IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers, IconLogo } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Landing = () => {
@@ -97,7 +97,7 @@ const Landing = () => {
       {/* Navigation Bar */}
       <nav className="navbar">
         <div className="logo">
-          <span className="logo-icon">+</span> 
+          <IconLogo size={30} className="logo-icon" />
           <h2>Attend<span>+</span></h2>
         </div>
         {/* Full nav actions: shown inline on desktop/tablet */}
@@ -128,7 +128,7 @@ const Landing = () => {
       <aside className={`nav-drawer ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
         <div className="nav-drawer-header">
           <div className="logo">
-            <span className="logo-icon">+</span>
+            <IconLogo size={30} className="logo-icon" />
             <h2>Attend<span>+</span></h2>
           </div>
           <button

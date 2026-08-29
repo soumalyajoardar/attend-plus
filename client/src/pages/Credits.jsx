@@ -4,7 +4,7 @@ import './Landing.css';
 import './Credits.css';
 import ThemeToggle from '../components/ThemeToggle';
 import {
-  IconArrowLeft, IconUsers, IconPhone, IconLayers, IconEye, IconSettings,
+  IconArrowLeft, IconUsers, IconPhone, IconLayers, IconEye, IconSettings, IconLogo,
 } from '../components/Icons';
 
 /*
@@ -40,7 +40,7 @@ const Credits = () => {
           onClick={() => navigate('/')}
           aria-label="Back to Attend+ home"
         >
-          <span className="logo-icon">+</span>
+          <IconLogo size={30} className="logo-icon" />
           <h2>Attend<span>+</span></h2>
         </button>
         <div className="credits-nav-actions">
