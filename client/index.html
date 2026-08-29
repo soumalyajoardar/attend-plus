@@ -4,10 +4,71 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+    <title>Attend+ | Teach Effortlessly</title>
+    <style>
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #ecfeff 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+      }
+      #loading-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .loader {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 4px solid #e2e8f0;
+        border-top-color: #0f766e;
+        animation: spin 0.8s linear infinite;
+      }
+      .loader-text {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: #64748b;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      [data-theme='dark'] #loading-screen {
+        background: linear-gradient(180deg, #0b1120 0%, #0f2f2c 100%);
+      }
+      [data-theme='dark'] .loader {
+        border-color: #223047;
+        border-top-color: #5eead4;
+      }
+      [data-theme='dark'] .loader-text {
+        color: #94a3b8;
+      }
+    </style>
   </head>
   <body>
+    <div id="loading-screen" role="status" aria-label="Loading Attend+">
+      <div class="loader" style="position: relative;">
+        <span class="loader-text">Loading...</span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      window.addEventListener('load', () => {
+        const loading = document.getElementById('loading-screen');
+        if (loading) {
+          loading.classList.add('hidden');
+          setTimeout(() => loading.remove(), 300);
+        }
+      });
+    </script>
   </body>
 </html>
