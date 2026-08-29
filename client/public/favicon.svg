@@ -6,5 +6,7 @@
     </linearGradient>
   </defs>
   <rect width="48" height="48" rx="12" fill="url(#grad)"/>
-  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="white">+</text>
+  <path d="M14 30 L22 22 L26 26 L34 18" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="34" cy="18" r="4" fill="white"/>
+  <circle cx="14" cy="30" r="4" fill="white"/>
 </svg>
