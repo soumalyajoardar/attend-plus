@@ -209,6 +209,15 @@ export const IconDownload = (p) => (
   <Icon {...p}><path d="M12 3v12" /><path d="m7 10.5 5 4.5 5-4.5" /><path d="M5 19.5h14" /></Icon>
 );
 
+export const IconLightbulb = (p) => (
+  <Icon {...p}>
+    <path d="M9 18h6" />
+    <path d="M10 18v6h4v-6" />
+    <path d="M12 2a6 6 0 0 1 6 6c0 2.5-1.5 4.5-3 5.2V22h-6v-2.8c-1.5-.7-3-2.7-3-5.2a6 6 0 0 1 6-6Z" />
+    <path d="M12 2v2" />
+  </Icon>
+);
+
 export const IconGlobe = (p) => (
   <Icon {...p}><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17" /><path d="M12 3.5c2.2 2.3 3.4 5.2 3.4 8.5s-1.2 6.2-3.4 8.5c-2.2-2.3-3.4-5.2-3.4-8.5S9.8 5.8 12 3.5Z" /></Icon>
 );
@@ -219,5 +228,5 @@ export default {
   IconClock, IconUsers, IconSend, IconPlay, IconStop, IconClose, IconEye, IconEyeOff,
   IconRefresh, IconArrowLeft, IconArrowRight, IconMoon, IconSun, IconShield, IconMail,
   IconIdCard, IconBuilding, IconLayers, IconTrendingUp, IconChevronRight, IconLock,
-  IconTrash, IconPhone, IconDownload, IconGlobe,
+  IconTrash, IconPhone, IconDownload, IconGlobe, IconLightbulb,
 };

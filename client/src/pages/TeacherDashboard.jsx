@@ -10,7 +10,8 @@ import {
   IconChart, IconCheck, IconBell, IconCalendar, IconTrendingUp, IconSettings,
   IconUsers, IconAlertCircle, IconSend, IconPlay, IconStop, IconLogout,
   IconRefresh, IconMoon, IconSun, IconCheckCircle, IconUser as IconUserIcon,
-  IconDownload, IconIdCard, IconClose, IconClock, IconTrash, IconMenu,
+  IconDownload, IconIdCard, IconClose, IconTrash, IconMenu,
+  IconQr, IconLightbulb,
 } from '../components/Icons';
 
 async function deriveCode(secret, step, kind) {
@@ -810,80 +811,131 @@ const TeacherDashboard = () => {
               <span className="class-live-badge">Live</span>
             </div>
 
-            <div className="control-panel">
-              <h2>Session Controls</h2>
-              {!sessionActive ? (
-                <button className="btn-primary btn-block" onClick={startSession}><IconPlay size={16} /> Start Attendance</button>
-              ) : (
-                <button className="btn-danger btn-block" onClick={endSession}><IconStop size={16} /> End Session</button>
-              )}
-
-              {sessionActive && (
-                <button className="btn-secondary btn-block" onClick={() => setShowManualCode(!showManualCode)}>
-                  {showManualCode ? 'Hide Manual Code' : 'Show Manual Code'}
-                </button>
-              )}
-
-              {sessionActive && showManualCode && (
-                <div className="manual-code-box">
-                  <p className="manual-label">Manual Code</p>
-                  <h3 className="manual-code">{manualCode}</h3>
-                  <div className="manual-countdown">
-                    <span className="manual-countdown-bar" style={{ width: `${(manualSecondsLeft / 30) * 100}%` }} />
-                  </div>
-                  <p className="manual-refresh-hint"><IconClock size={12} /> Refreshes in {manualSecondsLeft}s</p>
-                </div>
-              )}
-
-              <div className="session-info">
-                {sessionActive ? (
-                  <>
-                    <span className="live-dot"></span> Session Active
-                    <p className="session-id">ID: {sessionId}</p>
-                  </>
-                ) : (
-                  <p className="inactive-text">No active session</p>
-                )}
-              </div>
-            </div>
-
-            <div className="display-panel">
-              <div className="qr-section">
-                {sessionActive ? (
-                  <>
+            <div className="attendance-grid">
+              <div className="main-panel">
+                <div className="qr-panel">
+                  <div className="qr-header">
                     <h3>Scan to Attend</h3>
-                    <p className="qr-subtitle">{selectedDepartment} - {selectedSemester}</p>
-                    <div className="qr-code-wrapper">
-                      <QRCodeCanvas value={qrValue} size={250} level="H" />
-                    </div>
-                    <p className="qr-hint">QR refreshes every 5 seconds</p>
-                  </>
-                ) : (
-                  <div className="qr-placeholder-empty">
-                    <div className="qr-dashed-border"><span>QR Code will appear here</span></div>
+                    <p className="qr-subtitle">{selectedDepartment} • Semester {selectedSemester}</p>
                   </div>
-                )}
+                  {sessionActive ? (
+                    <div className="qr-code-container">
+                      <QRCodeCanvas value={qrValue} size={280} level="H" />
+                      <div className="qr-refresh-indicator">
+                        <span className="refresh-dot"></span>
+                        <span>QR refreshes every 5s</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="qr-placeholder">
+                      <div className="qr-dashed-border">
+                        <IconQr size={48} />
+                        <span>Start session to generate QR</span>
+                      </div>
+                    </div>
+                  )}
+                  {sessionActive && showManualCode && (
+                    <div className="manual-code-card">
+                      <div className="manual-code-header">
+                        <IconIdCard size={18} />
+                        <span>Manual Entry Code</span>
+                      </div>
+                      <div className="manual-code-value">{manualCode}</div>
+                      <div className="manual-code-timer">
+                        <div className="timer-bar" style={{ width: `${(manualSecondsLeft / 30) * 100}%` }} />
+                        <span>{manualSecondsLeft}s</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="attendance-panel">
+                  <div className="panel-header">
+                    <h3>
+                      <IconUsers size={18} />
+                      Live Attendance <span className="count-badge">{attendanceList.length}</span>
+                    </h3>
+                    <div className="session-status">
+                      {sessionActive ? (
+                        <span className="status-live">
+                          <span className="pulse-dot"></span> Active
+                        </span>
+                      ) : (
+                        <span className="status-waiting">Waiting to start</span>
+                      )}
+                    </div>
+                  </div>
+                  {attendanceList.length === 0 ? (
+                    <div className="empty-attendance">
+                      <IconUserIcon size={48} />
+                      <p>No students checked in yet</p>
+                      <span>Students will appear here as they scan</span>
+                    </div>
+                  ) : (
+                    <ul className="attendance-cards">
+                      {attendanceList.map((student, index) => (
+                        <li key={index} className="attendance-card" style={{ animationDelay: `${index * 0.05}s` }}>
+                          <div className="student-avatar">{student.studentName || student.name}</div>
+                          <div className="student-details">
+                            <strong>{student.studentName || student.name}</strong>
+                            <span className="check-time">{student.time}</span>
+                          </div>
+                          <span className="check-badge">
+                            <IconCheckCircle size={14} /> Checked In
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
 
-              <div className="attendance-section">
-                <h3>Live Attendance ({attendanceList.length})</h3>
-                {attendanceList.length === 0 ? (
-                  <p className="no-students">No students checked in yet...</p>
-                ) : (
-                  <ul className="attendance-list">
-                    {attendanceList.map((student, index) => (
-                      <li key={index} className="attendance-item">
-                        <div className="student-avatar"><IconUserIcon size={18} /></div>
-                        <div className="student-info">
-                          <strong>{student.studentName || student.name}</strong>
-                          <p>{student.time}</p>
-                        </div>
-                        <span className="present-badge"><IconCheckCircle size={13} /> Present</span>
-                      </li>
-                    ))}
-                  </ul>
+              <aside className="control-sidebar">
+                <div className="control-card">
+                  <h3>Session Controls</h3>
+                  {!sessionActive ? (
+                    <button className="btn-primary btn-full" onClick={startSession}>
+                      <IconPlay size={16} /> Start Attendance Session
+                    </button>
+                  ) : (
+                    <>
+                      <button className="btn-danger btn-full" onClick={endSession}>
+                        <IconStop size={16} /> End Session
+                      </button>
+                      <button className="btn-secondary btn-full" onClick={() => setShowManualCode(!showManualCode)}>
+                        {showManualCode ? (<> <IconClose size={16} /> Hide Manual Code </>) : (<> <IconIdCard size={16} /> Show Manual Code </>)}
+                      </button>
+                    </>
+                  )}
+
+                  {sessionActive && (
+                    <div className="session-info-card">
+                      <div className="info-row">
+                        <span className="info-label">Session ID</span>
+                        <span className="info-value mono">{sessionId}</span>
+                      </div>
+                      <div className="info-row">
+                        <span className="info-label">Subject</span>
+                        <span className="info-value">{selectedSubject}</span>
+                      </div>
+                      <div className="info-row">
+                        <span className="info-label">Class</span>
+                        <span className="info-value">{selectedDepartment} • Sem {selectedSemester}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {sessionActive && !showManualCode && (
+                  <div className="hint-card">
+                    <IconLightbulb size={20} />
+                    <div>
+                      <strong>Quick Tip</strong>
+                      <p>Display the QR code on a projector or large screen for students to scan easily.</p>
+                    </div>
+                  </div>
                 )}
-              </div>
+              </aside>
             </div>
           </div>
         )}
