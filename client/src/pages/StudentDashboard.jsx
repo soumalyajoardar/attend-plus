@@ -362,7 +362,6 @@ const StudentDashboard = () => {
                 <button className="view-all-btn" onClick={fetchNotifications}><IconRefresh size={15} /></button>
               </div>
             </div>
-            <p className="muted-note">These announcements are sent by your teachers to everyone — no department or semester filtering.</p>
             <div className="notification-list wide">
               {loadingNotifications ? (
                 <div className="ap-skeleton" style={{ height: 70, marginBottom: 10 }} />
@@ -430,7 +429,6 @@ const StudentDashboard = () => {
               <div className="profile-field"><IconMail size={17} /><div><small>Parent Email</small><strong>{parentEmail || '—'}</strong></div></div>
               <div className="profile-field"><IconShield size={17} /><div><small>Account Type</small><strong>Student</strong></div></div>
             </div>
-            <p className="muted-note">This is the information you provided while registering. Contact the admin to correct any details.</p>
           </div>
         )}
 

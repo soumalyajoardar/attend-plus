@@ -879,7 +879,6 @@ const TeacherDashboard = () => {
           <div className="notifications-page ap-fade-in">
             <div className="notification-form-card">
               <h2><IconSend size={18} /> Post Notification</h2>
-              <p className="muted-note">Notifications now always go out globally — every student sees every announcement.</p>
               <div className="input-group">
                 <label>Title</label>
                 <input type="text" className="text-input" value={notifTitle} onChange={(e) => setNotifTitle(e.target.value)} placeholder="e.g. Class Rescheduled" />
@@ -935,7 +934,6 @@ const TeacherDashboard = () => {
                 <h3><IconIdCard size={17} /> Pending Registrations {pendingCount > 0 && <span className="count-chip">{pendingCount}</span>}</h3>
                 <button className="view-all-btn" onClick={fetchPendingStudents} title="Refresh"><IconRefresh size={15} /></button>
               </div>
-              <p className="muted-note">New student sign-ups appear here. A student can only log in once you approve them.</p>
 
               {loadingApprovals ? (
                 <div className="ap-skeleton" style={{ height: 120 }} />
@@ -985,11 +983,6 @@ const TeacherDashboard = () => {
                 <h3><IconUsers size={17} /> Student Roster {roster.length > 0 && <span className="count-chip">{roster.length}</span>}</h3>
                 <button className="view-all-btn" onClick={fetchRoster} title="Refresh"><IconRefresh size={15} /></button>
               </div>
-              <p className="muted-note">
-                Every registered student. Deleting a student frees their registration number and
-                email for re-use, and permanently removes their login — their attendance records
-                are kept so class reports stay accurate.
-              </p>
 
               <div className="td-roster-controls">
                 <div className="td-roster-tabs" role="tablist" aria-label="Filter by status">
