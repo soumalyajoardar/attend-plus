@@ -2224,7 +2224,6 @@
   gap: 9px;
 }
 
-/* Glyphs carry a text label alongside them, so colour is never the only cue. */
 .td-delete-facts li {
   position: relative;
   padding-left: 24px;

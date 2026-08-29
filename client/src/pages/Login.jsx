@@ -32,18 +32,15 @@ const Login = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: identifier, // Backend will check if it's ADMIN-2026 or a student email
+          email: identifier,
           password,
-          portal: userType, // 'student' or 'teacher' — server rejects if the account's real role doesn't match
+          portal: userType,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // Save token + role, honoring the Remember Me choice: checked =
-        // localStorage (persists across browser restarts), unchecked =
-        // sessionStorage (cleared once the tab/browser closes).
         saveSession({ token: data.token, role: data.role, user: data.user }, rememberMe);
 
         if (data.role === 'teacher') {

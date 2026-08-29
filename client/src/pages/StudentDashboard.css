@@ -1168,7 +1168,6 @@
   color: var(--ap-text);
 }
 
-/* Glyphs carry a text label alongside them, so colour is never the only cue. */
 .sd-delete-facts li.removed::before {
   content: '\00d7';
   position: absolute;

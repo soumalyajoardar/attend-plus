@@ -60,9 +60,6 @@ const StudentDashboard = () => {
     return () => { document.body.style.overflow = ''; };
   }, [mobileNavOpen]);
 
-  // ---------- Delete-account flow ----------
-  // A confirm dialog gates the destructive call: the student must re-enter
-  // their password AND type DELETE, mirroring the two checks the server does.
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -75,9 +72,6 @@ const StudentDashboard = () => {
     return () => window.removeEventListener('attendplus-theme-change', onChange);
   }, []);
 
-  // Pull the student's live record from the server so the email / parent email
-  // shown in Profile & Settings always match the database, even on a stale
-  // session. Falls back silently to the stored values if this fails.
   useEffect(() => {
     const token = getToken();
     if (!token) return;
@@ -94,7 +88,6 @@ const StudentDashboard = () => {
       .catch(() => {});
   }, []);
 
-  // ---------- Notifications: global feed, no department/semester filter ----------
   const fetchNotifications = useCallback(async () => {
     setLoadingNotifications(true);
     try {
@@ -137,7 +130,6 @@ const StudentDashboard = () => {
     }
   };
 
-  // ---------- Attendance history ----------
   const fetchHistory = useCallback(async () => {
     if (registrationNo === 'N/A') return;
     setLoadingHistory(true);
@@ -608,8 +600,6 @@ const StudentDashboard = () => {
               be undone.
             </p>
 
-            {/* Being explicit about what survives avoids a nasty surprise, and
-                explains why their name may still appear in a teacher's report. */}
             <ul className="sd-delete-facts">
               <li className="removed">Your profile and sign-in are removed</li>
               <li className="removed">You can no longer log in to Attend+</li>

@@ -13,12 +13,6 @@ import {
   IconDownload, IconIdCard, IconClose, IconClock, IconTrash, IconMenu,
 } from '../components/Icons';
 
-// Rotating-code derivation — the exact twin of deriveCode() in server.js, but
-// using the browser's Web Crypto API. The teacher's browser holds the session
-// secret (received when the session was created) and renders the codes; the
-// server derives the same values to verify a check-in. `kind` is 'q' for the
-// 5-second QR token and 'm' for the 30-second manual code. A parity test
-// confirms this produces byte-identical output to the server.
 async function deriveCode(secret, step, kind) {
   const enc = new TextEncoder();
   const key = await window.crypto.subtle.importKey(
@@ -68,54 +62,42 @@ const TeacherDashboard = () => {
   const [attendanceList, setAttendanceList] = useState([]);
   const [showManualCode, setShowManualCode] = useState(false);
 
-  // Notification state — global only, no department/semester targeting
   const [notifTitle, setNotifTitle] = useState('');
   const [notifMessage, setNotifMessage] = useState('');
   const [sentNotifications, setSentNotifications] = useState([]);
   const [loadingNotifs, setLoadingNotifs] = useState(true);
   const [sending, setSending] = useState(false);
 
-  // Attendance history (all records) for the History page
   const [allHistory, setAllHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [histFilters, setHistFilters] = useState({ department: '', semester: '', subject: '' });
 
-  // Student approval queue
   const [pendingStudents, setPendingStudents] = useState([]);
   const [loadingApprovals, setLoadingApprovals] = useState(false);
   const [reviewingId, setReviewingId] = useState('');
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Manage Students roster (every status, not just the pending queue)
   const [roster, setRoster] = useState([]);
   const [loadingRoster, setLoadingRoster] = useState(false);
-  const [rosterStatus, setRosterStatus] = useState('all'); // all | pending | approved | rejected
+  const [rosterStatus, setRosterStatus] = useState('all');
   const [rosterSearch, setRosterSearch] = useState('');
-  // Deletion is confirmed by retyping the registration number. `deleteTarget`
-  // holds the student being deleted, so the dialog can show their details and
-  // compare what the teacher types against the real reg-no.
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteTyped, setDeleteTyped] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deletingStudent, setDeletingStudent] = useState(false);
 
-  // Reports
   const [reportRows, setReportRows] = useState([]);
   const [reportSessions, setReportSessions] = useState([]);
   const [reportMeta, setReportMeta] = useState({ totalHeld: 0, totalStudents: 0 });
   const [loadingReports, setLoadingReports] = useState(false);
   const [reportFilters, setReportFilters] = useState({ department: '', semester: '', subject: '' });
   const [defaulterThreshold, setDefaulterThreshold] = useState(75);
-  const [reportView, setReportView] = useState('students'); // 'students' | 'defaulters' | 'sessions'
+  const [reportView, setReportView] = useState('students');
 
-  // Dashboard tiles — every value is fetched/computed, nothing hardcoded.
-  const [totalStudents, setTotalStudents] = useState(null);   // approved students
-  const [classesToday, setClassesToday] = useState(null);     // sessions dated today
-  const [avgAttendance, setAvgAttendance] = useState(null);   // mean of student %
+  const [totalStudents, setTotalStudents] = useState(null);
+  const [classesToday, setClassesToday] = useState(null);
+  const [avgAttendance, setAvgAttendance] = useState(null);
 
-  // Dark mode is shared app-wide (utils/theme.js); this just mirrors it into
-  // local state so the Settings toggle here reflects/updates the same value
-  // used on Landing, Login, Signup, and the Student Dashboard.
   const [theme, setThemeState] = useState(getTheme());
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -135,16 +117,8 @@ const TeacherDashboard = () => {
     return () => window.removeEventListener('attendplus-theme-change', onChange);
   }, []);
 
-  const generateManualCodeFallback = () => {
-    // Only used if Web Crypto is somehow unavailable; the real code is derived.
-    return '------';
-  };
+  const generateManualCodeFallback = () => '------';
 
-  // Single ticker (1s) that keeps both rotating codes and the manual countdown
-  // fresh while a session is live. The QR token advances every 5s and the
-  // manual code every 30s; we only recompute when the relevant time-step
-  // actually changes, so this is cheap. Both are derived from the session
-  // secret via HMAC so the server can verify them (see deriveCode above).
   useEffect(() => {
     if (!sessionActive || !sessionSecret) return;
     let cancelled = false;
@@ -264,8 +238,6 @@ const TeacherDashboard = () => {
         setSessionActive(true);
         setAttendanceList([]);
         setShowManualCode(false);
-        // QR token and manual code are now derived by the ticker effect from
-        // data.secret — no need to seed them here.
         showToast('Attendance session started!', 'success');
       } else {
         showToast('Failed to start session.', 'error');
@@ -295,7 +267,6 @@ const TeacherDashboard = () => {
 
   const qrValue = sessionActive ? `${sessionId}.${currentToken}` : '';
 
-  // ---------- Notifications: global feed, sent by teachers ----------
   const fetchNotifications = useCallback(async () => {
     setLoadingNotifs(true);
     try {
@@ -366,7 +337,6 @@ const TeacherDashboard = () => {
     }
   };
 
-  // ---------- Attendance history (every past session, filterable) ----------
   const fetchAllHistory = useCallback(async () => {
     setLoadingHistory(true);
     try {
@@ -388,7 +358,6 @@ const TeacherDashboard = () => {
     if (activePage === 'history') fetchAllHistory();
   }, [activePage, fetchAllHistory]);
 
-  // ---------- Student approvals ----------
   const fetchPendingStudents = useCallback(async () => {
     setLoadingApprovals(true);
     try {
@@ -405,8 +374,6 @@ const TeacherDashboard = () => {
     }
   }, []);
 
-    // Keep the sidebar badge current: refresh the pending count on load and
-  // whenever the teacher opens the dashboard or approvals page.
   useEffect(() => {
     if (activePage === 'approvals' || activePage === 'dashboard') fetchPendingStudents();
   }, [activePage, fetchPendingStudents]);
@@ -434,7 +401,6 @@ const TeacherDashboard = () => {
     }
   };
 
-  // ---------- Manage Students (roster + deletion) ----------
   const fetchRoster = useCallback(async () => {
     setLoadingRoster(true);
     try {
@@ -455,8 +421,6 @@ const TeacherDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rosterStatus, rosterSearch]);
 
-  // Load the roster when the page opens or the status filter changes, and
-  // debounce the search box so typing doesn't fire a request per keystroke.
   useEffect(() => {
     if (activePage !== 'students') return;
     const t = setTimeout(fetchRoster, rosterSearch ? 350 : 0);
@@ -464,14 +428,12 @@ const TeacherDashboard = () => {
   }, [activePage, fetchRoster, rosterSearch]);
 
   const closeDeleteDialog = () => {
-    if (deletingStudent) return; // don't let the dialog vanish mid-request
+    if (deletingStudent) return;
     setDeleteTarget(null);
     setDeleteTyped('');
     setDeleteError('');
   };
 
-  // The typed reg-no must match before we even send the request. The server
-  // re-checks it too, so this is a convenience guard rather than the real one.
   const deleteConfirmOk =
     !!deleteTarget &&
     deleteTyped.trim().toLowerCase() === String(deleteTarget.registrationNo).trim().toLowerCase();
@@ -515,7 +477,6 @@ const TeacherDashboard = () => {
     }
   };
 
-  // ---------- Reports ----------
   const fetchReports = useCallback(async () => {
     setLoadingReports(true);
     try {
@@ -546,11 +507,6 @@ const TeacherDashboard = () => {
     if (activePage === 'reports') fetchReports();
   }, [activePage, fetchReports]);
 
-  // Dashboard tiles: Total Students comes from the counts API; the other
-  // tiles are derived from the reports data (fetched via fetchReports).
-  // NOTE: must live below fetchReports' useCallback declaration — referencing
-  // it earlier put the binding in its temporal dead zone during render and
-  // crashed the whole portal to a white screen.
   useEffect(() => {
     if (activePage !== 'dashboard') return;
     (async () => {
@@ -565,10 +521,6 @@ const TeacherDashboard = () => {
     fetchReports();
   }, [activePage, fetchReports]);
 
-  // Derive "Classes Today" and "Avg Attendance" from whatever reports returned.
-  // Today is computed in the institution's timezone so it matches the `date`
-  // strings the server stamps on sessions (default Asia/Kolkata — same as
-  // INSTITUTION_TZ in the server .env).
   useEffect(() => {
     const istToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
     setClassesToday(reportSessions.filter((s) => s.date === istToday).length);
@@ -579,7 +531,6 @@ const TeacherDashboard = () => {
     );
   }, [reportRows, reportSessions]);
 
-  // Build a CSV from whatever report view is active and trigger a download.
   const exportReportCsv = () => {
     let headers = [];
     let lines = [];
@@ -1388,9 +1339,6 @@ const TeacherDashboard = () => {
       </aside>
       <ToastStack toasts={toasts} />
 
-      {/* Delete-student confirmation. The teacher must retype the registration
-          number, which makes deleting the wrong row from a long list very hard
-          — the realistic failure mode here is a mis-click, not an attacker. */}
       {deleteTarget && (
         <div className="td-delete-overlay" onClick={closeDeleteDialog}>
           <div
