@@ -178,8 +178,8 @@ h1, h2, h3, h4, h5, h6 {
   --ap-success-text: #15803D;
   --ap-warning: #D97706;
   --ap-bg: #F8FAFC;
-  --ap-surface: rgba(255, 255, 255, 0.75);
-  --ap-glass-bg: rgba(255, 255, 255, 0.75);
+  --ap-surface: #FFFFFF;
+  --ap-glass-bg: #FFFFFF;
   --ap-glass-border: rgba(255, 255, 255, 0.6);
   --ap-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
   --ap-glass-blur: 16px;
@@ -207,8 +207,8 @@ h1, h2, h3, h4, h5, h6 {
   --ap-danger-text: #EF4444;
   --ap-success-text: #16A34A;
   --ap-bg: #0B1120;
-  --ap-surface: rgba(19, 27, 46, 0.6);
-  --ap-glass-bg: rgba(19, 27, 46, 0.6);
+  --ap-surface: #0B1120;
+  --ap-glass-bg: #0B1120;
   --ap-glass-border: rgba(255, 255, 255, 0.12);
   --ap-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   --ap-glass-blur: 16px;
