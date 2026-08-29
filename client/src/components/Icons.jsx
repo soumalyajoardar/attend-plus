@@ -37,9 +37,9 @@ export const IconMenu = (p) => (
 
 export const IconLogo = (p) => (
   <Icon {...p}>
-    <path d="M14 30 L22 22 L26 26 L34 18" strokeWidth="2.5" />
-    <circle cx="34" cy="18" r="4" fill="currentColor" stroke="none"/>
-    <circle cx="14" cy="30" r="4" fill="currentColor" stroke="none"/>
+    <path d="M6 18 L10 14 L12 16 L18 10" strokeWidth="2.5" />
+    <circle cx="18" cy="10" r="3" fill="currentColor" stroke="none"/>
+    <circle cx="6" cy="18" r="3" fill="currentColor" stroke="none"/>
   </Icon>
 );
 
