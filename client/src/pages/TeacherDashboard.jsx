@@ -179,6 +179,43 @@ const TeacherDashboard = () => {
     return () => { cancelled = true; clearInterval(interval); };
   }, [sessionActive, sessionSecret]);
 
+  useEffect(() => {
+    if (selectedDepartment !== 'CST') {
+      setSelectedSemester('');
+      setSelectedSubject('');
+    }
+  }, [selectedDepartment]);
+
+  useEffect(() => {
+    if (selectedSemester !== '5th' && selectedSemester !== '6th') {
+      setSelectedSubject('');
+    }
+  }, [selectedSemester]);
+
+  useEffect(() => {
+    if (histFilters.department !== 'CST') {
+      setHistFilters((f) => ({ ...f, semester: '', subject: '' }));
+    }
+  }, [histFilters.department]);
+
+  useEffect(() => {
+    if (histFilters.semester !== '5th' && histFilters.semester !== '6th') {
+      setHistFilters((f) => ({ ...f, subject: '' }));
+    }
+  }, [histFilters.semester]);
+
+  useEffect(() => {
+    if (reportFilters.department !== 'CST') {
+      setReportFilters((f) => ({ ...f, semester: '', subject: '' }));
+    }
+  }, [reportFilters.department]);
+
+  useEffect(() => {
+    if (reportFilters.semester !== '5th' && reportFilters.semester !== '6th') {
+      setReportFilters((f) => ({ ...f, subject: '' }));
+    }
+  }, [reportFilters.semester]);
+
   const fetchSessionAttendance = async (id) => {
     try {
       const response = await fetch(`${API_BASE}/api/attendance/session/${id}`);
@@ -716,37 +753,55 @@ const TeacherDashboard = () => {
                 <select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
                   <option value="">-- Select Department --</option>
                   <option value="CST">CST</option>
-                  <option value="ETCE">ETCE</option>
-                  <option value="EIE">EIE</option>
-                  <option value="CIVIL">CIVIL</option>
-                  <option value="EE">EE</option>
-                  <option value="ARCHITECTURAL ASSISTANTSHIP">ARCHITECTURAL ASSISTANTSHIP</option>
-                  <option value="PHARMACY">PHARMACY</option>
+                  <option value="ETCE" disabled>ETCE (Coming soon)</option>
+                  <option value="EIE" disabled>EIE (Coming soon)</option>
+                  <option value="CIVIL" disabled>CIVIL (Coming soon)</option>
+                  <option value="EE" disabled>EE (Coming soon)</option>
+                  <option value="ARCHITECTURAL ASSISTANTSHIP" disabled>ARCHITECTURAL ASSISTANTSHIP (Coming soon)</option>
+                  <option value="PHARMACY" disabled>PHARMACY (Coming soon)</option>
                 </select>
               </div>
 
               <div className="input-group">
                 <label>Semester</label>
-                <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)}>
+                <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} disabled={selectedDepartment !== 'CST'}>
                   <option value="">-- Select Semester --</option>
-                  <option value="1st">1st</option>
-                  <option value="2nd">2nd</option>
-                  <option value="3rd">3rd</option>
-                  <option value="4th">4th</option>
-                  <option value="5th">5th</option>
-                  <option value="6th">6th</option>
+                  {selectedDepartment === 'CST' && (
+                    <>
+                      <option value="5th">5th</option>
+                      <option value="6th">6th</option>
+                    </>
+                  )}
+                  {selectedDepartment !== 'CST' && selectedDepartment !== '' && (
+                    <option value="" disabled>Select CST to choose semester</option>
+                  )}
                 </select>
               </div>
 
               <div className="input-group">
                 <label>Subject</label>
-                <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
+                <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} disabled={!selectedSemester}>
                   <option value="">-- Select Subject --</option>
-                  <option>Data Structures</option>
-                  <option>Algorithms</option>
-                  <option>Mathematics</option>
-                  <option>Physics</option>
-                  <option>English</option>
+                  {selectedSemester === '5th' && (
+                    <>
+                      <option value="Microprocessor & Microcontroller">Microprocessor & Microcontroller</option>
+                      <option value="Internet of Things">Internet of Things</option>
+                      <option value="Mobile Computing">Mobile Computing</option>
+                      <option value="Advance Computer Networks">Advance Computer Networks</option>
+                      <option value="Theory of Automata">Theory of Automata</option>
+                      <option value="Fundamentals of AI">Fundamentals of AI</option>
+                      <option value="Computer Graphics">Computer Graphics</option>
+                      <option value="Digital Image Processing">Digital Image Processing</option>
+                      <option value="Microprocessor & Microcontroller Lab">Microprocessor & Microcontroller Lab</option>
+                    </>
+                  )}
+                  {selectedSemester === '6th' && (
+                    <>
+                      <option value="Cloud Computing">Cloud Computing</option>
+                      <option value="Machine Learning">Machine Learning</option>
+                      <option value="Web Designing">Web Designing</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -1030,18 +1085,48 @@ const TeacherDashboard = () => {
             <div className="filter-bar">
               <select value={histFilters.department} onChange={(e) => setHistFilters((f) => ({ ...f, department: e.target.value }))}>
                 <option value="">All Departments</option>
-                <option value="CST">CST</option><option value="ETCE">ETCE</option><option value="EIE">EIE</option>
-                <option value="CIVIL">CIVIL</option><option value="EE">EE</option><option value="ARCHITECTURAL ASSISTANTSHIP">ARCHITECTURAL ASSISTANTSHIP</option><option value="PHARMACY">PHARMACY</option>
+                <option value="CST">CST</option>
+                <option value="ETCE" disabled>ETCE (Coming soon)</option>
+                <option value="EIE" disabled>EIE (Coming soon)</option>
+                <option value="CIVIL" disabled>CIVIL (Coming soon)</option>
+                <option value="EE" disabled>EE (Coming soon)</option>
+                <option value="ARCHITECTURAL ASSISTANTSHIP" disabled>ARCHITECTURAL ASSISTANTSHIP (Coming soon)</option>
+                <option value="PHARMACY" disabled>PHARMACY (Coming soon)</option>
               </select>
               <select value={histFilters.semester} onChange={(e) => setHistFilters((f) => ({ ...f, semester: e.target.value }))}>
                 <option value="">All Semesters</option>
-                <option value="1st">1st</option><option value="2nd">2nd</option><option value="3rd">3rd</option>
-                <option value="4th">4th</option><option value="5th">5th</option><option value="6th">6th</option>
+                {histFilters.department === 'CST' && (
+                  <>
+                    <option value="5th">5th</option>
+                    <option value="6th">6th</option>
+                  </>
+                )}
+                {histFilters.department !== 'CST' && histFilters.department !== '' && (
+                  <option value="" disabled>Select CST to choose semester</option>
+                )}
               </select>
               <select value={histFilters.subject} onChange={(e) => setHistFilters((f) => ({ ...f, subject: e.target.value }))}>
                 <option value="">All Subjects</option>
-                <option>Data Structures</option><option>Algorithms</option><option>Mathematics</option>
-                <option>Physics</option><option>English</option>
+                {histFilters.semester === '5th' && (
+                  <>
+                    <option value="Microprocessor & Microcontroller">Microprocessor & Microcontroller</option>
+                    <option value="Internet of Things">Internet of Things</option>
+                    <option value="Mobile Computing">Mobile Computing</option>
+                    <option value="Advance Computer Networks">Advance Computer Networks</option>
+                    <option value="Theory of Automata">Theory of Automata</option>
+                    <option value="Fundamentals of AI">Fundamentals of AI</option>
+                    <option value="Computer Graphics">Computer Graphics</option>
+                    <option value="Digital Image Processing">Digital Image Processing</option>
+                    <option value="Microprocessor & Microcontroller Lab">Microprocessor & Microcontroller Lab</option>
+                  </>
+                )}
+                {histFilters.semester === '6th' && (
+                  <>
+                    <option value="Cloud Computing">Cloud Computing</option>
+                    <option value="Machine Learning">Machine Learning</option>
+                    <option value="Web Designing">Web Designing</option>
+                  </>
+                )}
               </select>
             </div>
 
@@ -1093,18 +1178,48 @@ const TeacherDashboard = () => {
             <div className="filter-bar">
               <select value={reportFilters.department} onChange={(e) => setReportFilters((f) => ({ ...f, department: e.target.value }))}>
                 <option value="">All Departments</option>
-                <option value="CST">CST</option><option value="ETCE">ETCE</option><option value="EIE">EIE</option>
-                <option value="CIVIL">CIVIL</option><option value="EE">EE</option><option value="ARCHITECTURAL ASSISTANTSHIP">ARCHITECTURAL ASSISTANTSHIP</option><option value="PHARMACY">PHARMACY</option>
+                <option value="CST">CST</option>
+                <option value="ETCE" disabled>ETCE (Coming soon)</option>
+                <option value="EIE" disabled>EIE (Coming soon)</option>
+                <option value="CIVIL" disabled>CIVIL (Coming soon)</option>
+                <option value="EE" disabled>EE (Coming soon)</option>
+                <option value="ARCHITECTURAL ASSISTANTSHIP" disabled>ARCHITECTURAL ASSISTANTSHIP (Coming soon)</option>
+                <option value="PHARMACY" disabled>PHARMACY (Coming soon)</option>
               </select>
               <select value={reportFilters.semester} onChange={(e) => setReportFilters((f) => ({ ...f, semester: e.target.value }))}>
                 <option value="">All Semesters</option>
-                <option value="1st">1st</option><option value="2nd">2nd</option><option value="3rd">3rd</option>
-                <option value="4th">4th</option><option value="5th">5th</option><option value="6th">6th</option>
+                {reportFilters.department === 'CST' && (
+                  <>
+                    <option value="5th">5th</option>
+                    <option value="6th">6th</option>
+                  </>
+                )}
+                {reportFilters.department !== 'CST' && reportFilters.department !== '' && (
+                  <option value="" disabled>Select CST to choose semester</option>
+                )}
               </select>
               <select value={reportFilters.subject} onChange={(e) => setReportFilters((f) => ({ ...f, subject: e.target.value }))}>
                 <option value="">All Subjects</option>
-                <option>Data Structures</option><option>Algorithms</option><option>Mathematics</option>
-                <option>Physics</option><option>English</option>
+                {reportFilters.semester === '5th' && (
+                  <>
+                    <option value="Microprocessor & Microcontroller">Microprocessor & Microcontroller</option>
+                    <option value="Internet of Things">Internet of Things</option>
+                    <option value="Mobile Computing">Mobile Computing</option>
+                    <option value="Advance Computer Networks">Advance Computer Networks</option>
+                    <option value="Theory of Automata">Theory of Automata</option>
+                    <option value="Fundamentals of AI">Fundamentals of AI</option>
+                    <option value="Computer Graphics">Computer Graphics</option>
+                    <option value="Digital Image Processing">Digital Image Processing</option>
+                    <option value="Microprocessor & Microcontroller Lab">Microprocessor & Microcontroller Lab</option>
+                  </>
+                )}
+                {reportFilters.semester === '6th' && (
+                  <>
+                    <option value="Cloud Computing">Cloud Computing</option>
+                    <option value="Machine Learning">Machine Learning</option>
+                    <option value="Web Designing">Web Designing</option>
+                  </>
+                )}
               </select>
             </div>
 
