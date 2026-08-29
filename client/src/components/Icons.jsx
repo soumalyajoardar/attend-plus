@@ -36,10 +36,12 @@ export const IconMenu = (p) => (
 );
 
 export const IconLogo = (p) => (
-  <Icon {...p}>
-    <path d="M6 18 L10 14 L12 16 L18 10" strokeWidth="2.5" />
-    <circle cx="18" cy="10" r="3" fill="currentColor" stroke="none"/>
-    <circle cx="6" cy="18" r="3" fill="currentColor" stroke="none"/>
+  <Icon {...p} strokeWidth="2.2">
+    <path d="M5 19 L9.5 14.5 L12.5 17.5 L19 11" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="19" cy="11" r="3.5" fill="currentColor" stroke="none"/>
+    <circle cx="5" cy="19" r="3.5" fill="currentColor" stroke="none"/>
+    <circle cx="19" cy="11" r="1.2" fill="var(--ap-bg, #f8fafc)" stroke="none"/>
+    <circle cx="5" cy="19" r="1.2" fill="var(--ap-bg, #f8fafc)" stroke="none"/>
   </Icon>
 );
 
