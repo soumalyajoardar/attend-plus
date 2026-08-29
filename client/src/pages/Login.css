@@ -65,6 +65,21 @@
   border-radius: 10px;
 }
 
+.logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.logo-mark svg {
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
 .login-logo h2 {
   font-weight: 900;
   letter-spacing: -1px;

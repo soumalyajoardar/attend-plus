@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
 import { API_BASE } from '../utils/api';
 import { saveSession } from '../utils/auth';
-import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle, IconCheckCircle, IconLogo } from '../components/Icons';
+import { IconArrowLeft, IconArrowRight, IconEye, IconEyeOff, IconAlertCircle, IconCheckCircle } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Login = () => {
@@ -77,7 +77,20 @@ const Login = () => {
       <div className="login-card">
         {/* Logo */}
         <div className="login-logo">
-          <IconLogo size={30} className="logo-icon" />
+          <div className="logo-mark" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#0f766e" />
+                  <stop offset="100%" stopColor="#14b8a6" />
+                </linearGradient>
+              </defs>
+              <rect width="48" height="48" rx="12" fill="url(#logoGrad)" />
+              <path d="M14 30 L22 22 L26 26 L34 18" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <circle cx="34" cy="18" r="4" fill="white" />
+              <circle cx="14" cy="30" r="4" fill="white" />
+            </svg>
+          </div>
           <h2>Attend<span>+</span></h2>
         </div>
 
