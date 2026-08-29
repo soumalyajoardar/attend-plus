@@ -161,10 +161,10 @@ h1, h2, h3, h4, h5, h6 {
 
 :root {
   color-scheme: light;
-  --ap-primary: #4F46E5;
-  --ap-primary-dark: #4338CA;
-  --ap-primary-light: #EEF2FF;
-  --ap-accent: #7C3AED;
+  --ap-primary: #0F766E;
+  --ap-primary-dark: #0D6157;
+  --ap-primary-light: #ECFEFF;
+  --ap-accent: #14B8A6;
   --ap-success: #16A34A;
   --ap-success-light: #ECFDF5;
   --ap-danger: #DC2626;
@@ -178,17 +178,17 @@ h1, h2, h3, h4, h5, h6 {
   --ap-success-text: #15803D;
   --ap-warning: #D97706;
   --ap-bg: #F8FAFC;
-  --ap-surface: rgba(255, 255, 255, 0.70);
-  --ap-glass-bg: rgba(255, 255, 255, 0.70);
-  --ap-glass-border: rgba(255, 255, 255, 0.55);
-  --ap-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.10);
+  --ap-surface: rgba(255, 255, 255, 0.75);
+  --ap-glass-bg: rgba(255, 255, 255, 0.75);
+  --ap-glass-border: rgba(255, 255, 255, 0.6);
+  --ap-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
   --ap-glass-blur: 16px;
   --ap-border: #E2E8F0;
   --ap-text: #0F172A;
   --ap-text-muted: #64748B;
   --ap-radius: 16px;
-  --ap-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-  --ap-shadow-lg: 0 25px 50px rgba(15, 23, 42, 0.08);
+  --ap-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  --ap-shadow-lg: 0 25px 50px rgba(15, 23, 42, 0.07);
   --ap-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -197,26 +197,26 @@ h1, h2, h3, h4, h5, h6 {
   /* Tells the browser to draw its own widgets (scroll bars, dropdown lists,
      checkboxes, autofill) in dark colours instead of light ones. */
   color-scheme: dark;
-  --ap-primary: #818CF8;
-  --ap-primary-dark: #6366F1;
-  --ap-primary-light: #1E1B3A;
-  --ap-accent: #A78BFA;
+  --ap-primary: #5EEAD4;
+  --ap-primary-dark: #2DD4BF;
+  --ap-primary-light: #0F2F2C;
+  --ap-accent: #99F6E4;
   --ap-success-light: #052e1c;
   --ap-danger-light: #2c0f0f;
   /* Lightened so coloured text stays ≥4.5:1 on the dark surfaces. */
   --ap-danger-text: #EF4444;
   --ap-success-text: #16A34A;
   --ap-bg: #0B1120;
-  --ap-surface: rgba(19, 27, 46, 0.55);
-  --ap-glass-bg: rgba(19, 27, 46, 0.55);
-  --ap-glass-border: rgba(255, 255, 255, 0.10);
-  --ap-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --ap-surface: rgba(19, 27, 46, 0.6);
+  --ap-glass-bg: rgba(19, 27, 46, 0.6);
+  --ap-glass-border: rgba(255, 255, 255, 0.12);
+  --ap-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   --ap-glass-blur: 16px;
   --ap-border: #223047;
   --ap-text: #E2E8F0;
   --ap-text-muted: #94A3B8;
-  --ap-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --ap-shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.45);
+  --ap-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --ap-shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.4);
 }
 
 [data-theme='dark'] body {
@@ -234,18 +234,18 @@ body { background-attachment: fixed; }
 
 :root body {
   background:
-    radial-gradient(1100px 540px at 8% -10%, rgba(124, 58, 237, 0.12), transparent 55%),
-    radial-gradient(900px 480px at 102% 0%, rgba(79, 70, 229, 0.12), transparent 50%),
-    radial-gradient(800px 600px at 50% 120%, rgba(37, 99, 235, 0.08), transparent 55%),
-    linear-gradient(180deg, #F8FAFC 0%, #EEF2FF 100%);
+    radial-gradient(1100px 540px at 8% -10%, rgba(20, 184, 166, 0.12), transparent 55%),
+    radial-gradient(900px 480px at 102% 0%, rgba(15, 118, 110, 0.12), transparent 50%),
+    radial-gradient(800px 600px at 50% 120%, rgba(20, 184, 166, 0.08), transparent 55%),
+    linear-gradient(180deg, #F8FAFC 0%, #ECFEFF 100%);
 }
 
 [data-theme='dark'] body {
   background:
-    radial-gradient(1100px 540px at 8% -10%, rgba(124, 58, 237, 0.20), transparent 55%),
-    radial-gradient(900px 480px at 102% 0%, rgba(79, 70, 229, 0.20), transparent 50%),
-    radial-gradient(800px 600px at 50% 120%, rgba(37, 99, 235, 0.14), transparent 55%),
-    linear-gradient(180deg, #0B1120 0%, #131B2E 100%);
+    radial-gradient(1100px 540px at 8% -10%, rgba(20, 184, 166, 0.18), transparent 55%),
+    radial-gradient(900px 480px at 102% 0%, rgba(15, 118, 110, 0.18), transparent 50%),
+    radial-gradient(800px 600px at 50% 120%, rgba(20, 184, 166, 0.12), transparent 55%),
+    linear-gradient(180deg, #0B1120 0%, #0F2F2C 100%);
 }
 
 /* Every backdrop-blurred surface in the app. */

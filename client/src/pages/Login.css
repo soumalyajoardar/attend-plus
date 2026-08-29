@@ -173,7 +173,7 @@
 .input-group input:focus {
   border-color: var(--ap-primary);
   background: var(--ap-surface);
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
   transform: translateY(-1px);
   transition: all 0.2s ease;
 }
@@ -188,7 +188,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
 }
 
 .btn-primary:hover {
@@ -243,7 +243,7 @@
 .input-group select:focus {
   border-color: var(--ap-primary);
   background-color: var(--ap-surface);
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
   transform: translateY(-1px);
   transition: all 0.2s ease;
 }

@@ -179,13 +179,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
 }
 
 .btn-primary:hover {
   background-color: var(--ap-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 12px 25px rgba(15, 118, 110, 0.4);
 }
 
 .btn-ghost {

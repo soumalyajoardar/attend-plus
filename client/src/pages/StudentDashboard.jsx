@@ -486,6 +486,9 @@ const StudentDashboard = () => {
               <div className="settings-row static">
                 <div className="settings-row-label"><IconMail size={18} /><div><strong>Email</strong><p>{email || '—'}</p></div></div>
               </div>
+              <div className="settings-row static">
+                <div className="settings-row-label"><IconMail size={18} /><div><strong>Parent Email</strong><p>{parentEmail || '—'}</p></div></div>
+              </div>
             </div>
             <button className="btn-danger" style={{ marginTop: 24 }} onClick={handleLogout}>
               <IconLogout size={17} /> Log out of Attend+

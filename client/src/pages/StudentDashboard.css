@@ -272,7 +272,7 @@
   border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
   transition: var(--ap-transition);
 }
 .scan-btn-top:hover { background: var(--ap-primary-dark); transform: translateY(-2px); }
@@ -363,11 +363,11 @@
   padding: 22px;
   border-radius: 20px;
   cursor: pointer;
-  box-shadow: 0 15px 35px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 15px 35px rgba(15, 118, 110, 0.3);
   transition: var(--ap-transition);
   text-align: left;
 }
-.scan-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(79, 70, 229, 0.4); }
+.scan-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(15, 118, 110, 0.4); }
 .scan-btn:active { transform: translateY(0); }
 
 .scan-icon {
