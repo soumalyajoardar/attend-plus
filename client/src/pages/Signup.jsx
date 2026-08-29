@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css'; // We will reuse the same styles as the login page!
 import { API_BASE } from '../utils/api';
@@ -19,6 +19,12 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (department !== 'CST') {
+      setSemester('');
+    }
+  }, [department]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -182,12 +188,12 @@ const Signup = () => {
 >
                 <option value="" disabled>-- Select Department --</option>
                 <option value="CST">CST</option>
-                <option value="ETCE">ETCE</option>
-                <option value="EIE">EIE</option>
-                <option value="CIVIL">CIVIL</option>
-                <option value="EE">EE</option>
-                <option value="ARCHITECTURAL ASSISTANTSHIP">ARCHITECTURAL ASSISTANTSHIP</option>
-                <option value="PHARMACY">PHARMACY</option>
+                <option value="ETCE" disabled>ETCE (Coming soon)</option>
+                <option value="EIE" disabled>EIE (Coming soon)</option>
+                <option value="CIVIL" disabled>CIVIL (Coming soon)</option>
+                <option value="EE" disabled>EE (Coming soon)</option>
+                <option value="ARCHITECTURAL ASSISTANTSHIP" disabled>ARCHITECTURAL ASSISTANTSHIP (Coming soon)</option>
+                <option value="PHARMACY" disabled>PHARMACY (Coming soon)</option>
               </select>
             </div>
 
@@ -197,15 +203,19 @@ const Signup = () => {
                 value={semester}
                 onChange={(e) => setSemester(e.target.value)}
                 required
+                disabled={department !== 'CST'}
 >
                 <option value="" disabled>-- Select Semester --</option>
-                <option value="1st">1st</option>
-                <option value="2nd">2nd</option>
-                <option value="3rd">3rd</option>
-                <option value="4th">4th</option>
-                <option value="5th">5th</option>
-                <option value="6th">6th</option>
-</select>
+                {department === 'CST' && (
+                  <>
+                    <option value="5th">5th</option>
+                    <option value="6th">6th</option>
+                  </>
+                )}
+                {department !== 'CST' && department !== '' && (
+                  <option value="" disabled>Select CST to choose semester</option>
+                )}
+              </select>
             </div>
           </div>
 
