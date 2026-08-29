@@ -875,7 +875,12 @@ const TeacherDashboard = () => {
                     <ul className="attendance-cards">
                       {attendanceList.map((student, index) => (
                         <li key={index} className="attendance-card" style={{ animationDelay: `${index * 0.05}s` }}>
-                          <div className="student-avatar">{student.studentName || student.name}</div>
+                          <div className="student-avatar">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="24" cy="16" r="8" fill="currentColor" />
+                              <path d="M8 40c0-8.837 7.163-16 16-16s16 7.163 16 16" fill="currentColor" />
+                            </svg>
+                          </div>
                           <div className="student-details">
                             <strong>{student.studentName || student.name}</strong>
                             <span className="check-time">{student.time}</span>

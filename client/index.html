@@ -14,49 +14,135 @@
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
       }
       #loading-screen.hidden {
         opacity: 0;
         visibility: hidden;
       }
-      .loader {
-        width: 56px;
-        height: 56px;
+      .loader-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .loader-ring {
+        width: 80px;
+        height: 80px;
         border-radius: 50%;
         border: 4px solid #e2e8f0;
+        position: relative;
+        animation: pulse-ring 2s ease-in-out infinite;
+      }
+      .loader-ring::before {
+        content: '';
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        right: 4px;
+        bottom: 4px;
+        border-radius: 50%;
+        border: 4px solid transparent;
         border-top-color: #0f766e;
-        animation: spin 0.8s linear infinite;
+        border-right-color: #14b8a6;
+        animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      .loader-ring::after {
+        content: '';
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #0f766e;
+        animation: spin 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse;
+      }
+      .loader-logo {
+        width: 48px;
+        height: 48px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
       }
       .loader-text {
-        position: absolute;
-        bottom: -40px;
-        left: 50%;
-        transform: translateX(-50%);
         font-family: 'Inter', sans-serif;
-        font-size: 14px;
-        font-weight: 500;
-        color: #64748b;
+        font-size: 15px;
+        font-weight: 600;
+        color: #0f766e;
+        letter-spacing: 0.5px;
       }
+      .loader-dots {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .loader-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #0f766e;
+        opacity: 0.4;
+        animation: dot-bounce 1.4s ease-in-out infinite both;
+      }
+      .loader-dots span:nth-child(1) { animation-delay: -0.32s; }
+      .loader-dots span:nth-child(2) { animation-delay: -0.16s; }
+      .loader-dots span:nth-child(3) { animation-delay: 0s; }
       @keyframes spin {
         to { transform: rotate(360deg); }
+      }
+      @keyframes pulse-ring {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+      }
+      @keyframes dot-bounce {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
+        40% { transform: scale(1.2); opacity: 1; }
       }
       [data-theme='dark'] #loading-screen {
         background: linear-gradient(180deg, #0b1120 0%, #0f2f2c 100%);
       }
-      [data-theme='dark'] .loader {
+      [data-theme='dark'] .loader-ring {
         border-color: #223047;
+      }
+      [data-theme='dark'] .loader-ring::before {
+        border-top-color: #5eead4;
+        border-right-color: #2dd4bf;
+      }
+      [data-theme='dark'] .loader-ring::after {
         border-top-color: #5eead4;
       }
       [data-theme='dark'] .loader-text {
-        color: #94a3b8;
+        color: #5eead4;
+      }
+      [data-theme='dark'] .loader-dots span {
+        background: #5eead4;
       }
     </style>
   </head>
   <body>
     <div id="loading-screen" role="status" aria-label="Loading Attend+">
-      <div class="loader" style="position: relative;">
-        <span class="loader-text">Loading...</span>
+      <div class="loader-wrapper">
+        <div class="loader-ring" style="position: relative;">
+          <svg class="loader-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#0f766e" />
+                <stop offset="100%" stopColor="#14b8a6" />
+              </linearGradient>
+            </defs>
+            <rect width="48" height="48" rx="12" fill="url(#logoGrad)" />
+            <path d="M14 30 L22 22 L26 26 L34 18" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <circle cx="34" cy="18" r="4" fill="white" />
+            <circle cx="14" cy="30" r="4" fill="white" />
+          </svg>
+        </div>
+        <span class="loader-text">Attend+</span>
+        <div class="loader-dots">
+          <span></span><span></span><span></span>
+        </div>
       </div>
     </div>
     <div id="root"></div>
@@ -66,7 +152,7 @@
         const loading = document.getElementById('loading-screen');
         if (loading) {
           loading.classList.add('hidden');
-          setTimeout(() => loading.remove(), 300);
+          setTimeout(() => loading.remove(), 500);
         }
       });
     </script>

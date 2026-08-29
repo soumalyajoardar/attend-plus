@@ -630,6 +630,11 @@
   box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
 }
 
+.student-avatar svg {
+  width: 28px;
+  height: 28px;
+}
+
 .student-details {
   flex: 1;
   min-width: 0;
