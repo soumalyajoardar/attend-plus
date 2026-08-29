@@ -1547,6 +1547,7 @@
   border-radius: 12px;
   background: var(--ap-bg);
   animation: fadeInUp 0.3s ease both;
+  align-items: flex-start;
 }
 
 .sent-notif-item .notification-dot {
@@ -1556,9 +1557,30 @@
   flex-shrink: 0;
 }
 
+.sent-notif-content {
+  flex: 1;
+  min-width: 0;
+}
+
 .sent-notif-item strong { display: block; font-size: 13.5px; margin-bottom: 2px; }
 .sent-notif-item p { font-size: 13px; color: var(--ap-text-muted); margin: 0 0 4px; }
 .sent-notif-item small { font-size: 11px; color: var(--ap-text-muted); }
+
+.delete-notif-btn {
+  background: transparent;
+  border: none;
+  color: var(--ap-text-muted);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--ap-transition);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.delete-notif-btn:hover {
+  background: var(--ap-danger-light);
+  color: var(--ap-danger);
+}
 
 .sent-notif-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .sent-notif-list li {

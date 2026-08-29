@@ -995,6 +995,21 @@ app.post('/api/notifications/:id/read', async (req, res) => {
   }
 });
 
+// ---------- DELETE NOTIFICATION (teacher only) ----------
+app.delete('/api/notifications/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deleted = await Notification.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Notification not found.' });
+    }
+    res.status(200).json({ success: true, message: 'Notification deleted.' });
+  } catch (error) {
+    console.error('Delete notification error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
 // ---------- GET STUDENT PROFILE ----------
 app.get('/api/student/:registrationNo', async (req, res) => {
   const { registrationNo } = req.params;

@@ -348,6 +348,24 @@ const TeacherDashboard = () => {
     }
   };
 
+  const deleteNotification = async (id) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/notifications/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (data.success) {
+        showToast('Notification deleted.', 'success');
+        fetchNotifications();
+      } else {
+        showToast(data.message || 'Failed to delete notification.', 'error');
+      }
+    } catch (err) {
+      console.error('Delete notification error:', err);
+      showToast('Cannot connect to backend.', 'error');
+    }
+  };
+
   // ---------- Attendance history (every past session, filterable) ----------
   const fetchAllHistory = useCallback(async () => {
     setLoadingHistory(true);
@@ -731,6 +749,14 @@ const TeacherDashboard = () => {
                     <li key={n._id}>
                       <strong>{n.title}</strong>
                       <span>{new Date(n.createdAt).toLocaleString()}</span>
+                      <button
+                        className="delete-notif-btn"
+                        onClick={(e) => { e.stopPropagation(); deleteNotification(n._id); }}
+                        title="Delete notification"
+                        aria-label="Delete notification"
+                      >
+                        <IconTrash size={13} />
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -930,11 +956,19 @@ const TeacherDashboard = () => {
                   {sentNotifications.map((n) => (
                     <div key={n._id} className="sent-notif-item">
                       <div className="notification-dot"></div>
-                      <div>
+                      <div className="sent-notif-content">
                         <strong>{n.title}</strong>
                         <p>{n.message}</p>
                         <small>{new Date(n.createdAt).toLocaleString()} • by {n.createdBy || 'Teacher'} • {n.readBy?.length || 0} read</small>
                       </div>
+                      <button
+                        className="delete-notif-btn"
+                        onClick={() => deleteNotification(n._id)}
+                        title="Delete notification"
+                        aria-label="Delete notification"
+                      >
+                        <IconTrash size={15} />
+                      </button>
                     </div>
                   ))}
                 </div>
