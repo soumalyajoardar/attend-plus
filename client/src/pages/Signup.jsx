@@ -49,20 +49,16 @@ const Signup = () => {
       return;
     }
 
-    // 2. Check Student Email
-    if (!email.includes('@') || !email.includes('.')) {
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email.trim())) {
       setError('Please enter a valid student email address.');
       return;
     }
-
-    // 3. Check Parent Email
-    if (!parentEmail.includes('@') || !parentEmail.includes('.')) {
+    if (!emailRe.test(parentEmail.trim())) {
       setError('Please enter a valid parent email address.');
       return;
     }
-
-    // 4. Check if Student and Parent email are the same
-    if (email.toLowerCase() === parentEmail.toLowerCase()) {
+    if (email.trim().toLowerCase() === parentEmail.trim().toLowerCase()) {
       setError('Student email and Parent email cannot be the same.');
       return;
     }
@@ -92,32 +88,26 @@ const Signup = () => {
         }),
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Accounts are created as "pending" — a teacher must approve before
-        // the student can log in. Navigate to login with a success notice
-        // instead of using a blocking alert().
-        navigate('/login', {
-          state: {
-            notice:
-              data.message ||
-              'Registration submitted! Your account is waiting for teacher approval.',
-          },
-        });
+      const ct = response.headers.get('content-type') || '';
+      let data;
+      if (ct.includes('application/json')) data = await response.json();
+      else {
+        const t = await response.text();
+        throw new Error(t || `Server error ${response.status}`);
+      }
+      if (response.ok && data.success) {
+        navigate('/login', { state: { notice: data.message || 'Registration submitted! Your account is waiting for teacher approval.' } });
       } else {
-        setError(data.message || 'Something went wrong. Please try again.');
-        setLoading(false);
+        setError(data?.message || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       console.error('Signup error:', err);
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError('Cannot connect to server. Please check your internet connection or try again later.');
-      } else if (err.message?.includes('CORS')) {
-        setError('Connection blocked by server. Please contact support.');
+        setError('Cannot connect to server. Check your connection and try again.');
       } else {
-        setError('Cannot connect to server. Please try again.');
+        setError(err.message || 'Cannot connect to server. Please try again.');
       }
+    } finally {
       setLoading(false);
     }
   };
@@ -157,35 +147,19 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="login-form">
         {error && <div className="error-box"><IconAlertCircle size={16} /> {error}</div>}
           <div className="input-group">
-            <label>Full Name</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Rohan Sharma" 
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required 
-            />
+            <label htmlFor="su-name">Full Name</label>
+            <input id="su-name" type="text" placeholder="e.g. Rohan Sharma" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoComplete="name" />
           </div>
 
           <div className="input-group">
-            <label>Registration Number</label>
-            <input 
-            type="text" 
-            placeholder="e.g. D232423001" 
-            value={registrationNo}
-            onChange={(e) => setRegistrationNo(e.target.value)}
-            required 
-            />
+            <label htmlFor="su-reg">Registration Number</label>
+            <input id="su-reg" type="text" placeholder="e.g. D232423001" value={registrationNo} onChange={(e) => setRegistrationNo(e.target.value)} required autoComplete="off" spellCheck={false} style={{ textTransform: 'uppercase' }} />
           </div>
 
           <div className="row-fields">
             <div className="input-group">
-              <label>Department</label>
-              <select 
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                required
->
+              <label htmlFor="su-dept">Department</label>
+              <select id="su-dept" value={department} onChange={(e) => setDepartment(e.target.value)} required>
                 <option value="" disabled>-- Select Department --</option>
                 <option value="CST">CST</option>
                 <option value="ETCE" disabled>ETCE (Coming soon)</option>
@@ -198,67 +172,31 @@ const Signup = () => {
             </div>
 
             <div className="input-group">
-              <label>Semester</label>
-              <select 
-                value={semester}
-                onChange={(e) => setSemester(e.target.value)}
-                required
-                disabled={department !== 'CST'}
->
+              <label htmlFor="su-sem">Semester</label>
+              <select id="su-sem" value={semester} onChange={(e) => setSemester(e.target.value)} required={department==='CST'} disabled={department !== 'CST'}>
                 <option value="" disabled>-- Select Semester --</option>
-                {department === 'CST' && (
-                  <>
-                    <option value="5th">5th</option>
-                    <option value="6th">6th</option>
-                  </>
-                )}
-                {department !== 'CST' && department !== '' && (
-                  <option value="" disabled>Select CST to choose semester</option>
-                )}
+                {department === 'CST' && (<><option value="5th">5th</option><option value="6th">6th</option></>)}
               </select>
             </div>
           </div>
 
           <div className="input-group">
-            <label>Email Address</label>
-            <input 
-              type="email" 
-              placeholder="you@institute.edu" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
+            <label htmlFor="su-email">Email Address</label>
+            <input id="su-email" type="email" placeholder="you@institute.edu" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
 
           <div className="input-group">
-            <label>Parent's Email Address</label>
-            <input 
-              type="email" 
-              placeholder="parent@email.com" 
-              value={parentEmail}
-              onChange={(e) => setParentEmail(e.target.value)}
-              required 
-            />
+            <label htmlFor="su-parent">Parent's Email Address</label>
+            <input id="su-parent" type="email" placeholder="parent@email.com" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} required autoComplete="email" />
           </div>
 
           <div className="input-group">
-            <label>Create Password</label>
+            <label htmlFor="su-pass">Create Password</label>
             <div className="password-wrapper">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Min. 8 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength="8"
-              />
-              <span
-                className="eye-icon"
-                onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? 'Hide password' : 'Show password'}
-              >
+              <input id="su-pass" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
+              <button type="button" className="eye-icon" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
                 {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
-              </span>
+              </button>
             </div>
           </div>
 

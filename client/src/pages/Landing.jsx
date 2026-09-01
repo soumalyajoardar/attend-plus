@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Landing.css';
-import { isRemembered, getRole } from '../utils/auth';
+import { isAuthed, getRole } from '../utils/auth';
 import { IconCheckCircle, IconArrowRight, IconPlay, IconMenu, IconClose, IconQr, IconClock, IconShield, IconUsers } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -22,41 +22,27 @@ const Landing = () => {
   );
   useEffect(() => {
     if (!location.state?.accountDeleted) return;
-    // Wipe the flag from history so the banner can't reappear on reload.
-    window.history.replaceState({}, document.title);
+    navigate(location.pathname, { replace: true, state: {} });
     const t = setTimeout(() => setDeletedNotice(''), 7000);
     return () => clearTimeout(t);
-  }, [location.state]);
+  }, [location.state, navigate, location.pathname]);
 
-  const dynamicWords = ['Teaching.', 'Learning.', 'Achieving.', 'Growing.', 'Succeeding.', 'Innovating.', 'Collaborating.', 'Creating.', 'Inspiring.', 'Leading.', 'Empowering.', 'Transforming.', 'Excelling.', 'Advancing.', 'Exploring.', 'Discovering.', 'Building.', 'Sharing.', 'Connecting.', 'Celebrating.'];
-
-  // Typewriter effect: types the word out, pauses, deletes it, moves to the
-  // next word, and loops forever.
+  const dynamicWords = useMemo(() => ['Teaching.', 'Learning.', 'Achieving.', 'Growing.', 'Succeeding.', 'Innovating.', 'Collaborating.', 'Creating.', 'Inspiring.', 'Leading.', 'Empowering.', 'Transforming.', 'Excelling.', 'Advancing.', 'Exploring.', 'Discovering.', 'Building.', 'Sharing.', 'Connecting.', 'Celebrating.'], []);
   useEffect(() => {
     const currentWord = dynamicWords[wordIndex];
     let timeout;
-
     if (!isDeleting && displayText.length < currentWord.length) {
-      // typing
-      timeout = setTimeout(() => {
-        setDisplayText(currentWord.slice(0, displayText.length + 1));
-      }, 90);
+      timeout = setTimeout(() => setDisplayText(currentWord.slice(0, displayText.length + 1)), 90);
     } else if (!isDeleting && displayText.length === currentWord.length) {
-      // pause at full word before deleting
       timeout = setTimeout(() => setIsDeleting(true), 3000);
     } else if (isDeleting && displayText.length > 0) {
-      // deleting
-      timeout = setTimeout(() => {
-        setDisplayText(currentWord.slice(0, displayText.length - 1));
-      }, 45);
+      timeout = setTimeout(() => setDisplayText(currentWord.slice(0, displayText.length - 1)), 45);
     } else if (isDeleting && displayText.length === 0) {
-      // move to next word
       setIsDeleting(false);
       setWordIndex((i) => (i + 1) % dynamicWords.length);
     }
-
     return () => clearTimeout(timeout);
-  }, [displayText, isDeleting, wordIndex]);
+  }, [displayText, isDeleting, wordIndex, dynamicWords]);
 
   // Lock body scroll while the mobile slide-in menu is open.
   useEffect(() => {
@@ -64,10 +50,8 @@ const Landing = () => {
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
-  // "Remember Me" flow: if the user previously logged in and asked to be
-  // remembered, jump straight into their dashboard instead of the login page.
   const handleLaunchDashboard = () => {
-    if (isRemembered()) {
+    if (isAuthed()) {
       const role = getRole();
       navigate(role === 'teacher' ? '/teacher-dashboard' : '/student-dashboard');
     } else {
@@ -139,17 +123,17 @@ const Landing = () => {
       {/* Mobile slide-in menu */}
       <div className={`nav-drawer-overlay ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} />
       <aside className={`nav-drawer ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
-        <div className="nav-drawer-header">
+          <div className="nav-drawer-header">
           <div className="logo">
             <div className="logo-mark" aria-hidden="true">
               <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="logoGradDrawer" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#0f766e" />
                     <stop offset="100%" stopColor="#14b8a6" />
                   </linearGradient>
                 </defs>
-                <rect width="48" height="48" rx="12" fill="url(#logoGrad)" />
+                <rect width="48" height="48" rx="12" fill="url(#logoGradDrawer)" />
                 <path d="M14 30 L22 22 L26 26 L34 18" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                 <circle cx="34" cy="18" r="4" fill="white" />
                 <circle cx="14" cy="30" r="4" fill="white" />
@@ -204,7 +188,7 @@ const Landing = () => {
             <button className="btn-primary btn-lg" onClick={handleLaunchDashboard}>
               Launch Dashboard <IconArrowRight size={18} />
             </button>
-            <button className="btn-secondary btn-lg">
+            <button className="btn-secondary btn-lg" onClick={() => navigate('/login')}>
               <IconPlay size={18} /> Watch Demo
             </button>
           </div>
@@ -291,6 +275,7 @@ const Landing = () => {
             Credits
           </button>
         </p>
+        <p className="footer-version">Pre-Alpha v1.1.3</p>
       </footer>
     </div>
   );

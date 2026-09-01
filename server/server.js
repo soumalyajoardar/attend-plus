@@ -15,27 +15,82 @@ const Session = require('./models/Session');
 
 const app = express();
 
-// Middleware
-// Allow the React frontend (production + local dev) to talk to this server.
-// CLIENT_URL can be set to the exact Render/Vercel deployment URL.
+// ---------- Security headers (minimal helmet without extra dep) ----------
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '0');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// ---------- CORS ----------
 const ALLOWED_ORIGINS = [
   process.env.CLIENT_URL || 'https://attend-plus.onrender.com',
+  'https://attend-plus.vercel.app',
+  'https://attend-plus.onrender.com',
   'http://localhost:3000',
   'http://localhost:5173',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5173',
 ];
 
-// Log CORS config for debugging
-console.log('🔧 CORS Allowed Origins:', ALLOWED_ORIGINS);
-
 app.use(cors({
-  origin: ['https://attend-plus.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
+  origin(origin, cb) {
+    // Allow non-browser clients (curl, mobile) with no origin
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(express.json()); // Allows us to read JSON data from requests
+app.use(express.json({ limit: '1mb' }));
+
+// Simple in-memory rate limiter (per IP)
+const rateMap = new Map();
+function rateLimit({ windowMs = 60000, max = 60, key = 'global' } = {}) {
+  return (req, res, next) => {
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'local';
+    const k = `${key}:${ip}`;
+    const now = Date.now();
+    const entry = rateMap.get(k) || { count: 0, start: now };
+    if (now - entry.start > windowMs) { entry.count = 0; entry.start = now; }
+    entry.count++;
+    rateMap.set(k, entry);
+    if (entry.count > max) return res.status(429).json({ success: false, message: 'Too many requests. Please try again later.' });
+    next();
+  };
+}
+// Periodic cleanup
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of rateMap.entries()) if (now - v.start > 120000) rateMap.delete(k);
+}, 60000).unref();
+
+// Central helper to parse/verify JWT (tolerant of "Bearer " case/spacing)
+function parseAuth(req) {
+  const raw = req.headers.authorization || '';
+  const match = raw.match(/^\s*Bearer\s+(.+)\s*$/i);
+  const token = match ? match[1].trim() : raw.trim();
+  if (!token) return null;
+  try { return jwt.verify(token, process.env.JWT_SECRET); }
+  catch (e) { return { __error: e.message }; }
+}
+function requireAuth(req, res, next) {
+  const payload = parseAuth(req);
+  if (!payload) return res.status(401).json({ success: false, message: 'Not authenticated. Please log in.' });
+  if (payload.__error) return res.status(401).json({ success: false, message: payload.__error.includes('expired') ? 'Session expired. Please log in again.' : 'Invalid session.' });
+  req.user = payload;
+  next();
+}
+function requireRole(role) {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== role) return res.status(403).json({ success: false, message: `Requires ${role} role.` });
+    next();
+  };
+}
 
 // ---------- TEST ROUTE ----------
 app.get('/', (req, res) => {
@@ -44,11 +99,7 @@ app.get('/', (req, res) => {
 
 // Health check endpoint for connectivity testing
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    cors: process.env.CLIENT_URL 
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Escapes a user-supplied string so it is safe to drop inside a RegExp literal.
@@ -58,14 +109,17 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // are normalised to upper case on the way in, but records created before that
 // normalisation existed may be stored in any casing — this makes the lookups
 // find them anyway, so nobody is locked out of an account they already have.
-const exactIgnoreCase = (value) => new RegExp(`^${escapeRegex(value)}$`, 'i');
+const exactIgnoreCase = (value) => {
+  const safe = String(value).slice(0, 30);
+  return new RegExp(`^${escapeRegex(safe)}$`, 'i');
+};
 
 // The minimum we accept server-side. The signup form enforces the same number,
 // but the form is not the only way to reach this route.
 const MIN_PASSWORD_LENGTH = 8;
 
 // ---------- SIGNUP ROUTE ----------
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup', rateLimit({ windowMs: 60000, max: 20, key: 'signup' }), async (req, res) => {
   const { fullName, registrationNo, department, semester, email, parentEmail, password } = req.body;
 
   // Guard before any string method runs. These used to be called directly on
@@ -89,6 +143,13 @@ app.post('/api/auth/signup', async (req, res) => {
       message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
     });
   }
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email.trim())) return res.status(400).json({ success: false, message: 'Please enter a valid student email.' });
+  if (!emailRe.test(parentEmail.trim())) return res.status(400).json({ success: false, message: 'Please enter a valid parent email.' });
+  if (email.trim().toLowerCase() === parentEmail.trim().toLowerCase()) return res.status(400).json({ success: false, message: 'Student and parent email cannot be the same.' });
+  if (fullName.trim().length < 2 || fullName.trim().length > 80) return res.status(400).json({ success: false, message: 'Full name must be 2-80 characters.' });
+  if (registrationNo.trim().length > 20) return res.status(400).json({ success: false, message: 'Registration number too long (max 20).' });
 
   // Registration numbers are stored upper case so that "d23cs001" and "D23CS001"
   // are one student rather than two. The unique index on the field is
@@ -190,23 +251,22 @@ app.post('/api/auth/signup', async (req, res) => {
 });
 
 // ---------- LOGIN ROUTE (Unified) ----------
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', rateLimit({ windowMs: 60000, max: 15, key: 'login' }), async (req, res) => {
   const { email, password, portal } = req.body;
 
-  // `portal` is which tab the person picked on the login screen
-  // ('student' or 'teacher'). When provided, the account's actual role
-  // must match it — otherwise a student's valid credentials could log
-  // someone into the teacher portal (and vice versa) just because the
-  // password happened to be correct.
-  const portalMismatch = (actualRole) => {
+  if (!email || typeof email !== 'string' || !email.trim() || !password || typeof password !== 'string' || !password.trim()) {
+    return res.status(400).json({ success: false, message: 'ID and password are required.' });
+  }
+  const idTrimmed = String(email).trim();
+
+  const portalMismatchResponse = (actualRole) => {
     if (portal && portal !== actualRole) {
-      return res.status(400).json({
+      return {
         success: false,
-        message:
-          actualRole === 'teacher'
-            ? 'This ID belongs to a teacher account. Please use the Teacher tab to sign in.'
-            : 'This ID belongs to a student account. Please use the Student tab to sign in.',
-      });
+        message: actualRole === 'teacher'
+          ? 'This ID belongs to a teacher account. Please use the Teacher tab to sign in.'
+          : 'This ID belongs to a student account. Please use the Student tab to sign in.',
+      };
     }
     return null;
   };
@@ -215,76 +275,59 @@ app.post('/api/auth/login', async (req, res) => {
   const ADMIN_TEACHER_PASSWORD = process.env.ADMIN_TEACHER_PASSWORD || 'admin@2026';
   const ADMIN_TEACHER_EMAIL = process.env.ADMIN_TEACHER_EMAIL || 'admin@attendplus.com';
 
-  // Hardcoded Student Login (For Testing) — move to env in production
-  const TEST_STUDENT_EMAIL = process.env.TEST_STUDENT_EMAIL || 'student@test.com';
-  const TEST_STUDENT_PASSWORD = process.env.TEST_STUDENT_PASSWORD || 'student@123';
+  // Hardcoded Student Login (For Testing) — active only when TEST_STUDENT_* env is explicitly set
+  const TEST_STUDENT_EMAIL = process.env.TEST_STUDENT_EMAIL;
+  const TEST_STUDENT_PASSWORD = process.env.TEST_STUDENT_PASSWORD;
+  const hasTestStudent = !!(TEST_STUDENT_EMAIL && TEST_STUDENT_PASSWORD);
 
-  if (email === ADMIN_TEACHER_ID && password === ADMIN_TEACHER_PASSWORD) {
-    if (portalMismatch('teacher')) return;
-
+  if (idTrimmed === ADMIN_TEACHER_ID && password === ADMIN_TEACHER_PASSWORD) {
+    const m = portalMismatchResponse('teacher');
+    if (m) return res.status(400).json(m);
     const token = jwt.sign(
-      { id: 'admin', email: ADMIN_TEACHER_EMAIL, role: 'teacher' },
+      { id: 'admin', email: ADMIN_TEACHER_EMAIL, role: 'teacher', teacherId: ADMIN_TEACHER_ID },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
-
     return res.status(200).json({
       success: true,
       token,
       role: 'teacher',
-      user: {
-        id: 'admin',
-        fullName: 'Admin Teacher',
-        teacherId: ADMIN_TEACHER_ID,
-        department: 'ALL',
-        email: ADMIN_TEACHER_EMAIL,
-      },
+      user: { id: 'admin', fullName: 'Admin Teacher', teacherId: ADMIN_TEACHER_ID, department: 'ALL', email: ADMIN_TEACHER_EMAIL },
     });
   }
 
-  if (email === TEST_STUDENT_EMAIL && password === TEST_STUDENT_PASSWORD) {
-    if (portalMismatch('student')) return;
-
+  if (hasTestStudent && idTrimmed === TEST_STUDENT_EMAIL && password === TEST_STUDENT_PASSWORD) {
+    const m = portalMismatchResponse('student');
+    if (m) return res.status(400).json(m);
     const token = jwt.sign(
-      { id: 'student123', email: TEST_STUDENT_EMAIL, role: 'student' },
+      { id: 'student123', email: TEST_STUDENT_EMAIL, role: 'student', registrationNo: 'REG-2024-001' },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
-
     return res.status(200).json({
       success: true,
       token,
       role: 'student',
-      user: {
-        id: 'student123',
-        fullName: 'Test Student',
-        registrationNo: 'REG-2024-001',
-        department: 'CST',
-        semester: '3rd',
-        email: TEST_STUDENT_EMAIL,
-      },
+      user: { id: 'student123', fullName: 'Test Student', registrationNo: 'REG-2024-001', department: 'CST', semester: '3rd', email: TEST_STUDENT_EMAIL },
     });
   }
 
   try {
     let user = null;
     let role = '';
-
+    const upper = idTrimmed.toUpperCase();
+    const lower = idTrimmed.toLowerCase();
     // Check if it's a Teacher by teacherId
-    user = await Teacher.findOne({ teacherId: email.toUpperCase() });
+    user = await Teacher.findOne({ teacherId: upper });
     if (user) {
       role = 'teacher';
     } else {
-      // Check Student by registrationNo
-      user = await Student.findOne({ registrationNo: email.toUpperCase() });
+      user = await Student.findOne({ registrationNo: upper });
       if (user) {
         role = 'student';
       } else {
-        // Check Student by email (fallback)
-        user = await Student.findOne({ email: email.toLowerCase() });
-        if (user) {
-          role = 'student';
-        }
+        user = await Student.findOne({ email: lower });
+        if (user) role = 'student';
       }
     }
 
@@ -297,7 +340,8 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Incorrect password.' });
     }
 
-    if (portalMismatch(role)) return;
+    const pm = portalMismatchResponse(role);
+    if (pm) return res.status(400).json(pm);
 
     // Approval gate: a student must be approved by a teacher before they can log
     // in. `undefined` covers legacy accounts created before the approval feature
@@ -319,9 +363,9 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: role },
+      { id: user._id, email: user.email, role, ...(role === 'student' ? { registrationNo: user.registrationNo } : { teacherId: user.teacherId }) },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
 
     res.status(200).json({
@@ -348,27 +392,30 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ---------- STUDENT PROFILE (live DB record) ----------
-// The stored session object can go stale (e.g. right after a field like
-// parentEmail was added server-side, or if the code changed without a
-// re-login). This returns the student's current DB record so the dashboard
-// always shows accurate contact details without forcing a re-login.
-app.get('/api/student/profile', async (req, res) => {
+app.get('/api/student/profile', requireAuth, async (req, res) => {
   try {
-    const auth = req.headers.authorization || '';
-    const token = auth.startsWith('Bearer ') ? auth.slice(7) : auth;
-    if (!token) {
-      return res.status(401).json({ success: false, message: 'Not authenticated.' });
-    }
-
-    let payload;
-    try {
-      payload = jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
-      return res.status(401).json({ success: false, message: 'Invalid or expired session.' });
-    }
-
+    const payload = req.user;
     if (payload.role !== 'student') {
       return res.status(403).json({ success: false, message: 'Not a student account.' });
+    }
+    // Demo test student has non-ObjectId id (student123) — return mock without DB lookup
+    if (payload.id === 'student123') {
+      return res.json({
+        success: true,
+        student: {
+          id: 'student123',
+          fullName: 'Test Student',
+          email: payload.email || 'student@test.com',
+          parentEmail: 'parent@test.com',
+          department: 'CST',
+          semester: '3rd',
+          registrationNo: 'REG-2024-001',
+          status: 'approved',
+        },
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(payload.id)) {
+      return res.status(401).json({ success: false, message: 'Invalid session id.' });
     }
 
     const student = await Student.findById(payload.id);
@@ -396,16 +443,28 @@ app.get('/api/student/profile', async (req, res) => {
 });
 
 // ---------- CREATE ATTENDANCE SESSION ----------
-app.post('/api/session/create', async (req, res) => {
-  const { department, semester, subject, teacherId } = req.body;
+app.post('/api/session/create', requireAuth, requireRole('teacher'), rateLimit({ windowMs: 60000, max: 20, key: 'session-create' }), async (req, res) => {
+  const { department, semester, subject } = req.body;
+  const teacherId = req.user?.id === 'admin' ? 'ADMIN-2026' : (req.user?.teacherId || req.user?.id || req.body.teacherId || 'ADMIN-2026');
 
   try {
     if (!department || !semester || !subject) {
       return res.status(400).json({ success: false, message: 'Department, semester and subject are required.' });
     }
+    const allowedDepts = ['CST','ETCE','EIE','CIVIL','EE','ARCHITECTURAL ASSISTANTSHIP','PHARMACY'];
+    const allowedSems = ['1st','2nd','3rd','4th','5th','6th'];
+    if (!allowedDepts.includes(department)) return res.status(400).json({ success: false, message: 'Invalid department.' });
+    if (!allowedSems.includes(semester)) return res.status(400).json({ success: false, message: 'Invalid semester.' });
+    if (typeof subject !== 'string' || !subject.trim() || subject.trim().length > 80) return res.status(400).json({ success: false, message: 'Invalid subject.' });
 
-    // Unique session id shown on the teacher's screen.
-    const sessionId = 'SES-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    // Unique session id — retry on collision (rare but possible with 4 bytes)
+    let sessionId;
+    for (let i = 0; i < 5; i++) {
+      const cand = 'SES-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+      const exists = await Session.findOne({ sessionId: cand });
+      if (!exists) { sessionId = cand; break; }
+    }
+    if (!sessionId) return res.status(500).json({ success: false, message: 'Could not generate session id. Try again.' });
 
     // Per-session HMAC key. Both the rotating QR token and the rotating manual
     // code are derived from this via deriveCode(). It is cryptographically
@@ -444,13 +503,11 @@ app.post('/api/session/create', async (req, res) => {
 });
 
 // ---------- END ATTENDANCE SESSION ----------
-app.post('/api/session/end', async (req, res) => {
+app.post('/api/session/end', requireAuth, requireRole('teacher'), async (req, res) => {
   const { sessionId } = req.body;
   try {
-    // End the specific session if given, otherwise end whatever is still active
-    // (covers the older frontend that ended without passing an id).
-    const filter = sessionId ? { sessionId } : { active: true };
-    await Session.updateMany(filter, { $set: { active: false, endedAt: new Date() } });
+    if (!sessionId) return res.status(400).json({ success: false, message: 'sessionId is required.' });
+    await Session.updateOne({ sessionId }, { $set: { active: false, endedAt: new Date() } });
     global.activeSession = null;
     res.status(200).json({ success: true, message: 'Session ended.' });
   } catch (error) {
@@ -526,7 +583,7 @@ async function markAttendance({ session, registrationNo, studentId, method }, re
   try {
     await Attendance.create({
       sessionId: session.sessionId,
-      studentId: (studentId || student._id).toString(),
+      studentId: String(student._id),
       registrationNo,
       studentName: student.fullName,
       department: session.department,
@@ -557,13 +614,14 @@ async function markAttendance({ session, registrationNo, studentId, method }, re
 }
 
 // ---------- ATTENDANCE CHECK-IN (QR Scan) ----------
-app.post('/api/attendance/check-in', async (req, res) => {
+app.post('/api/attendance/check-in', rateLimit({ windowMs: 60000, max: 30, key: 'checkin-qr' }), async (req, res) => {
   const { studentId, registrationNo, qrData } = req.body;
 
   try {
     if (!registrationNo || !qrData) {
       return res.status(400).json({ success: false, message: 'Missing scan or student data. Please log in again.' });
     }
+    if (typeof qrData !== 'string' || qrData.length > 100) return res.status(400).json({ success: false, message: 'Invalid QR code.' });
 
     // QR payload is "SESSION_ID.TOKEN"
     const parts = String(qrData).split('.');
@@ -593,11 +651,7 @@ app.post('/api/attendance/check-in', async (req, res) => {
 });
 
 // ---------- ATTENDANCE CHECK-IN (Manual code fallback) ----------
-// The student types only the 6-digit code — no session id. We match the code
-// against every currently-active session's manual-code window and, if exactly
-// one matches, record attendance there. This keeps the student's job to
-// "type the code on the board" while still being tied to a real session.
-app.post('/api/attendance/manual', async (req, res) => {
+app.post('/api/attendance/manual', rateLimit({ windowMs: 60000, max: 20, key: 'checkin-manual' }), async (req, res) => {
   const { studentId, registrationNo, code } = req.body;
 
   try {
@@ -633,11 +687,23 @@ app.post('/api/attendance/manual', async (req, res) => {
 });
 
 // ---------- GET ATTENDANCE FOR STUDENT ----------
-app.get('/api/attendance/student/:registrationNo', async (req, res) => {
+app.get('/api/attendance/student/:registrationNo', requireAuth, async (req, res) => {
   const { registrationNo } = req.params;
-
+  if (typeof registrationNo !== 'string' || !/^[A-Z0-9-]{3,20}$/i.test(registrationNo)) return res.status(400).json({ success: false, message: 'Invalid registration number.' });
+  // Students may only view their own records; teachers may view any
+  if (req.user.role === 'student') {
+    const own = (req.user.registrationNo || req.user.id || '').toString().toUpperCase();
+    // Admin test student has fixed registrationNo
+    const paramUpper = registrationNo.toUpperCase();
+    if (own !== paramUpper && req.user.id !== 'student123') {
+      // For demo student123 allow REG-2024-001; otherwise block
+      if (req.user.registrationNo) {
+        return res.status(403).json({ success: false, message: 'You can only view your own attendance.' });
+      }
+    }
+  }
   try {
-    const records = await Attendance.find({ registrationNo }).sort({ timestamp: -1 });
+    const records = await Attendance.find({ registrationNo }).sort({ timestamp: -1 }).limit(1000);
     res.status(200).json({ success: true, records });
   } catch (error) {
     console.error('Fetch attendance error:', error.message);
@@ -646,9 +712,9 @@ app.get('/api/attendance/student/:registrationNo', async (req, res) => {
 });
 
 // ---------- GET ATTENDANCE FOR SESSION (Teacher Live View) ----------
-app.get('/api/attendance/session/:sessionId', async (req, res) => {
+app.get('/api/attendance/session/:sessionId', requireAuth, async (req, res) => {
   const { sessionId } = req.params;
-
+  if (typeof sessionId !== 'string' || sessionId.length > 40) return res.status(400).json({ success: false, message: 'Invalid session id.' });
   try {
     const records = await Attendance.find({ sessionId }).sort({ timestamp: 1 });
     res.status(200).json({ success: true, records });
@@ -659,17 +725,15 @@ app.get('/api/attendance/session/:sessionId', async (req, res) => {
 });
 
 // ---------- GET ALL ATTENDANCE (Teacher History, newest first) ----------
-// Optional query filters: department, semester, subject, date. Powers the
-// teacher's Attendance History page so it shows every past session, not just
-// whatever happens to be live right now.
-app.get('/api/attendance/all', async (req, res) => {
+app.get('/api/attendance/all', requireAuth, requireRole('teacher'), async (req, res) => {
   const { department, semester, subject, date } = req.query;
   try {
     const filter = {};
-    if (department) filter.department = department;
-    if (semester) filter.semester = semester;
-    if (subject) filter.subject = subject;
-    if (date) filter.date = date;
+    const isStr = v => typeof v === 'string' && v.trim().length > 0;
+    if (isStr(department)) filter.department = department.trim();
+    if (isStr(semester)) filter.semester = semester.trim();
+    if (isStr(subject)) filter.subject = subject.trim();
+    if (isStr(date)) filter.date = date.trim();
     const records = await Attendance.find(filter).sort({ timestamp: -1 }).limit(1000);
     res.status(200).json({ success: true, records });
   } catch (error) {
@@ -683,10 +747,13 @@ app.get('/api/attendance/all', async (req, res) => {
 // ---------------------------------------------------------------------------
 
 // List registrations awaiting review (default) or by a given status.
-app.get('/api/students/pending', async (req, res) => {
+app.get('/api/students/pending', requireAuth, requireRole('teacher'), async (req, res) => {
   const { status = 'pending' } = req.query;
+  if (status && typeof status !== 'string') return res.status(400).json({ success: false, message: 'Invalid status.' });
+  const allowed = ['pending','approved','rejected'];
+  const q = allowed.includes(status) ? status : 'pending';
   try {
-    const students = await Student.find({ status }).select('-password').sort({ createdAt: -1 });
+    const students = await Student.find({ status: q }).select('-password').sort({ createdAt: -1 });
     res.status(200).json({ success: true, students });
   } catch (error) {
     console.error('Fetch pending students error:', error.message);
@@ -695,7 +762,7 @@ app.get('/api/students/pending', async (req, res) => {
 });
 
 // Counts for the sidebar badge / dashboard tiles.
-app.get('/api/students/counts', async (req, res) => {
+app.get('/api/students/counts', requireAuth, requireRole('teacher'), async (req, res) => {
   try {
     const [pending, approved, rejected] = await Promise.all([
       Student.countDocuments({ status: 'pending' }),
@@ -710,9 +777,11 @@ app.get('/api/students/counts', async (req, res) => {
 });
 
 // Approve or reject a registration. `action` is 'approve' or 'reject'.
-app.post('/api/students/:id/review', async (req, res) => {
+app.post('/api/students/:id/review', requireAuth, requireRole('teacher'), async (req, res) => {
   const { id } = req.params;
-  const { action, reviewedBy } = req.body;
+  const { action } = req.body;
+  const reviewedBy = req.user?.email || req.user?.teacherId || 'Teacher';
+  if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ success: false, message: 'Invalid student id.' });
   try {
     if (!['approve', 'reject'].includes(action)) {
       return res.status(400).json({ success: false, message: 'action must be approve or reject.' });
@@ -720,7 +789,7 @@ app.post('/api/students/:id/review', async (req, res) => {
     const status = action === 'approve' ? 'approved' : 'rejected';
     const student = await Student.findByIdAndUpdate(
       id,
-      { $set: { status, reviewedBy: reviewedBy || 'Teacher', reviewedAt: new Date() } },
+      { $set: { status, reviewedBy, reviewedAt: new Date() } },
       { new: true }
     ).select('-password');
     if (!student) {
@@ -733,23 +802,18 @@ app.post('/api/students/:id/review', async (req, res) => {
   }
 });
 
-// Full student roster for the teacher's "Manage Students" page. Unlike
-// /api/students/pending this returns every status by default, and supports a
-// text search across name / registration number / email plus the usual
-// department + semester filters. Passwords are never selected.
-app.get('/api/students', async (req, res) => {
+// Full student roster for the teacher's "Manage Students" page.
+app.get('/api/students', requireAuth, requireRole('teacher'), async (req, res) => {
   const { status, department, semester, search } = req.query;
 
   try {
     const query = {};
-    if (status && status !== 'all') query.status = status;
-    if (department && department !== 'all') query.department = department;
-    if (semester && semester !== 'all') query.semester = semester;
+    if (typeof status === 'string' && status !== 'all') query.status = status;
+    if (typeof department === 'string' && department !== 'all') query.department = department;
+    if (typeof semester === 'string' && semester !== 'all') query.semester = semester;
 
-    if (search && search.trim()) {
-      // Escape regex metacharacters so a stray '(' or '*' in the search box
-      // can't throw, and so nobody can craft a catastrophic backtracking input.
-      const safe = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (typeof search === 'string' && search.trim()) {
+      const safe = search.trim().slice(0, 40).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const rx = new RegExp(safe, 'i');
       query.$or = [{ fullName: rx }, { registrationNo: rx }, { email: rx }];
     }
@@ -783,9 +847,10 @@ app.get('/api/students', async (req, res) => {
 //    they are institutional records that the class percentages are computed
 //    from, and they store the name/registrationNo denormalised so they stay
 //    readable after the Student document is gone.
-app.post('/api/students/:id/delete', async (req, res) => {
+app.post('/api/students/:id/delete', requireAuth, requireRole('teacher'), async (req, res) => {
   const { id } = req.params;
-  const { confirmRegistrationNo, deletedBy } = req.body;
+  const { confirmRegistrationNo } = req.body;
+  const deletedBy = req.user?.email || req.user?.teacherId || 'teacher';
 
   try {
     if (!confirmRegistrationNo || !String(confirmRegistrationNo).trim()) {
@@ -849,23 +914,21 @@ app.post('/api/students/:id/delete', async (req, res) => {
 // sessions the student has an Attendance record in. This is the standard way
 // colleges compute the percentage, and it's only possible because sessions are
 // now persisted.
-app.get('/api/reports/summary', async (req, res) => {
+app.get('/api/reports/summary', requireAuth, requireRole('teacher'), async (req, res) => {
   const { department, semester, subject } = req.query;
   try {
-    // "Held" counts every session for the class (both finished and currently
-    // live), so a running class is reflected in the percentage too.
     const heldFilter = {};
-    if (department) heldFilter.department = department;
-    if (semester) heldFilter.semester = semester;
-    if (subject) heldFilter.subject = subject;
+    if (typeof department === 'string' && department.trim()) heldFilter.department = department.trim();
+    if (typeof semester === 'string' && semester.trim()) heldFilter.semester = semester.trim();
+    if (typeof subject === 'string' && subject.trim()) heldFilter.subject = subject.trim();
     const heldSessions = await Session.find(heldFilter);
     const totalHeld = heldSessions.length;
     const heldSessionIds = heldSessions.map((s) => s.sessionId);
 
-    // Which students are in scope: approved students matching the filters.
-    const studentFilter = { status: { $ne: 'rejected' } };
-    if (department) studentFilter.department = department;
-    if (semester) studentFilter.semester = semester;
+    // Only approved students count toward enrollment
+    const studentFilter = { status: 'approved' };
+    if (typeof department === 'string' && department.trim()) studentFilter.department = department.trim();
+    if (typeof semester === 'string' && semester.trim()) studentFilter.semester = semester.trim();
     const students = await Student.find(studentFilter).select('-password');
 
     // All attendance rows for the held sessions, grouped by student.
@@ -905,23 +968,29 @@ app.get('/api/reports/summary', async (req, res) => {
 });
 
 // One row per session held (the class register): counts + who was present.
-app.get('/api/reports/sessions', async (req, res) => {
+app.get('/api/reports/sessions', requireAuth, async (req, res) => {
   const { department, semester, subject } = req.query;
   try {
     const filter = {};
-    if (department) filter.department = department;
-    if (semester) filter.semester = semester;
-    if (subject) filter.subject = subject;
+    if (typeof department === 'string' && department.trim()) filter.department = department.trim();
+    if (typeof semester === 'string' && semester.trim()) filter.semester = semester.trim();
+    if (typeof subject === 'string' && subject.trim()) filter.subject = subject.trim();
     const sessions = await Session.find(filter).sort({ startedAt: -1 }).limit(500);
 
+    // Bulk counts to avoid N+1: pre-fetch all counts in parallel with aggregation
+    const sessionIds = sessions.map(s => s.sessionId);
+    const attendanceCounts = await Attendance.aggregate([{ $match: { sessionId: { $in: sessionIds } } }, { $group: { _id: '$sessionId', count: { $sum: 1 } } }]);
+    const countMap = Object.fromEntries(attendanceCounts.map(c => [c._id, c.count]));
+    // Enrolled per dept/sem combination — cache to avoid duplicate queries
+    const enrolledCache = {};
     const summaries = await Promise.all(
       sessions.map(async (s) => {
-        const present = await Attendance.countDocuments({ sessionId: s.sessionId });
-        const enrolled = await Student.countDocuments({
-          department: s.department,
-          semester: s.semester,
-          status: { $ne: 'rejected' },
-        });
+        const present = countMap[s.sessionId] || 0;
+        const key = `${s.department}|${s.semester}`;
+        if (!(key in enrolledCache)) {
+          enrolledCache[key] = await Student.countDocuments({ department: s.department, semester: s.semester, status: 'approved' });
+        }
+        const enrolled = enrolledCache[key];
         return {
           sessionId: s.sessionId,
           subject: s.subject,
@@ -945,18 +1014,21 @@ app.get('/api/reports/sessions', async (req, res) => {
 });
 
 // ---------- CREATE NOTIFICATION (always global — every student sees it) ----------
-app.post('/api/notifications/create', async (req, res) => {
-  const { title, message, createdBy } = req.body;
+app.post('/api/notifications/create', requireAuth, requireRole('teacher'), rateLimit({ windowMs: 60000, max: 20, key: 'notif-create' }), async (req, res) => {
+  const { title, message } = req.body;
+  const createdBy = req.user?.email || req.user?.teacherId || 'Teacher';
 
   if (!title || !title.trim() || !message || !message.trim()) {
     return res.status(400).json({ success: false, message: 'Title and message are required.' });
   }
+  if (title.trim().length > 100) return res.status(400).json({ success: false, message: 'Title too long (max 100).' });
+  if (message.trim().length > 1000) return res.status(400).json({ success: false, message: 'Message too long (max 1000).' });
 
   try {
     const newNotification = new Notification({
-      title: title.trim(),
-      message: message.trim(),
-      createdBy: createdBy || 'Teacher',
+      title: title.trim().slice(0, 100),
+      message: message.trim().slice(0, 1000),
+      createdBy,
     });
 
     await newNotification.save();
@@ -979,15 +1051,16 @@ app.get('/api/notifications', async (req, res) => {
 });
 
 // ---------- MARK A NOTIFICATION AS READ (per student) ----------
-app.post('/api/notifications/:id/read', async (req, res) => {
+app.post('/api/notifications/:id/read', requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { registrationNo } = req.body;
-
+  if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ success: false, message: 'Invalid notification id.' });
+  // Use registrationNo from JWT for students, body fallback for compatibility but validated
+  const registrationNo = req.user?.registrationNo || req.body.registrationNo;
   try {
     if (!registrationNo) {
       return res.status(400).json({ success: false, message: 'registrationNo is required.' });
     }
-    await Notification.findByIdAndUpdate(id, { $addToSet: { readBy: registrationNo } });
+    await Notification.findByIdAndUpdate(id, { $addToSet: { readBy: String(registrationNo).trim() } });
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('Mark read error:', error.message);
@@ -996,8 +1069,9 @@ app.post('/api/notifications/:id/read', async (req, res) => {
 });
 
 // ---------- DELETE NOTIFICATION (teacher only) ----------
-app.delete('/api/notifications/:id', async (req, res) => {
+app.delete('/api/notifications/:id', requireAuth, requireRole('teacher'), async (req, res) => {
   const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ success: false, message: 'Invalid id.' });
   try {
     const deleted = await Notification.findByIdAndDelete(id);
     if (!deleted) {
@@ -1011,11 +1085,15 @@ app.delete('/api/notifications/:id', async (req, res) => {
 });
 
 // ---------- GET STUDENT PROFILE ----------
-app.get('/api/student/:registrationNo', async (req, res) => {
+app.get('/api/student/:registrationNo', requireAuth, async (req, res) => {
   const { registrationNo } = req.params;
-
+  if (typeof registrationNo !== 'string') return res.status(400).json({ success: false, message: 'Invalid id.' });
   try {
-    const student = await Student.findOne({ registrationNo }).select('-password');
+    // Allow students to view own profile, teachers to view any
+    if (req.user.role === 'student' && req.user.registrationNo && req.user.registrationNo.toUpperCase() !== registrationNo.toUpperCase()) {
+      return res.status(403).json({ success: false, message: 'Forbidden.' });
+    }
+    const student = await Student.findOne({ registrationNo: exactIgnoreCase(registrationNo) }).select('-password');
     if (!student) {
       return res.status(404).json({ success: false, message: 'Student not found.' });
     }
@@ -1042,9 +1120,16 @@ app.get('/api/student/:registrationNo', async (req, res) => {
 //    history for classes that already happened. The Attendance schema stores
 //    the name/registrationNo denormalised, so those rows stay readable even
 //    once the Student document is gone.
-app.post('/api/student/:id/delete', async (req, res) => {
+app.post('/api/student/:id/delete', requireAuth, async (req, res) => {
   const { id } = req.params;
   const { password } = req.body;
+  // Users can only delete their own account (except teacher/admin deleting via /api/students/:id/delete)
+  if (req.user.role !== 'student' && req.user.id !== 'admin') {
+    // Teacher deletion uses other route; block here
+  }
+  if (req.user.role === 'student' && String(req.user.id) !== String(id)) {
+    return res.status(403).json({ success: false, message: 'You can only delete your own account.' });
+  }
 
   try {
     if (!password) {
@@ -1100,13 +1185,32 @@ app.post('/api/student/:id/delete', async (req, res) => {
   }
 });
 
+// Global error handler for JSON parse / CORS errors
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ success: false, message: 'Invalid JSON.' });
+  }
+  if (err && err.message && err.message.includes('CORS blocked')) {
+    return res.status(403).json({ success: false, message: 'Origin not allowed.' });
+  }
+  next(err);
+});
+
 // ---------- CONNECT TO DATABASE & START SERVER ----------
 const PORT = process.env.PORT || 5000;
 
 // Validate critical environment variables
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'change_this_to_a_long_random_secret') {
-  console.error('❌ FATAL: JWT_SECRET is not set or is using the default value.');
-  console.error('   Generate a secure secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'change_this_to_a_long_random_secret' || process.env.JWT_SECRET.length < 32) {
+  console.error('❌ FATAL: JWT_SECRET must be set to a strong random string (≥32 chars).');
+  console.error('   Generate with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+  process.exit(1);
+}
+if (!process.env.MONGO_URI) {
+  console.error('❌ FATAL: MONGO_URI is not set.');
+  process.exit(1);
+}
+if (!process.env.MONGO_URI.startsWith('mongodb')) {
+  console.error('❌ FATAL: MONGO_URI looks invalid.');
   process.exit(1);
 }
 

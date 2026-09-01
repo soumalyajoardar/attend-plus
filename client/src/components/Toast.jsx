@@ -1,3 +1,4 @@
+// eslint-disable-next-line react-refresh/only-export-components
 import React, { useCallback, useRef, useState } from 'react';
 import { IconCheckCircle, IconAlertCircle } from './Icons';
 
@@ -8,15 +9,18 @@ import { IconCheckCircle, IconAlertCircle } from './Icons';
 export function useToast() {
   const [toasts, setToasts] = useState([]);
   const idRef = useRef(0);
-
+  const timers = useRef(new Set());
   const showToast = useCallback((message, type = 'success', duration = 3200) => {
     const id = ++idRef.current;
     setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
+    const t = setTimeout(() => {
+      setToasts((prev) => prev.filter((x) => x.id !== id));
+      timers.current.delete(t);
     }, duration);
+    timers.current.add(t);
   }, []);
-
+  // cleanup timers on unmount would be handled by caller, but also clear if needed
+  React.useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
   return { toasts, showToast };
 }
 

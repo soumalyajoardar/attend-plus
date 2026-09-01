@@ -14,20 +14,31 @@ export function saveSession({ token, role, user }, remember) {
   const store = remember ? window.localStorage : window.sessionStorage;
   const other = remember ? window.sessionStorage : window.localStorage;
 
-  store.setItem('attendplus_token', token);
-  store.setItem('attendplus_role', role);
-  store.setItem('attendplus_user', JSON.stringify(user));
-  store.setItem('attendplus_remember', remember ? '1' : '0');
+  safeSet(store, 'attendplus_token', token);
+  safeSet(store, 'attendplus_role', role);
+  safeSet(store, 'attendplus_user', JSON.stringify(user));
+  safeSet(store, 'attendplus_remember', remember ? '1' : '0');
 
-  // Make sure there isn't stale data left in the other storage.
-  other.removeItem('attendplus_token');
-  other.removeItem('attendplus_role');
-  other.removeItem('attendplus_user');
-  other.removeItem('attendplus_remember');
+  safeRemove(other, 'attendplus_token');
+  safeRemove(other, 'attendplus_role');
+  safeRemove(other, 'attendplus_user');
+  safeRemove(other, 'attendplus_remember');
+}
+
+function safeGet(store, key) {
+  try { return store.getItem(key); } catch { return null; }
+}
+function safeSet(store, key, val) {
+  try { store.setItem(key, val); } catch {}
+}
+function safeRemove(store, key) {
+  try { store.removeItem(key); } catch {}
 }
 
 export function getItem(key) {
-  return window.localStorage.getItem(key) ?? window.sessionStorage.getItem(key);
+  try {
+    return safeGet(window.localStorage, key) ?? safeGet(window.sessionStorage, key);
+  } catch { return null; }
 }
 
 export function getToken() {
@@ -40,26 +51,40 @@ export function getRole() {
 
 export function getUser() {
   try {
-    return JSON.parse(getItem('attendplus_user') || '{}');
+    const raw = getItem('attendplus_user');
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     return {};
   }
 }
 
 export function isRemembered() {
-  return window.localStorage.getItem('attendplus_remember') === '1' && !!window.localStorage.getItem('attendplus_token');
+  return safeGet(window.localStorage, 'attendplus_remember') === '1' && !!safeGet(window.localStorage, 'attendplus_token');
 }
 
 // True if there is a valid session in EITHER storage (used to guard routes).
+// Also validates JWT expiry if token is a JWT.
 export function isAuthed(role) {
   const r = getRole();
   const t = getToken();
-  return !!t && (!role || r === role);
+  if (!t) return false;
+  if (role && r !== role) return false;
+  // Check expiry for real JWTs (skip demo tokens that are not JWTs)
+  const parts = t.split('.');
+  if (parts.length === 3) {
+    try {
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (payload.exp && Date.now() >= payload.exp * 1000) return false;
+    } catch {}
+  }
+  return true;
 }
 
 export function clearSession() {
   KEYS.concat('attendplus_remember').forEach((k) => {
-    window.localStorage.removeItem(k);
-    window.sessionStorage.removeItem(k);
+    safeRemove(window.localStorage, k);
+    safeRemove(window.sessionStorage, k);
   });
 }

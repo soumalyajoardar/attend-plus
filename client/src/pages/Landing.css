@@ -549,6 +549,21 @@
   transform: translateY(-6px);
 }
 
+.footer-version {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ap-text-muted);
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .footer-version {
+    font-size: 11px;
+  }
+}
+
 /* Inline text link inside the footer sentence (opens the Credits page). */
 .footer-link {
   background: none;

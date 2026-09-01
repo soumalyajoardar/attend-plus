@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
 import './TeacherDashboard.css';
-import { API_BASE } from '../utils/api';
+import { API_BASE, authHeaders } from '../utils/api';
 import { clearSession, getUser } from '../utils/auth';
 import { getTheme, setTheme as setGlobalTheme } from '../utils/theme';
 import { useToast, ToastStack } from '../components/Toast';
@@ -44,9 +44,9 @@ const sidebarItems = [
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const storedUser = getUser();
+  const teacherName = storedUser.fullName || storedUser.teacherId || 'Teacher';
   const { toasts, showToast } = useToast();
 
-  const [teacherName] = useState(storedUser.fullName || 'Admin Teacher');
   const [activePage, setActivePage] = useState('dashboard');
 
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -125,30 +125,30 @@ const TeacherDashboard = () => {
     let cancelled = false;
     let lastQrStep = null;
     let lastManualStep = null;
-
+    let qrSeq = 0, manSeq = 0;
     const tick = async () => {
       const now = Date.now();
       const qrStep = Math.floor(now / 5000);
       const manualStep = Math.floor(now / 30000);
-
       if (qrStep !== lastQrStep) {
         lastQrStep = qrStep;
+        const mySeq = ++qrSeq;
         try {
           const t = await deriveCode(sessionSecret, qrStep, 'q');
-          if (!cancelled) setCurrentToken(t);
-        } catch { if (!cancelled) setCurrentToken(''); }
+          if (!cancelled && mySeq === qrSeq) setCurrentToken(t);
+        } catch { if (!cancelled && mySeq === qrSeq) setCurrentToken(''); }
       }
       if (manualStep !== lastManualStep) {
         lastManualStep = manualStep;
+        const mySeq = ++manSeq;
         try {
           const c = await deriveCode(sessionSecret, manualStep, 'm');
-          if (!cancelled) setManualCode(c);
-        } catch { if (!cancelled) setManualCode(generateManualCodeFallback()); }
+          if (!cancelled && mySeq === manSeq) setManualCode(c);
+        } catch { if (!cancelled && mySeq === manSeq) setManualCode(generateManualCodeFallback()); }
       }
       const secsLeft = Math.max(1, Math.ceil(((manualStep + 1) * 30000 - now) / 1000));
       if (!cancelled) setManualSecondsLeft(secsLeft);
     };
-
     tick();
     const interval = setInterval(tick, 1000);
     return () => { cancelled = true; clearInterval(interval); };
@@ -169,33 +169,34 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     if (histFilters.department !== 'CST') {
-      setHistFilters((f) => ({ ...f, semester: '', subject: '' }));
+      setHistFilters((f) => (f.semester || f.subject ? { ...f, semester: '', subject: '' } : f));
     }
   }, [histFilters.department]);
 
   useEffect(() => {
     if (histFilters.semester !== '5th' && histFilters.semester !== '6th') {
-      setHistFilters((f) => ({ ...f, subject: '' }));
+      setHistFilters((f) => (f.subject ? { ...f, subject: '' } : f));
     }
   }, [histFilters.semester]);
 
   useEffect(() => {
     if (reportFilters.department !== 'CST') {
-      setReportFilters((f) => ({ ...f, semester: '', subject: '' }));
+      setReportFilters((f) => (f.semester || f.subject ? { ...f, semester: '', subject: '' } : f));
     }
   }, [reportFilters.department]);
 
   useEffect(() => {
     if (reportFilters.semester !== '5th' && reportFilters.semester !== '6th') {
-      setReportFilters((f) => ({ ...f, subject: '' }));
+      setReportFilters((f) => (f.subject ? { ...f, subject: '' } : f));
     }
   }, [reportFilters.semester]);
 
   const fetchSessionAttendance = async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/api/attendance/session/${id}`);
-      const data = await response.json();
-      if (data.success) setAttendanceList(data.records);
+      const response = await fetch(`${API_BASE}/api/attendance/session/${id}`, { headers: authHeaders() });
+      const ct = response.headers.get('content-type') || '';
+      const data = ct.includes('application/json') ? await response.json() : null;
+      if (data?.success) setAttendanceList(data.records);
     } catch (err) {
       console.error('Fetch attendance error:', err);
     }
@@ -222,18 +223,12 @@ const TeacherDashboard = () => {
     try {
       const response = await fetch(`${API_BASE}/api/session/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          department: selectedDepartment,
-          semester: selectedSemester,
-          subject: selectedSubject,
-          teacherId: 'ADMIN-2026',
-        }),
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ department: selectedDepartment, semester: selectedSemester, subject: selectedSubject }),
       });
-
-      const data = await response.json();
-
-      if (data.success) {
+      const ct = response.headers.get('content-type') || '';
+      const data = ct.includes('application/json') ? await response.json() : { success: false, message: await response.text() };
+      if (response.ok && data.success) {
         setSessionId(data.sessionId);
         setSessionSecret(data.secret);
         setSessionActive(true);
@@ -241,7 +236,7 @@ const TeacherDashboard = () => {
         setShowManualCode(false);
         showToast('Attendance session started!', 'success');
       } else {
-        showToast('Failed to start session.', 'error');
+        showToast(data.message || 'Failed to start session.', 'error');
       }
     } catch (err) {
       console.error('Session start error:', err);
@@ -249,12 +244,14 @@ const TeacherDashboard = () => {
     }
   };
 
-  const endSession = () => {
-    fetch(`${API_BASE}/api/session/end`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId }),
-    }).catch(() => {});
+  const endSession = async () => {
+    try {
+      await fetch(`${API_BASE}/api/session/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ sessionId }),
+      });
+    } catch {}
     setSessionActive(false);
     setSessionId('');
     setSessionSecret('');
@@ -266,12 +263,12 @@ const TeacherDashboard = () => {
     showToast('Session ended.', 'success');
   };
 
-  const qrValue = sessionActive ? `${sessionId}.${currentToken}` : '';
+  const qrValue = sessionActive && currentToken ? `${sessionId}.${currentToken}` : '';
 
   const fetchNotifications = useCallback(async () => {
     setLoadingNotifs(true);
     try {
-      const response = await fetch(`${API_BASE}/api/notifications`);
+      const response = await fetch(`${API_BASE}/api/notifications`, { headers: authHeaders() });
       const data = await response.json();
       if (data.success) setSentNotifications(data.notifications);
     } catch (err) {
@@ -295,12 +292,8 @@ const TeacherDashboard = () => {
     try {
       const response = await fetch(`${API_BASE}/api/notifications/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: notifTitle,
-          message: notifMessage,
-          createdBy: teacherName,
-        }),
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ title: notifTitle, message: notifMessage }),
       });
 
       const data = await response.json();
@@ -324,6 +317,7 @@ const TeacherDashboard = () => {
     try {
       const response = await fetch(`${API_BASE}/api/notifications/${id}`, {
         method: 'DELETE',
+        headers: authHeaders(),
       });
       const data = await response.json();
       if (data.success) {
@@ -345,7 +339,7 @@ const TeacherDashboard = () => {
       if (histFilters.department) params.set('department', histFilters.department);
       if (histFilters.semester) params.set('semester', histFilters.semester);
       if (histFilters.subject) params.set('subject', histFilters.subject);
-      const response = await fetch(`${API_BASE}/api/attendance/all?${params.toString()}`);
+      const response = await fetch(`${API_BASE}/api/attendance/all?${params.toString()}`, { headers: authHeaders() });
       const data = await response.json();
       if (data.success) setAllHistory(data.records);
     } catch (err) {
@@ -362,7 +356,7 @@ const TeacherDashboard = () => {
   const fetchPendingStudents = useCallback(async () => {
     setLoadingApprovals(true);
     try {
-      const response = await fetch(`${API_BASE}/api/students/pending`);
+      const response = await fetch(`${API_BASE}/api/students/pending`, { headers: authHeaders() });
       const data = await response.json();
       if (data.success) {
         setPendingStudents(data.students);
@@ -384,8 +378,8 @@ const TeacherDashboard = () => {
     try {
       const response = await fetch(`${API_BASE}/api/students/${id}/review`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, reviewedBy: teacherName }),
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ action }),
       });
       const data = await response.json();
       if (data.success) {
@@ -408,7 +402,7 @@ const TeacherDashboard = () => {
       const params = new URLSearchParams();
       if (rosterStatus !== 'all') params.set('status', rosterStatus);
       if (rosterSearch.trim()) params.set('search', rosterSearch.trim());
-      const response = await fetch(`${API_BASE}/api/students?${params.toString()}`);
+      const response = await fetch(`${API_BASE}/api/students?${params.toString()}`, { headers: authHeaders() });
       const data = await response.json();
       if (data.success) setRoster(data.students);
       else showToast(data.message || 'Could not load the student list.', 'error');
@@ -446,10 +440,9 @@ const TeacherDashboard = () => {
     try {
       const response = await fetch(`${API_BASE}/api/students/${deleteTarget._id}/delete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           confirmRegistrationNo: deleteTyped.trim(),
-          deletedBy: teacherName,
         }),
       });
       const data = await response.json();
@@ -485,12 +478,17 @@ const TeacherDashboard = () => {
       if (reportFilters.department) params.set('department', reportFilters.department);
       if (reportFilters.semester) params.set('semester', reportFilters.semester);
       if (reportFilters.subject) params.set('subject', reportFilters.subject);
+      const headers = authHeaders();
       const [summaryRes, sessionsRes] = await Promise.all([
-        fetch(`${API_BASE}/api/reports/summary?${params.toString()}`),
-        fetch(`${API_BASE}/api/reports/sessions?${params.toString()}`),
+        fetch(`${API_BASE}/api/reports/summary?${params.toString()}`, { headers }),
+        fetch(`${API_BASE}/api/reports/sessions?${params.toString()}`, { headers }),
       ]);
-      const summary = await summaryRes.json();
-      const sessions = await sessionsRes.json();
+      const parse = async (r) => {
+        const ct = r.headers.get('content-type') || '';
+        return ct.includes('application/json') ? r.json() : { success: false };
+      };
+      const summary = await parse(summaryRes);
+      const sessions = await parse(sessionsRes);
       if (summary.success) {
         setReportRows(summary.report);
         setReportMeta({ totalHeld: summary.totalHeld, totalStudents: summary.totalStudents });
@@ -502,6 +500,7 @@ const TeacherDashboard = () => {
     } finally {
       setLoadingReports(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reportFilters]);
 
   useEffect(() => {
@@ -512,7 +511,7 @@ const TeacherDashboard = () => {
     if (activePage !== 'dashboard') return;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/students/counts`);
+        const res = await fetch(`${API_BASE}/api/students/counts`, { headers: authHeaders() });
         const d = await res.json();
         if (d.success) setTotalStudents(d.counts.approved);
       } catch {
@@ -874,7 +873,7 @@ const TeacherDashboard = () => {
                   ) : (
                     <ul className="attendance-cards">
                       {attendanceList.map((student, index) => (
-                        <li key={index} className="attendance-card" style={{ animationDelay: `${index * 0.05}s` }}>
+                        <li key={student._id || student.registrationNo || index} className="attendance-card" style={{ animationDelay: `${index * 0.05}s` }}>
                           <div className="student-avatar">
                             <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <circle cx="24" cy="16" r="8" fill="currentColor" />

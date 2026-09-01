@@ -8,22 +8,21 @@
 const THEME_KEY = 'attendplus_theme';
 
 export function getTheme() {
-  const saved = window.localStorage.getItem(THEME_KEY);
-  if (saved === 'dark' || saved === 'light') return saved;
-  // Default to light regardless of OS/browser preference — the site should
-  // always open in light mode unless the person explicitly switches it.
+  try {
+    const saved = window.localStorage.getItem(THEME_KEY);
+    if (saved === 'dark' || saved === 'light') return saved;
+  } catch {}
   return 'light';
 }
 
 export function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
+  try { document.documentElement.setAttribute('data-theme', theme); } catch {}
 }
 
 export function setTheme(theme) {
-  window.localStorage.setItem(THEME_KEY, theme);
+  try { window.localStorage.setItem(THEME_KEY, theme); } catch {}
   applyTheme(theme);
-  // Let any other mounted component (e.g. a toggle on another tab/page) know.
-  window.dispatchEvent(new CustomEvent('attendplus-theme-change', { detail: theme }));
+  try { window.dispatchEvent(new CustomEvent('attendplus-theme-change', { detail: theme })); } catch {}
 }
 
 export function toggleTheme() {

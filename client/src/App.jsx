@@ -1,18 +1,38 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Credits from './pages/Credits';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
-import { isAuthed } from './utils/auth';
+import { isAuthed, getRole } from './utils/auth';
 
-// ProtectedRoute re-evaluates isAuthed() on every navigation rather than
-// only on the initial bundle render. This prevents a race where clearing
-// session storage (logout) doesn't re-check the guard until a hard reload.
 function ProtectedRoute({ role, children }) {
-  return isAuthed(role) ? children : <Navigate to="/login" replace />;
+  const loc = useLocation();
+  if (!isAuthed()) return <Navigate to="/login" replace state={{ from: loc.pathname }} />;
+  if (role && !isAuthed(role)) {
+    const actual = getRole();
+    if (actual === 'teacher') return <Navigate to="/teacher-dashboard" replace />;
+    if (actual === 'student') return <Navigate to="/student-dashboard" replace />;
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+function PublicOnly({ children }) {
+  if (isAuthed('teacher')) return <Navigate to="/teacher-dashboard" replace />;
+  if (isAuthed('student')) return <Navigate to="/student-dashboard" replace />;
+  if (isAuthed()) return <Navigate to="/" replace />;
+  return children;
+}
+function NotFound() {
+  return (
+    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center' }}>
+      <h1 style={{ fontSize: 28, fontWeight: 800 }}>Page not found</h1>
+      <p style={{ color: 'var(--ap-text-muted)' }}>The page you’re looking for doesn’t exist.</p>
+      <a href="/" style={{ color: 'var(--ap-primary)', fontWeight: 700, textDecoration: 'none' }}>Go home</a>
+    </div>
+  );
 }
 
 function App() {
@@ -20,29 +40,12 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
+        <Route path="/signup" element={<PublicOnly><Signup /></PublicOnly>} />
         <Route path="/credits" element={<Credits />} />
-
-        {/* Teacher Dashboard - checks either localStorage (remembered) or sessionStorage */}
-        <Route
-          path="/teacher-dashboard"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Student Dashboard - checks either localStorage (remembered) or sessionStorage */}
-        <Route
-          path="/student-dashboard"
-          element={
-            <ProtectedRoute role="student">
-              <StudentDashboard />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/teacher-dashboard" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
+        <Route path="/student-dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

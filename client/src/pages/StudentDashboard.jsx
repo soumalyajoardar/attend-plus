@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import QRScanner from './QRScanner';
 import ManualEntry from './ManualEntry';
 import './StudentDashboard.css';
-import { API_BASE } from '../utils/api';
+import { API_BASE, authHeaders } from '../utils/api';
 import { clearSession, getUser, getToken } from '../utils/auth';
 import { getTheme, setTheme as setGlobalTheme } from '../utils/theme';
 import { useToast, ToastStack } from '../components/Toast';
@@ -11,11 +11,13 @@ import {
   IconHome, IconBell, IconQr, IconCalendar, IconUser, IconSettings, IconLogout,
   IconCheckCircle, IconRefresh, IconMoon, IconSun, IconIdCard,
   IconBuilding, IconLayers, IconMail, IconShield, IconTrendingUp, IconChevronRight,
-  IconTrash, IconAlertCircle, IconClose, IconMenu,
+  IconTrash, IconAlertCircle, IconClose, IconMenu, IconChart,
 } from '../components/Icons';
+import StudentAnalytics from './StudentAnalytics';
 
 const NAV_ITEMS = [
   { id: 'home', label: 'Home', icon: IconHome },
+  { id: 'analytics', label: 'Analytics', icon: IconChart },
   { id: 'notifications', label: 'Notifications', icon: IconBell },
   { id: 'history', label: 'History', icon: IconCalendar },
   { id: 'profile', label: 'Profile', icon: IconUser },
@@ -92,7 +94,8 @@ const StudentDashboard = () => {
     setLoadingNotifications(true);
     try {
       const response = await fetch(`${API_BASE}/api/notifications`);
-      const data = await response.json();
+      const ct = response.headers.get('content-type') || '';
+      const data = ct.includes('application/json') ? await response.json() : { success: false, notifications: [] };
       if (data.success) setNotifications(data.notifications);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -107,7 +110,7 @@ const StudentDashboard = () => {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  const unreadCount = notifications.filter((n) => !n.readBy?.includes(registrationNo)).length;
+  const unreadCount = registrationNo && registrationNo !== 'N/A' ? notifications.filter((n) => !n.readBy?.includes(registrationNo)).length : 0;
 
   const markAllRead = async () => {
     const unread = notifications.filter((n) => !n.readBy?.includes(registrationNo));
@@ -117,7 +120,7 @@ const StudentDashboard = () => {
         unread.map((n) =>
           fetch(`${API_BASE}/api/notifications/${n._id}/read`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ registrationNo }),
           })
         )
@@ -131,11 +134,12 @@ const StudentDashboard = () => {
   };
 
   const fetchHistory = useCallback(async () => {
-    if (registrationNo === 'N/A') return;
+    if (!registrationNo || registrationNo === 'N/A') return;
     setLoadingHistory(true);
     try {
-      const response = await fetch(`${API_BASE}/api/attendance/student/${registrationNo}`);
-      const data = await response.json();
+      const response = await fetch(`${API_BASE}/api/attendance/student/${encodeURIComponent(registrationNo)}`, { headers: authHeaders() });
+      const ct = response.headers.get('content-type') || '';
+      const data = ct.includes('application/json') ? await response.json() : { success: false };
       if (data.success) setHistory(data.records);
     } catch (err) {
       console.error('Fetch history error:', err);
@@ -145,7 +149,7 @@ const StudentDashboard = () => {
   }, [registrationNo]);
 
   useEffect(() => {
-    if (activeSection === 'history' || activeSection === 'home') fetchHistory();
+    if (activeSection === 'history' || activeSection === 'home' || activeSection === 'analytics') fetchHistory();
   }, [activeSection, fetchHistory]);
 
   const thisWeekCount = history.filter((r) => {
@@ -178,9 +182,11 @@ const StudentDashboard = () => {
     setDeleting(true);
     setDeleteError('');
     try {
-      const response = await fetch(`${API_BASE}/api/student/${storedUser.id}/delete`, {
+      const targetId = storedUser.id || storedUser._id;
+      if (!targetId) { setDeleteError('Session invalid. Please log in again.'); setDeleting(false); return; }
+      const response = await fetch(`${API_BASE}/api/student/${targetId}/delete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ password: deletePassword }),
       });
       const data = await response.json();
@@ -267,6 +273,7 @@ const StudentDashboard = () => {
             </button>
             <h1>
               {activeSection === 'home' ? `Hello, ${studentName.split(' ')[0]}` :
+               activeSection === 'analytics' ? 'Analytics' :
                activeSection === 'notifications' ? 'Notifications' :
                activeSection === 'history' ? 'Attendance History' :
                activeSection === 'profile' ? 'My Profile' : 'Settings'}
@@ -422,6 +429,12 @@ const StudentDashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeSection === 'analytics' && (
+          <div className="ap-fade-in">
+            <StudentAnalytics history={history} department={department} semester={semester} />
           </div>
         )}
 

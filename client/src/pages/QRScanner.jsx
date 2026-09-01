@@ -11,13 +11,15 @@ const QRScanner = ({ onClose, onSuccess }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const scannerRef = useRef(null);
   const hasScannedRef = useRef(false);
+  const timeoutRef = useRef(null);
 
   const stopScanner = useCallback(() => {
-    if (scannerRef.current) {
-      scannerRef.current.stop().then(() => {
-        scannerRef.current.clear();
+    const s = scannerRef.current;
+    scannerRef.current = null;
+    if (s) {
+      s.stop().then(() => {
+        try { s.clear(); } catch {}
       }).catch(() => {});
-      scannerRef.current = null;
     }
   }, []);
 
@@ -52,18 +54,21 @@ const QRScanner = ({ onClose, onSuccess }) => {
       if (result.success) {
         setSuccess(true);
         setError('');
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
           onSuccess(result.message || 'Attendance marked successfully!');
         }, 500);
       } else {
         setError(result.message || 'Failed to mark attendance.');
         setIsProcessing(false);
         hasScannedRef.current = false;
+        // Allow retry — restart scanner after short delay
+        setTimeout(() => { if (!hasScannedRef.current) startScanner(); }, 1200);
       }
     } catch (_err) {
       setError('Cannot connect to server. Please try again.');
       setIsProcessing(false);
       hasScannedRef.current = false;
+      setTimeout(() => { if (!hasScannedRef.current) startScanner(); }, 1200);
     }
   }, [stopScanner, onSuccess]);
 
@@ -95,20 +100,28 @@ const QRScanner = ({ onClose, onSuccess }) => {
     startScanner();
     return () => {
       stopScanner();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [startScanner, stopScanner]);
 
   const handleClose = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     stopScanner();
     onClose();
   };
 
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') handleClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
-    <div className="scanner-overlay">
-      <div className="scanner-modal">
+    <div className="scanner-overlay" onClick={handleClose} role="presentation">
+      <div className="scanner-modal" role="dialog" aria-modal="true" aria-labelledby="qr-title" onClick={(e) => e.stopPropagation()}>
         <div className="scanner-header">
-          <h2>Scan QR Code</h2>
-          <button className="close-btn" onClick={handleClose}><IconClose size={18} /></button>
+          <h2 id="qr-title">Scan QR Code</h2>
+          <button type="button" className="close-btn" onClick={handleClose} aria-label="Close scanner"><IconClose size={18} /></button>
         </div>
 
         <div className="scanner-body">

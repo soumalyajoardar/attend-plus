@@ -1,2 +1,12 @@
 node_modules/
 .env
+server/.env
+client/.env
+*.log
+dist/
+.env.local
+.env.production
+ca.key
+cert.key
+ca.crt
+cert.crt

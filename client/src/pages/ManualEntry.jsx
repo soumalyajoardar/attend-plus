@@ -16,11 +16,19 @@ const ManualEntry = ({ onClose, onSuccess }) => {
   const [success, setSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const inputRef = useRef(null);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
-    // Autofocus so the student can start typing immediately.
     if (inputRef.current) inputRef.current.focus();
   }, []);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [onClose]);
 
   const submit = async (e) => {
     if (e) e.preventDefault();
@@ -59,7 +67,7 @@ const ManualEntry = ({ onClose, onSuccess }) => {
       if (result.success) {
         setSuccess(true);
         setError('');
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
           onSuccess(result.message || 'Attendance marked successfully!');
         }, 500);
       } else {
@@ -73,11 +81,11 @@ const ManualEntry = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="scanner-overlay">
-      <div className="scanner-modal">
+    <div className="scanner-overlay" onClick={onClose} role="presentation">
+      <div className="scanner-modal" role="dialog" aria-modal="true" aria-labelledby="manual-title" onClick={(e) => e.stopPropagation()}>
         <div className="scanner-header">
-          <h2>Enter Attendance Code</h2>
-          <button className="close-btn" onClick={onClose}><IconClose size={18} /></button>
+          <h2 id="manual-title">Enter Attendance Code</h2>
+          <button type="button" className="close-btn" onClick={onClose} aria-label="Close"><IconClose size={18} /></button>
         </div>
 
         <div className="scanner-body">

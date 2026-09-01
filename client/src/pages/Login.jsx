@@ -9,59 +9,50 @@ import ThemeToggle from '../components/ThemeToggle';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [userType, setUserType] = useState('student'); // Default is student
+  const [userType, setUserType] = useState('student');
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // Notice passed from the signup page after a successful registration
   const notice = location.state?.notice || '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
     setLoading(true);
-
-    // Use the entered ID (which can be ADMIN-2026 or student email)
     const identifier = id.trim();
-
+    if (!identifier || !password) { setError('Please fill in all fields.'); setLoading(false); return; }
     try {
       const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: identifier,
-          password,
-          portal: userType,
-        }),
+        body: JSON.stringify({ email: identifier, password, portal: userType }),
       });
-
-      const data = await response.json();
-
-      if (data.success) {
+      let data;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) data = await response.json();
+      else {
+        const text = await response.text();
+        throw new Error(text || `Server error ${response.status}`);
+      }
+      if (response.ok && data.success) {
         saveSession({ token: data.token, role: data.role, user: data.user }, rememberMe);
-
-        if (data.role === 'teacher') {
-          navigate('/teacher-dashboard');
-        } else {
-          navigate('/student-dashboard');
-        }
+        const from = location.state?.from || (data.role === 'teacher' ? '/teacher-dashboard' : '/student-dashboard');
+        navigate(from, { replace: true });
       } else {
-        setError(data.message || 'Login failed.');
-        setLoading(false);
+        setError(data?.message || 'Login failed.');
       }
     } catch (err) {
       console.error('Login error:', err);
-      // Provide more helpful error messages
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError('Cannot connect to server. Please check your internet connection or try again later.');
-      } else if (err.message?.includes('CORS')) {
-        setError('Connection blocked by server. Please contact support.');
+        setError('Cannot connect to server. Check your connection and try again.');
       } else {
-        setError('Cannot connect to server. Please try again.');
+        setError(err.message || 'Cannot connect to server. Please try again.');
       }
+    } finally {
       setLoading(false);
     }
   };
@@ -124,33 +115,41 @@ const Login = () => {
           )}
           {error && <div className="error-box"><IconAlertCircle size={16} /> {error}</div>}
           <div className="input-group">
-            <label>{userType === 'student' ? 'Registration Number' : 'Teacher ID'}</label>
+            <label htmlFor="login-id">{userType === 'student' ? 'Registration Number' : 'Teacher ID'}</label>
             <input
+              id="login-id"
               type="text"
               placeholder={userType === 'student' ? 'e.g. D232423001' : 'Teacher ID here'}
               value={id}
               onChange={(e) => setId(e.target.value)}
               required
+              autoComplete="username"
+              autoCapitalize="off"
+              spellCheck={false}
             />
           </div>
 
           <div className="input-group">
-            <label>Password</label>
+            <label htmlFor="login-password">Password</label>
             <div className="password-wrapper">
               <input
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
               />
-              <span
+              <button
+                type="button"
                 className="eye-icon"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 title={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
-              </span>
+              </button>
             </div>
           </div>
 
