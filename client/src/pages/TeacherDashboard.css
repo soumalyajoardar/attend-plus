@@ -2841,6 +2841,83 @@
   color: #0D6157;
 }
 
+/* Dark mode — sidebar & drawer become dark (not green) */
+[data-theme='dark'] .sidebar {
+  background: #0B1120;
+  color: var(--ap-text);
+  border-right: 1px solid #1E293B;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+}
+[data-theme='dark'] .sidebar-logo {
+  border-bottom-color: #1E293B;
+}
+[data-theme='dark'] .sidebar-logo h2 { color: var(--ap-text); }
+[data-theme='dark'] .sidebar-logo h2 span { color: var(--ap-primary); }
+[data-theme='dark'] .sidebar .logo-icon {
+  background: var(--ap-primary);
+  color: #0B1120;
+}
+[data-theme='dark'] .sidebar-link {
+  color: var(--ap-text-muted);
+}
+[data-theme='dark'] .sidebar-link:hover {
+  background: var(--ap-primary-light);
+  color: var(--ap-text);
+}
+[data-theme='dark'] .sidebar-link.active {
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+  box-shadow: none;
+}
+[data-theme='dark'] .sidebar .notification-badge.inline {
+  background: var(--ap-primary);
+  color: white;
+}
+[data-theme='dark'] .sidebar-footer {
+  border-top-color: #1E293B;
+}
+[data-theme='dark'] .teacher-card {
+  background: #0F172A;
+  border: 1px solid #1E293B;
+}
+[data-theme='dark'] .teacher-avatar {
+  background: var(--ap-primary-light);
+  color: var(--ap-primary);
+}
+[data-theme='dark'] .teacher-details strong { color: var(--ap-text); }
+[data-theme='dark'] .teacher-details p { color: var(--ap-text-muted); }
+[data-theme='dark'] .sidebar .logout-btn {
+  background: rgba(239, 68, 68, 0.12);
+  color: #FCA5A5;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+[data-theme='dark'] .sidebar .logout-btn:hover {
+  background: #DC2626;
+  color: #fff;
+  border-color: #DC2626;
+}
+[data-theme='dark'] .nav-drawer {
+  background: #0B1120;
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.6);
+  border-right: 1px solid #1E293B;
+}
+[data-theme='dark'] .nav-drawer-header { border-bottom-color: #1E293B; }
+[data-theme='dark'] .nav-drawer-close { color: var(--ap-text); }
+[data-theme='dark'] .nav-drawer-close:hover { background: var(--ap-primary-light); color: var(--ap-primary); }
+[data-theme='dark'] .nav-drawer .sidebar-logo h2 { color: var(--ap-text); }
+[data-theme='dark'] .nav-drawer .sidebar-logo h2 span { color: var(--ap-primary); }
+[data-theme='dark'] .nav-drawer .logo-icon { background: var(--ap-primary); color: #0B1120; }
+[data-theme='dark'] .nav-drawer-btn { color: var(--ap-text-muted); }
+[data-theme='dark'] .nav-drawer-btn:hover { background: var(--ap-primary-light); color: var(--ap-text); }
+[data-theme='dark'] .nav-drawer-btn.active { background: var(--ap-primary-light); color: var(--ap-primary); box-shadow: none; }
+[data-theme='dark'] .nav-drawer .logout-btn {
+  background: rgba(239, 68, 68, 0.12);
+  color: #FCA5A5;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+[data-theme='dark'] .nav-drawer .logout-btn:hover { background: #DC2626; color: #fff; }
+[data-theme='dark'] .nav-drawer .notification-badge.inline { background: var(--ap-primary); color: #fff; }
+
 /* ==================================================================
    OVERFLOW HARDENING — nothing may push the page wider than the screen
    ================================================================== */

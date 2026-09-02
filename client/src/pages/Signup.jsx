@@ -194,7 +194,7 @@ const Signup = () => {
             <label htmlFor="su-pass">Create Password</label>
             <div className="password-wrapper">
               <input id="su-pass" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
-              <button type="button" className="eye-icon" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+              <button type="button" className={`eye-icon ${showPassword ? 'is-showing' : ''}`} onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
                 {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
               </button>
             </div>

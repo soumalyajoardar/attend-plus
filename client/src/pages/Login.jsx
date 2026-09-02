@@ -143,7 +143,7 @@ const Login = () => {
               />
               <button
                 type="button"
-                className="eye-icon"
+                className={`eye-icon ${showPassword ? 'is-showing' : ''}`}
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 title={showPassword ? 'Hide password' : 'Show password'}
